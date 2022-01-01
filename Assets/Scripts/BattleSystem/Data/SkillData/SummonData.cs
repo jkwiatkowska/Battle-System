@@ -4,16 +4,10 @@ using UnityEngine;
 
 public class SummonData : SkillActionData
 {
-    public enum eSummonPosition
-    {
-        CasterPosition,
-        TargetPosition
-    }
-
     public string EntityID;
-    public eSummonPosition SummonAtPosition;            // Summon can appear near caster or target
-    public Vector2 PositionOffset;                      // Position offset from caster/target
-    public Vector2 RandomPositionOffset;                // Range of a random offset from the summon position
+
+    public PositionData SummonAtPosition;
+
     public float SummonDuration;                        // 0 if infinite
     public Dictionary<string, float> SharedAttributes;  // Summoned entity can inherit the caster's attributes
                                                         // The float value is a multiplier
@@ -23,6 +17,6 @@ public class SummonData : SkillActionData
 
     public override bool NeedsTarget()
     {
-        return SummonAtPosition != eSummonPosition.TargetPosition;
+        return SummonAtPosition.PositionOrigin != PositionData.ePositionOrigin.SelectedTargetPosition;
     }
 }

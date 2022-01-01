@@ -11,19 +11,12 @@ public class AreaActionData : PayloadActionData
             Cone,
             Rectangle
         }
-        public enum eAreaPosition
-        {
-            CasterPosition,
-            TargetPosition
-        }
 
         public eShape Shape;
         public Vector2 Dimensions;              // Rectangle length/width or cone radius/width (can be a circle)
         public Vector2 InnerDimensions;         // Can make a smaller shape to create a cutout (for example a donut)
 
-        public eAreaPosition AreaPosition;
-        public Vector2 AreaPositionOffset;
-        public Vector2 AreaRandomOffset;
+        public PositionData AreaPosition;
         public float Rotation;
 
         // To do: add a way to define falloff ratios
@@ -37,7 +30,7 @@ public class AreaActionData : PayloadActionData
         {
             foreach (var area in AreasAffected)
             {
-                if (area.AreaPosition == Area.eAreaPosition.TargetPosition)
+                if (area.AreaPosition.PositionOrigin == PositionData.ePositionOrigin.SelectedTargetPosition)
                 {
                     return true;
                 }
