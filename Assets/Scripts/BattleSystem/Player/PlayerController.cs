@@ -21,6 +21,8 @@ public class PlayerController : MonoBehaviour
     float GravitationalForce;
     bool IsGrounded;
 
+    public float LastMoved { get; private set; }
+
     private void Awake()
     {
         GravitationalForce = Gravity;
@@ -44,6 +46,8 @@ public class PlayerController : MonoBehaviour
             MovementVector.Normalize();
             transform.position += MovementVector * Speed * Time.fixedDeltaTime;
             transform.rotation = Quaternion.LookRotation(MovementVector, Vector3.up);
+
+            LastMoved = Time.realtimeSinceStartup;
         }
         else
         {
@@ -68,10 +72,5 @@ public class PlayerController : MonoBehaviour
         }
 
         gameObject.transform.position += (Velocity * Time.deltaTime);
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        Debug.Log($"Collided with {collision.gameObject.name}");
     }
 }

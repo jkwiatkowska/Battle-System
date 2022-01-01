@@ -4,16 +4,19 @@ using UnityEngine;
 
 public class BattleSystem : MonoBehaviour
 {
-    public static BattleSystem Instance;
+    [SerializeField] string DataPath;
+    public static BattleSystem Instance { get; private set; }
 
-    Dictionary<string, Entity> Entities;
-    Dictionary<string, List<string>> Factions;
+    public Dictionary<string, Entity> Entities { get; private set; }
+    public List<Targetable> TargetableEntities { get; private set; }
 
     void Awake()
     {
-        Instance = new BattleSystem();
+        GameData.LoadMockData();
+
+        Instance = this;
         Entities = new Dictionary<string, Entity>();
-        Factions = new Dictionary<string, List<string>>();
+        TargetableEntities = new List<Targetable>();
     }
     
     void Update()
@@ -24,6 +27,19 @@ public class BattleSystem : MonoBehaviour
     public void AddEntity(Entity entity)
     {
         Entities.Add(entity.EntityUID, entity);
+
+        if (entity.EntityData.IsTargetable)
+        {
+            var targetable = entity.GetComponent<Targetable>();
+            if (targetable == null)
+            {
+                Debug.LogError($"Entity {entity.EntityUID} marked as targetable, but it does not have a Targetable component.");
+            }
+            else
+            {
+                TargetableEntities.Add(targetable);
+            }
+        }
     }
 
     public void RemoveEntity(string entityUID)
@@ -31,25 +47,19 @@ public class BattleSystem : MonoBehaviour
         Entities.Remove(entityUID);
     }
 
-    public List<string> GetFriendlyEntities(string entityID)
+    public static bool IsFriendly(string entityUID, string targetUID)
     {
-        var entityData = GameData.GetEntityData(entityID);        
-        var friendlyFactions = GameData.GetFactionData(entityData.Faction).FriendlyFactions;
-
-        var friendlyEntities = new List<string>();
-
-        friendlyEntities.AddRange(Factions[entityData.Faction]);
-
-        foreach (var faction in friendlyFactions)
+        if (entityUID == targetUID)
         {
-            friendlyEntities.AddRange(Factions[faction]);
+            return true;
         }
 
-        return friendlyEntities;
-    }
+        var entity = Instance.Entities[entityUID];
+        var entityFaction = !string.IsNullOrEmpty(entity.FactionOverride) ? entity.FactionOverride : entity.FactionData.FactionID;
 
-    public static bool IsFriendly(string entityFaction, string targetFaction)
-    {
+        var targetEntity = Instance.Entities[targetUID];
+        var targetFaction = !string.IsNullOrEmpty(targetEntity.FactionOverride) ? targetEntity.FactionOverride : targetEntity.FactionData.FactionID;
+
         if (entityFaction == targetFaction)
         {
             return true;
@@ -62,8 +72,19 @@ public class BattleSystem : MonoBehaviour
         return false;
     }
 
-    public static bool IsEnemy(string entityFaction, string targetFaction)
+    public static bool IsEnemy(string entityUID, string targetUID)
     {
+        if (entityUID == targetUID)
+        {
+            return false;
+        }
+
+        var entity = Instance.Entities[entityUID];
+        var entityFaction = !string.IsNullOrEmpty(entity.FactionOverride) ? entity.FactionOverride : entity.FactionData.FactionID;
+
+        var targetEntity = Instance.Entities[targetUID];
+        var targetFaction = !string.IsNullOrEmpty(targetEntity.FactionOverride) ? targetEntity.FactionOverride : targetEntity.FactionData.FactionID;
+
         if (entityFaction == targetFaction)
         {
             return false;

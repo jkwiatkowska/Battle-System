@@ -4,7 +4,8 @@ using UnityEngine;
 
 public static class SkillSystem
 {
-    public static IEnumerator UseSkillCoroutine(string skillID, Entity caster, Entity selectedEntity, List<Entity> enemyEntities, List<Entity> friendlyEntities)
+    public static IEnumerator UseSkillCoroutine(string skillID, Entity caster, Targetable selectedEntity, 
+                                                List<Targetable> enemyEntities, List<Targetable> friendlyEntities)
     {
         var skill = GameData.GetSkillData(skillID);
 
@@ -113,7 +114,8 @@ public static class SkillSystem
         return outgoingDamage;
     }
 
-    static List<Entity> GetAffectedEntities(DirectActionData action, Entity caster, Entity selectedEntity, List<Entity> enemyEntities, List<Entity> friendlyEntities)
+    static List<Entity> GetAffectedEntities(DirectActionData action, Entity caster, Targetable selectedTarget, 
+                                            List<Targetable> enemyTargets, List<Targetable> friendlyTargets)
     {
         var targets = new List<Entity>();
 
@@ -121,9 +123,9 @@ public static class SkillSystem
         {
             if (action.Target == PayloadActionData.eTarget.FriendlyEntities)
             {
-                if (BattleSystem.IsFriendly(caster.EntityData.Faction, selectedEntity.EntityData.Faction))
+                if (BattleSystem.IsFriendly(caster.EntityUID, selectedTarget.Entity.EntityUID))
                 {
-                    targets.Add(selectedEntity);
+                    targets.Add(selectedTarget.Entity);
                 }
                 else
                 {
@@ -132,14 +134,14 @@ public static class SkillSystem
             }
             else if (action.Target == PayloadActionData.eTarget.EnemyEntities)
             {
-                if (enemyEntities.Contains(selectedEntity))
+                if (enemyTargets.Contains(selectedTarget))
                 {
-                    targets.Add(selectedEntity);
+                    targets.Add(selectedTarget.Entity);
                 }
-                else if (enemyEntities.Count > 0)
+                else if (enemyTargets.Count > 0)
                 {
-                    selectedEntity = enemyEntities[0];
-                    targets.Add(selectedEntity);
+                    selectedTarget = enemyTargets[0];
+                    targets.Add(selectedTarget.Entity);
                 }
             }
         }
@@ -148,16 +150,16 @@ public static class SkillSystem
         {
             if (action.Target == PayloadActionData.eTarget.FriendlyEntities)
             {
-                foreach (var entity in friendlyEntities)
+                foreach (var target in friendlyTargets)
                 {
-                    targets.Add(entity);
+                    targets.Add(target.Entity);
                 }
             }
             else if (action.Target == PayloadActionData.eTarget.EnemyEntities)
             {
-                foreach (var entity in enemyEntities)
+                foreach (var target in enemyTargets)
                 {
-                    targets.Add(entity);
+                    targets.Add(target.Entity);
                 }
             }
             if (action.SkillTargets == DirectActionData.eDirectSkillTargets.RandomTargets)
@@ -172,7 +174,8 @@ public static class SkillSystem
         return targets;
     }
 
-    static List<Entity> GetAffectedEntities(AreaActionData action, Entity caster, Entity selectedEntity, List<Entity> enemyEntities, List<Entity> friendlyEntities)
+    static List<Entity> GetAffectedEntities(AreaActionData action, Entity caster, Targetable selectedTarget,
+                                            List<Targetable> enemyTargets, List<Targetable> friendlyTargets)
     {
         var targets = new List<Entity>();
 

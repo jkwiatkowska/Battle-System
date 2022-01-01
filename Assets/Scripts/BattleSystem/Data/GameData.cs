@@ -4,13 +4,13 @@ using UnityEngine;
 
 public static class GameData
 {
-    public static List<string> Affinities;          // Damage types and resistances can be calculated using these
-    public static List<string> EntityDepletables;   // Values like hit points, mana, stamina, etc.
-    public static string HitPoints;                 // Which of the depletables represents HP
-    public static List<string> EntityAttributes;    // Stats mainly used to determine outgoing and incoming damage
-    public static List<string> PayloadFlags;        // Flags to customise payload damage
+    public static List<string> Affinities;              // Damage types and resistances can be calculated using these
+    public static List<string> EntityDepletables;       // Values like hit points, mana, stamina, etc.
+    public static string HitPoints;                     // Which of the depletables represents HP
+    public static List<string> EntityAttributes;        // Stats mainly used to determine outgoing and incoming damage
+    public static List<string> PayloadFlags;            // Flags to customise payload damage
     
-    static Dictionary<string, FactionData> FactionData;  // Define entity allegiance and relations
+    static Dictionary<string, FactionData> FactionData; // Define entity allegiance and relations
     static Dictionary<string, EntityData> EntityData;
     static Dictionary<string, PayloadData> PayloadData;
     static Dictionary<string, SkillData> SkillData;
@@ -20,6 +20,60 @@ public static class GameData
     public static void LoadData(string path)
     {
 
+    }
+
+    public static void LoadMockData()
+    {
+        FactionData = new Dictionary<string, FactionData>
+        {
+            {
+                "Player",
+                new FactionData()
+                {
+                    FactionID = "Player",
+                    FriendlyFactions = new List<string>(),
+                    EnemyFactions = new List<string>()
+                    {
+                        "Dummy"
+                    }
+                }
+            },
+            {
+                "Dummy",
+                new FactionData()
+                {
+                    FactionID = "Dummy",
+                    FriendlyFactions = new List<string>(),
+                    EnemyFactions = new List<string>()
+                }
+            }
+        };
+
+        EntityData = new Dictionary<string, EntityData>
+        {
+            {
+                "Player",
+                new EntityData()
+                {
+                    BaseAttributes = new Dictionary<string, Vector2>(),
+                    MaxDepletables = new Dictionary<string, Vector2>(),
+                    IsTargetable = true,
+                    Faction = "Player",
+                    IsAI = false
+                }
+            },
+            {
+                "Dummy",
+                new EntityData()
+                {
+                    BaseAttributes = new Dictionary<string, Vector2>(),
+                    MaxDepletables = new Dictionary<string, Vector2>(),
+                    IsTargetable = true,
+                    Faction = "Dummy",
+                    IsAI = false
+                }
+            }
+        };
     }
 
     #region Editor
@@ -37,10 +91,19 @@ public static class GameData
 
             foreach (var entity in EntityData)
             {
-                var entitySkills = entity.Value.Skills;
-                while (entitySkills.Contains(oldID))
+                if (entity.Value.IsAI)
                 {
-                    entitySkills[entitySkills.IndexOf(oldID)] = newID;
+                    var aiEntity = entity.Value as AIEntityData;
+                    if (aiEntity == null)
+                    {
+                        Debug.LogError($"Entity {entity.Key} expected to be an AIEntity.");
+                    }
+
+                    var entitySkills = aiEntity.Skills;
+                    while (entitySkills.Contains(oldID))
+                    {
+                        entitySkills[entitySkills.IndexOf(oldID)] = newID;
+                    }
                 }
             }
         }
@@ -54,10 +117,19 @@ public static class GameData
 
             foreach (var entity in EntityData)
             {
-                var entitySkills = entity.Value.Skills;
-                if (entitySkills.Contains(skillID))
+                if (entity.Value.IsAI)
                 {
-                    entitySkills.RemoveAll(s => s == skillID);
+                    var aiEntity = entity.Value as AIEntityData;
+                    if (aiEntity == null)
+                    {
+                        Debug.LogError($"Entity {entity.Key} expected to be an AIEntity.");
+                    }
+
+                    var entitySkills = aiEntity.Skills;
+                    if (entitySkills.Contains(skillID))
+                    {
+                        entitySkills.RemoveAll(s => s == skillID);
+                    }
                 }
             }
         }

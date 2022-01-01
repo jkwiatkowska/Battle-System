@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SkillActionData
+public abstract class SkillActionData
 {
     public enum eSkillActionType
     {
@@ -15,4 +15,6 @@ public class SkillActionData
     public string ActionID;
     public eSkillActionType ActionType;
     public float Timestamp;
+
+    public abstract bool NeedsTarget();
 }

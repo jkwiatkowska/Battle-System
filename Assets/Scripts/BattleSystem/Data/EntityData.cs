@@ -4,13 +4,14 @@ using UnityEngine;
 
 public class EntityData
 {
-    public Dictionary<string, Vector2> BaseAttributes; // Attributes like atk, def, etc. Values at level 1 and max level. 
-    public Dictionary<string, Vector2> MaxDepletables; // Depletable values like hp, mp and stamina at level 1 and max level.
-    
-    public List<string> Skills;
-    // To do: skill mode
+    public Dictionary<string, Vector2> BaseAttributes;  // Attributes like atk, def, etc. Values at level 1 and max level. 
+    public Dictionary<string, Vector2> MaxDepletables;  // Depletable values like hp, mp and stamina at level 1 and max level.
+
+    public bool IsTargetable;                           // If true, skills can be used on the entity.
 
     public string Faction;
+
+    public bool IsAI;                                   // AI entities hold a list of skills that they automatically execute.
 
     public Dictionary<string, float> GetAttributesForLevel(int level)
     {

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PayloadActionData : SkillActionData
+public abstract class PayloadActionData : SkillActionData
 {
     public enum eTarget
     {

@@ -13,4 +13,9 @@ public class DirectActionData : PayloadActionData
 
     public eDirectSkillTargets SkillTargets;
     public int TargetCount;
+
+    public override bool NeedsTarget()
+    {
+        return SkillTargets != eDirectSkillTargets.SelectedTarget && Target == eTarget.EnemyEntities;
+    }
 }

@@ -4,18 +4,17 @@ using UnityEngine;
 
 public class Entity : MonoBehaviour
 {
-    [SerializeField] public string EntityID         { get; private set; }
+    [SerializeField] string EntityID;
     public string EntityUID                         { get; private set; }
+    static int EntityCount = 0;
     public Dictionary<string, float> Attributes     { get; private set; }
-    public Dictionary<string, Vector2> Depletables  { get; private set; } // Current and max value.
+    public Dictionary<string, Vector2> Depletables  { get; private set; }   // Current and max value.
     public int EntityLevel                          { get; private set; }
 
-    Dictionary<string, float> SkillCooldown;
-    Coroutine SkillCoroutine;
+    protected Dictionary<string, float> SkillCooldown;
+    protected Coroutine SkillCoroutine;
 
-    Entity SelectedEntity;
-    List<Entity> EnemyEntities;
-    List<Entity> FriendlyEntities;
+    [SerializeField] protected TargetingSystem TargetingSystem;
 
     public string FactionOverride                   { get; private set; }
 
@@ -43,19 +42,24 @@ public class Entity : MonoBehaviour
         return Depletables[depletableName].y;
     }
 
-    public void Setup(string entityID, int entityLevel)
+    private void Start()
+    {
+        Setup(EntityID, EntityLevel);
+    }
+
+    public virtual void Setup(string entityID, int entityLevel)
     {
         EntityID = entityID;
+        EntityUID = entityID + EntityCount.ToString();
+        EntityCount++;
         EntityLevel = entityLevel;
 
         Attributes = EntityData.GetAttributesForLevel(entityLevel);
         Depletables = EntityData.GetDepletablesForLevel(entityLevel);
 
         SkillCooldown = new Dictionary<string, float>();
-        foreach(var skill in EntityData.Skills)
-        {
-            SkillCooldown.Add(skill, 0);
-        }
+
+        BattleSystem.Instance.AddEntity(this);
     }
 
     public bool CanUseSkill(string skillID)
@@ -78,7 +82,8 @@ public class Entity : MonoBehaviour
 
     public void UseSkill(string skillID)
     {
-        SkillCoroutine = StartCoroutine(SkillSystem.UseSkillCoroutine(skillID, this, SelectedEntity, EnemyEntities, FriendlyEntities));
+        TargetingSystem.UpdateEntityLists();
+        SkillCoroutine = StartCoroutine(SkillSystem.UseSkillCoroutine(skillID, this, TargetingSystem.SelectedTarget, TargetingSystem.EnemyEntities, TargetingSystem.FriendlyEntities));
     }
 
     public void CancelSkill()
@@ -90,18 +95,8 @@ public class Entity : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-
-    }
-
-    void Update()
-    {
-        
-    }
-
     public void Destroy()
     {
-
+        BattleSystem.Instance.RemoveEntity(EntityUID);
     }
 }
