@@ -15,6 +15,7 @@ public class Entity : MonoBehaviour
     protected Coroutine SkillCoroutine;
 
     [SerializeField] protected TargetingSystem TargetingSystem;
+    public Dictionary<string, List<Entity>> TaggedEntities { get; private set; }
 
     public string FactionOverride                   { get; private set; }
 
@@ -60,6 +61,8 @@ public class Entity : MonoBehaviour
         SkillCooldown = new Dictionary<string, float>();
 
         BattleSystem.Instance.AddEntity(this);
+
+        name = EntityUID;
     }
 
     public bool CanUseSkill(string skillID)

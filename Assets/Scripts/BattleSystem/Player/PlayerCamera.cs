@@ -29,32 +29,13 @@ public class PlayerCamera : MonoBehaviour
         return transform.right.normalized;
     }
 
-    void GetCameraInputs()
+    public void Rotate (Vector2 input)
     {
-        //Rotate camera based on mouse coordinates
-        if (Input.GetAxis("Mouse X") != 0.0f || Input.GetAxis("Mouse Y") != 0.0f)
-        {
-            Rotation.x += Input.GetAxis("Mouse X") * MouseSensitivity;
-            Rotation.y -= Input.GetAxis("Mouse Y") * MouseSensitivity;
+        Rotation.x += input.x * MouseSensitivity;
+        Rotation.y -= input.y * MouseSensitivity;
 
-            Rotation.y = Mathf.Clamp(Rotation.y, RotationYClamp.x, RotationYClamp.y);
+        Rotation.y = Mathf.Clamp(Rotation.y, RotationYClamp.x, RotationYClamp.y);
 
-        }
-        //Zoom
-        if (Input.GetAxis("Mouse ScrollWheel") != 0f)
-        {
-            var scrollAmount = Input.GetAxis("Mouse ScrollWheel") * ScrollSensitvity;
-
-            scrollAmount *= (CameraDistance * 0.3f);
-
-            CameraDistance += scrollAmount * -1f;
-
-            CameraDistance = Mathf.Clamp(CameraDistance, 1.5f, 10f);
-        }
-    }
-
-    void RotateCamera()
-    {
         Quaternion qt = Quaternion.Euler(Rotation.y, Rotation.x, 0);
         transform.parent.rotation = Quaternion.Lerp(transform.parent.rotation, qt, Time.deltaTime * OrbitDampening);
 
@@ -66,13 +47,22 @@ public class PlayerCamera : MonoBehaviour
         transform.LookAt(transform.parent);
     }
 
+    public void Zoom (float zoom)
+    {
+        var scrollAmount = zoom * ScrollSensitvity;
+
+        scrollAmount *= (CameraDistance * 0.3f);
+
+        CameraDistance += scrollAmount * -1f;
+
+        CameraDistance = Mathf.Clamp(CameraDistance, 1.5f, 10f);
+    }
+
+
     void LateUpdate()
     {
         transform.parent.position = Target.transform.position;
         transform.parent.position += new Vector3(0f, (Target.transform.up * OffsetY).y, 0f);
-
-        GetCameraInputs();
-        RotateCamera();
 
         Vector3 targetToCamera = transform.position - transform.parent.position;
         targetToCamera.Normalize();

@@ -8,43 +8,71 @@ public class PlayerTargetingSystem : TargetingSystem
     [SerializeField] float AngleWeight = 0.5f;
     [SerializeField] float InputCooldown = 0.25f;
     [SerializeField] float MaxDistance = 50.0f;
-    Vector3 ParentLastPosition;
 
     float InputCd = 0.0f;
 
-    PlayerController Player;
+    PlayerMovement Player;
     float PlayerLastMoved;
 
     protected override void Awake()
     {
         base.Awake();
 
-        Player = Parent.GetComponent<PlayerController>();
+        Player = Parent.GetComponent<PlayerMovement>();
         if (Player == null)
         {
             Debug.LogError("Player entity does not have a player controller component.");
         }
     }
 
-    private void Update()
+    public void SwitchTarget()
     {
-        InputCd -= Time.deltaTime;
-
-        if (InputCd <= 0.0f && Input.GetKey(KeyCode.Tab))
+        if (InputCd > 0.0f)
         {
-            if (Player.LastMoved == PlayerLastMoved)
+            return;
+        }
+
+        if (Player.LastMoved == PlayerLastMoved)
+        {
+            Debug.Log("Selecting next");
+            base.SelectNextEnemy();
+        }
+        else
+        {
+            Debug.Log("Selecting best");
+            base.SelectBestEnemy();
+            PlayerLastMoved = Player.LastMoved;
+        }
+
+        InputCd = InputCooldown;
+    }
+
+    public void SelectWithMouse()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(UnityEngine.Input.mousePosition);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, 100))
+        {
+            var target = hit.transform.gameObject.GetComponent<Targetable>();
+            if (target != null)
             {
-                Debug.Log("Selecting next");
-                SelectNextEnemy();
+                base.SelectTarget(target);
             }
             else
             {
-                Debug.Log("Selecting best");
-                SelectBestEnemy();
-                PlayerLastMoved = Player.LastMoved;
+                base.ClearSelection();
             }
+
+            Debug.Log(hit.transform.gameObject.name);
+
             InputCd = InputCooldown;
         }
+    }
+
+    private void Update()
+    {
+        InputCd -= Time.deltaTime;
     }
 
     protected override void ProcessEnemyEntityList()
@@ -57,8 +85,6 @@ public class PlayerTargetingSystem : TargetingSystem
         }
 
         EnemyEntities.Sort((e1, e2) => scores[e2.Entity.EntityUID].CompareTo(scores[e1.Entity.EntityUID]));
-
-        ParentLastPosition = Parent.transform.position;
     }
 
     protected override void ProcessFriendlyEntityList()
@@ -73,6 +99,6 @@ public class PlayerTargetingSystem : TargetingSystem
 
         var angleScore = 1.0f - (Mathf.Abs(Vector3.Angle(Parent.transform.forward, v) - 180.0f)/180.0f);
 
-        return DistanceWeight * distanceScore + AngleWeight + angleScore;
+        return DistanceWeight * distanceScore + AngleWeight * angleScore;
     }
 }

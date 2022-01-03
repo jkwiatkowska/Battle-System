@@ -97,6 +97,15 @@ public class TargetingSystem : MonoBehaviour
         SelectedTarget.ToggleSelect(true);
     }
 
+    public virtual void ClearSelection()
+    {
+        if (SelectedTarget != null)
+        {
+            SelectedTarget.ToggleSelect(false);
+        }
+        SelectedTarget = null;
+    }
+
     public virtual void UpdateEntityLists()
     {
         var allEntities = BattleSystem.Instance.TargetableEntities;

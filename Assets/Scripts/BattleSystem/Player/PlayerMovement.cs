@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class PlayerMovement : MonoBehaviour
 {
     const float Gravity = -9.8f;
 
@@ -14,7 +14,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Rigidbody Rigidbody;
     [SerializeField] float GroundCheckSphereRadius;
 
-    Vector3 MovementVector;
     Vector3 Velocity;
     Vector3 GroundCheckSphereOffset;
 
@@ -32,38 +31,37 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        ControlPlayer();
+        UpdateVelocity();
     }
 
-    void ControlPlayer()
+    public void Move(Vector2 input)
+    {
+        var movementVector = input.x * Camera.GetPlayerXVector() + -input.y * Camera.GetPlayerZVector();
+
+        movementVector.Normalize();
+        transform.position += movementVector * Speed * Time.fixedDeltaTime;
+        transform.rotation = Quaternion.LookRotation(movementVector, Vector3.up);
+
+        LastMoved = Time.realtimeSinceStartup;
+    }
+
+    public void Jump()
+    {
+        if (IsGrounded)
+        {
+            Velocity.y += Mathf.Sqrt(JumpHeight * -2.0f * GravitationalForce);
+        }
+    }
+
+    void UpdateVelocity()
     {
         IsGrounded = Velocity.y <= 0.0f && Physics.CheckSphere(transform.position + GroundCheckSphereOffset, GroundCheckSphereRadius, TerrainLayers);
-
-        if (Input.GetAxis("Horizontal") != 0.0f || Input.GetAxis("Vertical") != 0.0f)
-        {
-            MovementVector = (Input.GetAxis("Horizontal") * Camera.GetPlayerXVector() + -Input.GetAxis("Vertical") * Camera.GetPlayerZVector());
-
-            MovementVector.Normalize();
-            transform.position += MovementVector * Speed * Time.fixedDeltaTime;
-            transform.rotation = Quaternion.LookRotation(MovementVector, Vector3.up);
-
-            LastMoved = Time.realtimeSinceStartup;
-        }
-        else
-        {
-            MovementVector = Vector3.zero;
-        }
 
         if (IsGrounded)
         {
             if (Velocity.y < 0.0f)
             {
                 Velocity.y = 0.0f;
-            }
-
-            if (Input.GetButton("Jump"))
-            {
-                Velocity.y += Mathf.Sqrt(JumpHeight * -2.0f * GravitationalForce);
             }
         }
         else

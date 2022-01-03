@@ -35,6 +35,10 @@ public class PayloadData
 
     public Dictionary<string, bool> Flags;              // Flags to customise the payload 
 
+    public bool TagEntity;                              // An entity can be "tagged". This makes it possible for skills to affect this entity specifically without selecting it
+    public string Tag;                                  // Identifier for tagged entities. 
+    public int MaxTags;                                 // Replaces a tagged entity if this limit is exceeded 
+
     public float SuccessChance;
 
     // TO DO:
