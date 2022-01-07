@@ -13,13 +13,14 @@ public class PayloadData
             CasterDepletableMax,
             CasterDepletableCurrent,
             TargetDepletableMax,
-            TargetDepletableCurrent
+            TargetDepletableCurrent,
+            ActionResultValue
         }
         public ePayloadComponentType ComponentType;
 
         public float Potency;                           // Multiplier
         public string DepletableAffected;               // Usually hp, but can be other things like energy
-        public string Attribute;                        // The payload can scale off different attributes.
+        public string Attribute;                        // The payload can scale off different attributes, depletables or action results (for example damage dealt).
 
         public PayloadComponent(ePayloadComponentType type, float potency, string attribute)
         {

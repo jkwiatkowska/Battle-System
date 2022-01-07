@@ -56,6 +56,7 @@ public static class GameData
                 new EntityData()
                 {
                     BaseAttributes = new Dictionary<string, Vector2>(),
+                    StartingDepletables = new Dictionary<string, float>(),
                     MaxDepletables = new Dictionary<string, Vector2>(),
                     IsTargetable = true,
                     Faction = "Player",
@@ -67,6 +68,7 @@ public static class GameData
                 new EntityData()
                 {
                     BaseAttributes = new Dictionary<string, Vector2>(),
+                    StartingDepletables = new Dictionary<string, float>(),
                     MaxDepletables = new Dictionary<string, Vector2>(),
                     IsTargetable = true,
                     Faction = "Dummy",

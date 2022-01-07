@@ -2989,5 +2989,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 8799224501291485291, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
+      propertyPath: AngleWeight
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8799224501291485291, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
+      propertyPath: MaxDistance
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 8799224501291485291, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
+      propertyPath: DistanceWeight
+      value: 0.5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}

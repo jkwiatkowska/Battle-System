@@ -7,18 +7,18 @@ public class PlayerTargetingSystem : TargetingSystem
     [SerializeField] float DistanceWeight = 0.5f;
     [SerializeField] float AngleWeight = 0.5f;
     [SerializeField] float InputCooldown = 0.25f;
-    [SerializeField] float MaxDistance = 50.0f;
+    [SerializeField] float MaxDistance = 100.0f;
 
     float InputCd = 0.0f;
 
-    PlayerMovement Player;
+    EntityMovement Player;
     float PlayerLastMoved;
 
-    protected override void Awake()
+    public override void Setup(Entity parent)
     {
-        base.Awake();
+        base.Setup(parent);
 
-        Player = Parent.GetComponent<PlayerMovement>();
+        Player = Parent.GetComponent<EntityMovement>();
         if (Player == null)
         {
             Debug.LogError("Player entity does not have a player controller component.");
@@ -70,8 +70,9 @@ public class PlayerTargetingSystem : TargetingSystem
         }
     }
 
-    private void Update()
+    protected override void Update()
     {
+        base.UpdateEntityLists();
         InputCd -= Time.deltaTime;
     }
 

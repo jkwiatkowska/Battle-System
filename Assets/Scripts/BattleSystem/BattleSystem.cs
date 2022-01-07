@@ -10,6 +10,8 @@ public class BattleSystem : MonoBehaviour
     public Dictionary<string, Entity> Entities { get; private set; }
     public List<Targetable> TargetableEntities { get; private set; }
 
+    public static float TimeSinceStart { get; private set; }
+
     void Awake()
     {
         GameData.LoadMockData();
@@ -17,11 +19,12 @@ public class BattleSystem : MonoBehaviour
         Instance = this;
         Entities = new Dictionary<string, Entity>();
         TargetableEntities = new List<Targetable>();
+        TimeSinceStart = 0.0f;
     }
     
     void Update()
     {
-        
+        TimeSinceStart += Time.deltaTime;
     }
 
     public void AddEntity(Entity entity)

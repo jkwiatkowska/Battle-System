@@ -8,15 +8,5 @@ public class AIEntity : Entity
     public override void Setup(string entityID, int entityLevel)
     {
         base.Setup(entityID, entityLevel);
-
-        AIEntityData = EntityData as AIEntityData;
-        if (AIEntityData == null)
-        {
-            Debug.LogError($"Entity {entityID} is an AIEntity type, but has no AIEntityData.");
-        }
-        foreach (var skill in AIEntityData.Skills)
-        {
-            SkillCooldown.Add(skill, 0);
-        }
     }
 }

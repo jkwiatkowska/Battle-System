@@ -5,7 +5,7 @@ using UnityEngine;
 public class Input : MonoBehaviour
 {
     [SerializeField] PlayerCamera PlayerCamera;
-    [SerializeField] PlayerMovement PlayerMovement;
+    [SerializeField] EntityMovement PlayerMovement;
     [SerializeField] PlayerTargetingSystem PlayerTargetingSystem;
     void Update()
     {

@@ -2,10 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerMovement : MonoBehaviour
+public class EntityMovement : MonoBehaviour
 {
-    const float Gravity = -9.8f;
-
     [SerializeField] float Speed = 4.0f;
     [SerializeField] float JumpHeight = 1.0f;
     [SerializeField] CapsuleCollider Collider;
@@ -20,11 +18,13 @@ public class PlayerMovement : MonoBehaviour
     float GravitationalForce;
     bool IsGrounded;
 
+    float MovementLock;
+
     public float LastMoved { get; private set; }
 
     private void Awake()
     {
-        GravitationalForce = Gravity;
+        GravitationalForce = Constants.Gravity;
         Velocity = new Vector3();
         GroundCheckSphereOffset = new Vector3(0.0f, GroundCheckSphereRadius, 0.0f);
     }
@@ -34,19 +34,42 @@ public class PlayerMovement : MonoBehaviour
         UpdateVelocity();
     }
 
+    public void LockMovement(float time)
+    {
+        MovementLock = BattleSystem.TimeSinceStart + time;
+    }
+
+    public bool IsMovementLocked
+    {
+        get
+        {
+            return MovementLock > BattleSystem.TimeSinceStart;
+        }
+    }
+
     public void Move(Vector2 input)
     {
+        if (IsMovementLocked)
+        {
+            return;
+        }
+
         var movementVector = input.x * Camera.GetPlayerXVector() + -input.y * Camera.GetPlayerZVector();
 
         movementVector.Normalize();
         transform.position += movementVector * Speed * Time.fixedDeltaTime;
         transform.rotation = Quaternion.LookRotation(movementVector, Vector3.up);
 
-        LastMoved = Time.realtimeSinceStartup;
+        LastMoved = BattleSystem.TimeSinceStart;
     }
 
     public void Jump()
     {
+        if (IsMovementLocked)
+        {
+            return;
+        }
+
         if (IsGrounded)
         {
             Velocity.y += Mathf.Sqrt(JumpHeight * -2.0f * GravitationalForce);

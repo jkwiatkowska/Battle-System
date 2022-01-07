@@ -9,6 +9,13 @@ public class Payload
     public List<PayloadData.PayloadComponent> OutgoingDamage;
 
     // To do: status effects
+
+    public Payload(Entity caster, string skillID)
+    {
+        Source = caster;
+        SkillID = skillID;
+        OutgoingDamage = new List<PayloadData.PayloadComponent>();
+    }
     public Payload(Entity caster, PayloadData payloadData, string skillID)
     {
         Source = caster;
@@ -36,20 +43,20 @@ public class Payload
                 }
                 case PayloadData.PayloadComponent.ePayloadComponentType.CasterDepletableMax:
                 {
-                    if (!caster.Depletables.ContainsKey(component.Attribute))
+                    if (!caster.DepletablesMax.ContainsKey(component.Attribute))
                     {
                         Debug.LogError($"Invalid attribute [{component.Attribute}] for [{skillID}] payload. The attribute should be a name of a depletable value.");
                     }
-                    damage += component.Potency * caster.GetDepletableMax(component.Attribute);
+                    damage += component.Potency * caster.DepletablesMax[component.Attribute];
                     break;
                 }
                 case PayloadData.PayloadComponent.ePayloadComponentType.CasterDepletableCurrent:
                 {
-                    if (!caster.Depletables.ContainsKey(component.Attribute))
+                    if (!caster.DepletablesCurrent.ContainsKey(component.Attribute))
                     {
                         Debug.LogError($"Invalid attribute [{component.Attribute}] for [{skillID}] payload. The attribute should be a name of a depletable value.");
                     }
-                    damage += component.Potency * caster.GetDepletableCurrent(component.Attribute);
+                    damage += component.Potency * caster.DepletablesCurrent[component.Attribute];
                     break;
                 }
                 case PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax:

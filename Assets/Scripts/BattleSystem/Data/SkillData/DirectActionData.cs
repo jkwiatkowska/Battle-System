@@ -6,16 +6,18 @@ public class DirectActionData : PayloadActionData
 {
     public enum eDirectSkillTargets
     {
-        SelectedTarget,
-        AllTargets,
-        RandomTargets
+        SelectedEntity,
+        AllEntities,
+        RandomEntities,
+        TaggedEntity
     }
 
     public eDirectSkillTargets SkillTargets;
     public int TargetCount;
+    public string EntityTag;
 
     public override bool NeedsTarget()
     {
-        return SkillTargets != eDirectSkillTargets.SelectedTarget && Target == eTarget.EnemyEntities;
+        return SkillTargets != eDirectSkillTargets.SelectedEntity && Target == eTarget.EnemyEntities;
     }
 }
