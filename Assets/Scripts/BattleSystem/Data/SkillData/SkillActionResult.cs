@@ -5,11 +5,11 @@ using UnityEngine;
 // When a skill action is performed, it returns a result which can be used by other actions.
 public class SkillActionResult
 {
-    public SkillActionData ActionData;
+    public ActionData ActionData;
     public bool Success;
     public float Value;
 
-    public SkillActionResult(SkillActionData actionData)
+    public SkillActionResult(ActionData actionData)
     {
         ActionData = actionData;
         Success = false;

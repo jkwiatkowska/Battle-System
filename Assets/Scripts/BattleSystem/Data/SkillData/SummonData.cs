@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SummonData : SkillActionData
+public class SummonData : ActionData
 {
     public string EntityID;
 

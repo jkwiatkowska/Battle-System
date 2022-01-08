@@ -171,19 +171,19 @@ public class Entity : MonoBehaviour
         yield return null;
     }
 
-    protected virtual void ExecuteSkillAction(SkillActionData actionData, ref Dictionary<string, SkillActionResult> actionResults)
+    protected virtual void ExecuteSkillAction(ActionData actionData, ref Dictionary<string, SkillActionResult> actionResults)
     {
         var actionResult = new SkillActionResult(actionData);
         bool executeAction = false;
 
         switch(actionData.ExecuteCondition)
         {
-            case SkillActionData.eSkillActionCondition.AlwaysExecute:
+            case ActionData.eActionCondition.AlwaysExecute:
             {
                 executeAction = true;
                 break;
             }
-            case SkillActionData.eSkillActionCondition.OnActionSuccess:
+            case ActionData.eActionCondition.OnActionSuccess:
             {
                 if (actionResults.ContainsKey(actionData.ConditionActionID))
                 {
@@ -195,7 +195,7 @@ public class Entity : MonoBehaviour
                 }
                 break;
             }
-            case SkillActionData.eSkillActionCondition.OnActionFail:
+            case ActionData.eActionCondition.OnActionFail:
             {
                 if (actionResults.ContainsKey(actionData.ConditionActionID))
                 {
@@ -207,7 +207,7 @@ public class Entity : MonoBehaviour
                 }
                 break;
             }
-            case SkillActionData.eSkillActionCondition.OnMinChargeRatio:
+            case ActionData.eActionCondition.OnMinChargeRatio:
             {
                 executeAction = actionData.MinChargeRatio <= SkillChargeRatio;
                 break;
@@ -223,31 +223,31 @@ public class Entity : MonoBehaviour
         {
             switch (actionData.ActionType)
             {
-                case SkillActionData.eSkillActionType.PayloadArea:
+                case ActionData.eActionType.PayloadArea:
                 {
                     // Get targets in area
                     // Apply payload to targets
                     // Update result with damage dealt
                     break;
                 }
-                case SkillActionData.eSkillActionType.PayloadDirect:
+                case ActionData.eActionType.PayloadDirect:
                 {
                     // Get affected targets
                     // Apply payload to targets
                     // Update result with damage dealt
                     break;
                 }
-                case SkillActionData.eSkillActionType.SpawnProjectile:
+                case ActionData.eActionType.SpawnProjectile:
                 {
                     // Create a projectile entity and set it up with data
                     break;
                 }
-                case SkillActionData.eSkillActionType.SpawnEntity:
+                case ActionData.eActionType.SpawnEntity:
                 {
                     // Create an entity and set it up with data
                     break;
                 }
-                case SkillActionData.eSkillActionType.TriggerAnimation:
+                case ActionData.eActionType.TriggerAnimation:
                 {
                     break;
                 }
@@ -655,7 +655,7 @@ public class Entity : MonoBehaviour
 
     protected virtual bool CanAffordCost(CollectCostAction costAction)
     {
-        return (costAction.Value <= DepletablesCurrent[costAction.Type]);
+        return (costAction.GetValue(this) <= DepletablesCurrent[costAction.DepletableName]);
     }
 
     protected virtual bool CanAffordCost(List<CollectCostAction> costActions)
@@ -663,13 +663,13 @@ public class Entity : MonoBehaviour
         var costs = new Dictionary<string, float>();
         foreach (var cost in costActions)
         {
-            if (costs.ContainsKey(cost.Type))
+            if (costs.ContainsKey(cost.DepletableName))
             {
-                costs[cost.Type] += cost.Value;
+                costs[cost.DepletableName] += cost.GetValue(this);
             }
             else
             {
-                costs.Add(cost.Type, cost.Value);
+                costs.Add(cost.DepletableName, cost.GetValue(this));
             }
         }
         foreach (var cost in costs)

@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class SkillActionData
+public abstract class ActionData
 {
-    public enum eSkillActionType
+    public enum eActionType
     {
         CollectCost,            // If a skill has a cost to be used, this action is used to collect it at the desired time.
         ApplyCooldown,          // If a skill has a cooldown, this action is used to put it on cooldown at the desired time.
@@ -15,7 +15,7 @@ public abstract class SkillActionData
         TriggerAnimation        // Can be used to set animation triggers in the entity.  
     }
 
-    public enum eSkillActionCondition
+    public enum eActionCondition
     {
         AlwaysExecute,          // No condition
         OnActionSuccess,        // Only execute if the condition action was executed succesfully.
@@ -24,10 +24,10 @@ public abstract class SkillActionData
     }
 
     public string ActionID;
-    public eSkillActionType ActionType;
+    public eActionType ActionType;
     public float Timestamp;
 
-    public eSkillActionCondition ExecuteCondition;
+    public eActionCondition ExecuteCondition;
     public string ConditionActionID;
     public float MinChargeRatio;
 
