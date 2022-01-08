@@ -10,7 +10,7 @@ public class PositionData
         CasterPosition,         // The entity casting the skill
         SelectedTargetPosition, // Selected targetable
         TaggedEntityPosition,   // Entity referenced with a string tag
-        //PositionFromInput       // Player only
+        //PositionFromInput       // To do
     }
 
     public ePositionOrigin PositionOrigin;  // Where a skill is positioned

@@ -10,7 +10,7 @@ public class SkillData
     public bool ParallelSkill;                  // Parallel skills can be activated as the same time as other skills, without cancelling them. 
 
     public SkillChargeData SkillChargeData;     // A charge time before skill execution can be added.
-    public List<ActionData> SkillTimeline; // Actions executed during skill cast.
+    public List<Action> SkillTimeline; // Actions executed during skill cast.
 
     public bool NeedsTarget                     // Some skills cannot be cast without a target selected.
     {
@@ -32,7 +32,7 @@ public class SkillData
     {
         get
         {
-            var cooldownAction = SkillTimeline.Find(a => a.ActionType == ActionData.eActionType.ApplyCooldown) as ApplyCooldownAction;
+            var cooldownAction = SkillTimeline.Find(a => a.ActionType == Action.eActionType.ApplyCooldown) as ActionCooldownApplication;
             if (cooldownAction != null)
             {
                 return cooldownAction.Cooldown;
@@ -41,17 +41,17 @@ public class SkillData
         }
     }
 
-    public List<CollectCostAction> SkillCost
+    public List<ActionCostCollection> SkillCost
     {
         get
         {
-            var cost = new List<CollectCostAction>();
+            var cost = new List<ActionCostCollection>();
 
             foreach (var action in SkillTimeline)
             {
-                if (action.ActionType == ActionData.eActionType.CollectCost)
+                if (action.ActionType == Action.eActionType.CollectCost)
                 {
-                    var costAction = action as CollectCostAction;
+                    var costAction = action as ActionCostCollection;
                     if (costAction != null && !costAction.Optional)
                     {
                         cost.Add(costAction);

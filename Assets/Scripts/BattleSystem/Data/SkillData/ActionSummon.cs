@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SummonData : ActionData
+public class ActionSummon : Action
 {
     public string EntityID;
 

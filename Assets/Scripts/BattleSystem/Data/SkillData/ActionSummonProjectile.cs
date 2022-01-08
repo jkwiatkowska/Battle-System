@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ProjectileData : SummonData
+public class ActionSummonProjectile : ActionSummon
 {
     public enum eProjectileBehaviour
     {

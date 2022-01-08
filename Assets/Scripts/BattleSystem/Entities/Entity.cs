@@ -137,7 +137,7 @@ public class Entity : MonoBehaviour
     public virtual IEnumerator PreSkillChargeCoroutine(SkillData skillData)
     {
         var startTime = BattleSystem.TimeSinceStart;
-        var actionResults = new Dictionary<string, SkillActionResult>();
+        var actionResults = new Dictionary<string, ActionResult>();
 
         foreach (var action in skillData.SkillChargeData.PreChargeTimeline)
         {
@@ -155,7 +155,7 @@ public class Entity : MonoBehaviour
     public virtual IEnumerator UseSkillCoroutine(SkillData skillData)
     {
         var startTime = BattleSystem.TimeSinceStart;
-        var actionResults = new Dictionary<string, SkillActionResult>();
+        var actionResults = new Dictionary<string, ActionResult>();
 
         foreach (var action in skillData.SkillTimeline)
         {
@@ -171,19 +171,19 @@ public class Entity : MonoBehaviour
         yield return null;
     }
 
-    protected virtual void ExecuteSkillAction(ActionData actionData, ref Dictionary<string, SkillActionResult> actionResults)
+    protected virtual void ExecuteSkillAction(Action actionData, ref Dictionary<string, ActionResult> actionResults)
     {
-        var actionResult = new SkillActionResult(actionData);
+        var actionResult = new ActionResult(actionData);
         bool executeAction = false;
 
         switch(actionData.ExecuteCondition)
         {
-            case ActionData.eActionCondition.AlwaysExecute:
+            case Action.eActionCondition.AlwaysExecute:
             {
                 executeAction = true;
                 break;
             }
-            case ActionData.eActionCondition.OnActionSuccess:
+            case Action.eActionCondition.OnActionSuccess:
             {
                 if (actionResults.ContainsKey(actionData.ConditionActionID))
                 {
@@ -195,7 +195,7 @@ public class Entity : MonoBehaviour
                 }
                 break;
             }
-            case ActionData.eActionCondition.OnActionFail:
+            case Action.eActionCondition.OnActionFail:
             {
                 if (actionResults.ContainsKey(actionData.ConditionActionID))
                 {
@@ -207,7 +207,7 @@ public class Entity : MonoBehaviour
                 }
                 break;
             }
-            case ActionData.eActionCondition.OnMinChargeRatio:
+            case Action.eActionCondition.OnMinChargeRatio:
             {
                 executeAction = actionData.MinChargeRatio <= SkillChargeRatio;
                 break;
@@ -223,31 +223,31 @@ public class Entity : MonoBehaviour
         {
             switch (actionData.ActionType)
             {
-                case ActionData.eActionType.PayloadArea:
+                case Action.eActionType.PayloadArea:
                 {
                     // Get targets in area
                     // Apply payload to targets
                     // Update result with damage dealt
                     break;
                 }
-                case ActionData.eActionType.PayloadDirect:
+                case Action.eActionType.PayloadDirect:
                 {
                     // Get affected targets
                     // Apply payload to targets
                     // Update result with damage dealt
                     break;
                 }
-                case ActionData.eActionType.SpawnProjectile:
+                case Action.eActionType.SpawnProjectile:
                 {
                     // Create a projectile entity and set it up with data
                     break;
                 }
-                case ActionData.eActionType.SpawnEntity:
+                case Action.eActionType.SpawnEntity:
                 {
                     // Create an entity and set it up with data
                     break;
                 }
-                case ActionData.eActionType.TriggerAnimation:
+                case Action.eActionType.TriggerAnimation:
                 {
                     break;
                 }
@@ -263,15 +263,15 @@ public class Entity : MonoBehaviour
         actionResults.Add(actionData.ActionID, actionResult);
     }
 
-    protected virtual List<Entity> GetTargetsForDirectAction(DirectActionData action)
+    protected virtual List<Entity> GetTargetsForDirectAction(ActionPayloadDirect action)
     {
         var targets = new List<Entity>();
 
         switch (action.SkillTargets)
         {
-            case DirectActionData.eDirectSkillTargets.SelectedEntity:
+            case ActionPayloadDirect.eDirectSkillTargets.SelectedEntity:
             {
-                if (action.Target == PayloadActionData.eTarget.FriendlyEntities)
+                if (action.Target == ActionPayload.eTarget.FriendlyEntities)
                 {
                     if (TargetingSystem.FriendlySelected)
                     {
@@ -282,7 +282,7 @@ public class Entity : MonoBehaviour
                         targets.Add(this);
                     }
                 }
-                else if (action.Target == PayloadActionData.eTarget.EnemyEntities)
+                else if (action.Target == ActionPayload.eTarget.EnemyEntities)
                 {
                     if (TargetingSystem.EnemySelected)
                     {
@@ -295,25 +295,25 @@ public class Entity : MonoBehaviour
                 }
                 break;
             }
-            case DirectActionData.eDirectSkillTargets.AllEntities:
+            case ActionPayloadDirect.eDirectSkillTargets.AllEntities:
             {
-                if (action.Target == PayloadActionData.eTarget.FriendlyEntities)
+                if (action.Target == ActionPayload.eTarget.FriendlyEntities)
                 {
                     targets = TargetingSystem.GetAllFriendlyEntites();
                 }
-                else if (action.Target == PayloadActionData.eTarget.EnemyEntities)
+                else if (action.Target == ActionPayload.eTarget.EnemyEntities)
                 {
                     targets = TargetingSystem.GetAllEnemyEntites();
                 }
                 break;
             }
-            case DirectActionData.eDirectSkillTargets.RandomEntities:
+            case ActionPayloadDirect.eDirectSkillTargets.RandomEntities:
             {
-                if (action.Target == PayloadActionData.eTarget.FriendlyEntities)
+                if (action.Target == ActionPayload.eTarget.FriendlyEntities)
                 {
                     targets = TargetingSystem.GetAllFriendlyEntites();
                 }
-                else if (action.Target == PayloadActionData.eTarget.EnemyEntities)
+                else if (action.Target == ActionPayload.eTarget.EnemyEntities)
                 {
                     targets = TargetingSystem.GetAllEnemyEntites();
                 }
@@ -324,7 +324,7 @@ public class Entity : MonoBehaviour
                 }
                 break;
             }
-            case DirectActionData.eDirectSkillTargets.TaggedEntity:
+            case ActionPayloadDirect.eDirectSkillTargets.TaggedEntity:
             {
 
                 break;
@@ -332,10 +332,10 @@ public class Entity : MonoBehaviour
         }
 
         // Single target skill
-        if (action.SkillTargets == DirectActionData.eDirectSkillTargets.SelectedEntity)
+        if (action.SkillTargets == ActionPayloadDirect.eDirectSkillTargets.SelectedEntity)
         {
             // Friendly entity. Select self if selected entity is not friendly.
-            if (action.Target == PayloadActionData.eTarget.FriendlyEntities)
+            if (action.Target == ActionPayload.eTarget.FriendlyEntities)
             {
                 if (TargetingSystem.FriendlySelected)
                 {
@@ -346,7 +346,7 @@ public class Entity : MonoBehaviour
                     targets.Add(this);
                 }
             }
-            else if (action.Target == PayloadActionData.eTarget.EnemyEntities)
+            else if (action.Target == ActionPayload.eTarget.EnemyEntities)
             {
                 if (TargetingSystem.EnemySelected)
                 {
@@ -354,18 +354,18 @@ public class Entity : MonoBehaviour
                 }
             }
         }
-        else if (action.SkillTargets == DirectActionData.eDirectSkillTargets.AllEntities ||
-                 action.SkillTargets == DirectActionData.eDirectSkillTargets.RandomEntities)
+        else if (action.SkillTargets == ActionPayloadDirect.eDirectSkillTargets.AllEntities ||
+                 action.SkillTargets == ActionPayloadDirect.eDirectSkillTargets.RandomEntities)
         {
             // Get all targets.
-            if (action.Target == PayloadActionData.eTarget.FriendlyEntities)
+            if (action.Target == ActionPayload.eTarget.FriendlyEntities)
             {
                 foreach (var target in TargetingSystem.FriendlyEntities)
                 {
                     targets.Add(target.Entity);
                 }
             }
-            else if (action.Target == PayloadActionData.eTarget.EnemyEntities)
+            else if (action.Target == ActionPayload.eTarget.EnemyEntities)
             {
                 foreach (var target in TargetingSystem.EnemyEntities)
                 {
@@ -374,7 +374,7 @@ public class Entity : MonoBehaviour
             }
 
             // Randomly remove targets until the desired amount is left.
-            if (action.SkillTargets == DirectActionData.eDirectSkillTargets.RandomEntities)
+            if (action.SkillTargets == ActionPayloadDirect.eDirectSkillTargets.RandomEntities)
             {
                 while (targets.Count > action.TargetCount)
                 {
@@ -382,7 +382,7 @@ public class Entity : MonoBehaviour
                 }
             }
         }
-        else if (action.SkillTargets == DirectActionData.eDirectSkillTargets.TaggedEntity)
+        else if (action.SkillTargets == ActionPayloadDirect.eDirectSkillTargets.TaggedEntity)
         {
             if (TaggedEntities.ContainsKey(action.EntityTag) && TaggedEntities[action.EntityTag] != null)
             {
@@ -393,19 +393,19 @@ public class Entity : MonoBehaviour
         return targets;
     }
 
-    protected virtual List<Entity> GetTargetsForAreaAction(AreaActionData action)
+    protected virtual List<Entity> GetTargetsForAreaAction(ActionPayloadArea action)
     {
         var targets = new List<Entity>();
 
         var potentialTargets = new List<Entity>();
         switch (action.Target)
         {
-            case PayloadActionData.eTarget.EnemyEntities:
+            case ActionPayload.eTarget.EnemyEntities:
             {
                 potentialTargets = TargetingSystem.GetAllEnemyEntites();
                 break;
             }
-            case PayloadActionData.eTarget.FriendlyEntities:
+            case ActionPayload.eTarget.FriendlyEntities:
             {
                 potentialTargets = TargetingSystem.GetAllFriendlyEntites();
                 break;
@@ -427,7 +427,7 @@ public class Entity : MonoBehaviour
 
             switch (area.Shape)
             {
-                case AreaActionData.Area.eShape.Cone:
+                case ActionPayloadArea.Area.eShape.Cone:
                 {
                     var minDistance = area.InnerDimensions.x * area.InnerDimensions.x;
                     var maxDistance = area.Dimensions.x * area.Dimensions.x;
@@ -457,7 +457,7 @@ public class Entity : MonoBehaviour
                     }
                     break;
                 }
-                case AreaActionData.Area.eShape.Rectangle:
+                case ActionPayloadArea.Area.eShape.Rectangle:
                 {
                     foreach (var target in potentialTargets)
                     {
@@ -576,7 +576,7 @@ public class Entity : MonoBehaviour
         }
     }
 
-    public virtual void SkillActionCollectCost(string skillID, CollectCostAction action, ref SkillActionResult actionResult)
+    public virtual void SkillActionCollectCost(string skillID, ActionCostCollection action, ref ActionResult actionResult)
     {
         var canAfford = CanAffordCost(action);
 
@@ -591,7 +591,7 @@ public class Entity : MonoBehaviour
         }
     }
 
-    public virtual void SkillActionApplyCooldown(string skillID, ApplyCooldownAction action)
+    public virtual void SkillActionApplyCooldown(string skillID, ActionCooldownApplication action)
     {
         var availableTime = BattleSystem.TimeSinceStart + action.Cooldown;
         SkillAvailableTime[skillID] = availableTime;
@@ -653,12 +653,12 @@ public class Entity : MonoBehaviour
         return SkillAvailableTime[skillID] > BattleSystem.TimeSinceStart;
     }
 
-    protected virtual bool CanAffordCost(CollectCostAction costAction)
+    protected virtual bool CanAffordCost(ActionCostCollection costAction)
     {
         return (costAction.GetValue(this) <= DepletablesCurrent[costAction.DepletableName]);
     }
 
-    protected virtual bool CanAffordCost(List<CollectCostAction> costActions)
+    protected virtual bool CanAffordCost(List<ActionCostCollection> costActions)
     {
         var costs = new Dictionary<string, float>();
         foreach (var cost in costActions)

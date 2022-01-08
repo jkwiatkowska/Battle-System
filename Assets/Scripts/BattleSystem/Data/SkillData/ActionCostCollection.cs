@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CollectCostAction : ActionData
+public class ActionCostCollection : Action
 {
     public enum eCostValueType
     {

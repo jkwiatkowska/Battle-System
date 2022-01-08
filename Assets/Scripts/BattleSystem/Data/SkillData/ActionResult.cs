@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // When a skill action is performed, it returns a result which can be used by other actions.
-public class SkillActionResult
+public class ActionResult
 {
-    public ActionData ActionData;
+    public Action ActionData;
     public bool Success;
     public float Value;
 
-    public SkillActionResult(ActionData actionData)
+    public ActionResult(Action actionData)
     {
         ActionData = actionData;
         Success = false;

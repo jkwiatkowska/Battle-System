@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class ActionData
+public abstract class Action
 {
     public enum eActionType
     {
