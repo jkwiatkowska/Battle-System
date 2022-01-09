@@ -6,7 +6,7 @@ public class Input : MonoBehaviour
 {
     [SerializeField] PlayerCamera PlayerCamera;
     [SerializeField] EntityMovement PlayerMovement;
-    [SerializeField] PlayerTargetingSystem PlayerTargetingSystem;
+    [SerializeField] TargetingSystemPlayer PlayerTargetingSystem;
     void Update()
     {
         // Cursor

@@ -45,4 +45,21 @@ public class ActionCostCollection : Action
             }
         }
     }
+
+    public bool CanCollectCost(Entity entity)
+    {
+        return (GetValue(entity) <= entity.DepletablesCurrent[DepletableName]);
+    }
+
+    public override void Execute(Entity entity, out ActionResult actionResult)
+    {
+        actionResult = new ActionResult();
+
+        if (!ConditionMet(entity) || !CanCollectCost(entity))
+        {
+            return;
+        }
+
+        entity.ApplyChangeToDepletable(DepletableName, -GetValue(entity));
+    }
 }

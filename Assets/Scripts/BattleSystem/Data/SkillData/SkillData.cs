@@ -8,9 +8,10 @@ public class SkillData
 
     public float Duration;                      // Execution is stopped after this much time passes.
     public bool ParallelSkill;                  // Parallel skills can be activated as the same time as other skills, without cancelling them. 
+                                                // A skill can only be parallel if it does not require a selected target or if it has a charge time.  
 
-    public SkillChargeData SkillChargeData;     // A charge time before skill execution can be added.
-    public List<Action> SkillTimeline; // Actions executed during skill cast.
+    public SkillChargeData SkillChargeData;     // A charge time before skill execution can be added. Additional actions can be executed at that point.
+    public List<Action> SkillTimeline;          // Actions executed during skill cast.
 
     public bool NeedsTarget                     // Some skills cannot be cast without a target selected.
     {

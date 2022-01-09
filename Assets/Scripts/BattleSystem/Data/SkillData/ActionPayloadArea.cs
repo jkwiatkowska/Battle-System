@@ -8,12 +8,12 @@ public class ActionPayloadArea : ActionPayload
     {
         public enum eShape
         {
-            Cone,
+            Circle,
             Rectangle
         }
 
         public eShape Shape;
-        public Vector2 Dimensions;              // Rectangle length/width or cone radius/width (can be a circle)
+        public Vector2 Dimensions;              // Rectangle length/width or circle radius/cone angle
         public Vector2 InnerDimensions;         // Can make a smaller shape to create a cutout (for example a donut)
 
         public PositionData AreaPosition;
@@ -38,5 +38,94 @@ public class ActionPayloadArea : ActionPayload
         }
 
         return false;
+    }
+
+    public override void Execute(Entity entity, out ActionResult actionResult)
+    {
+        actionResult = new ActionResult();
+
+        if (!ConditionMet(entity))
+        {
+            return;
+        }
+    }
+
+    public override List<Entity> GetTargetsForAction(Entity entity)
+    {
+        var targets = new List<Entity>();
+        var potentialTargets = new List<Entity>();
+        var targetingSystem = entity.EntityTargetingSystem;
+
+        switch (Target)
+        {
+            case eTarget.EnemyEntities:
+            {
+                potentialTargets = targetingSystem.GetAllEnemyEntites();
+                break;
+            }
+            case eTarget.FriendlyEntities:
+            {
+                potentialTargets = targetingSystem.GetAllFriendlyEntites();
+                break;
+            }
+            default:
+            {
+                Debug.LogError($"{Target} target type not supported by area actions.");
+                break;
+            }
+        }
+
+        foreach (var area in AreasAffected)
+        {
+            var foundPosition = area.AreaPosition.TryGetPositionFromData(entity, out Vector2 areaPosition, out Vector2 areaForward);
+            if (!foundPosition)
+            {
+                continue;
+            }
+
+            switch (area.Shape)
+            {
+                case Area.eShape.Circle:
+                {
+                    var minDistance = area.InnerDimensions.x * area.InnerDimensions.x;
+                    var maxDistance = area.Dimensions.x * area.Dimensions.x;
+
+                    var minAngle = area.InnerDimensions.y;
+                    var maxAngle = area.InnerDimensions.x;
+
+                    for (int i = potentialTargets.Count - 1; i >= 0; i--)
+                    {
+                        var target = potentialTargets[i];
+
+                        // Check if the target is inside circle
+                        var distance = Vector2.SqrMagnitude(areaPosition - Utility.Get2DPosition(target.transform.position));
+                        if (distance < minDistance || distance > maxDistance)
+                        {
+                            continue;
+                        }
+
+                        // Check if the target is inside cone
+                        if (minAngle > 0.0f || maxAngle < 360.0f) // If not a circle
+                        {
+
+                        }
+
+                        targets.Add(target);
+                        potentialTargets.Remove(target);
+                    }
+                    break;
+                }
+                case Area.eShape.Rectangle:
+                {
+                    foreach (var target in potentialTargets)
+                    {
+
+                    }
+                    break;
+                }
+            }
+        }
+
+        return targets;
     }
 }

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerTargetingSystem : TargetingSystem
+public class TargetingSystemPlayer : TargetingSystem
 {
     [SerializeField] float DistanceWeight = 0.5f;
     [SerializeField] float AngleWeight = 0.5f;

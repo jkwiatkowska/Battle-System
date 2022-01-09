@@ -31,5 +31,49 @@ public abstract class Action
     public string ConditionActionID;
     public float MinChargeRatio;
 
+    public abstract void Execute(Entity entity, out ActionResult actionResult);
     public abstract bool NeedsTarget();
+    public virtual bool ConditionMet(Entity entity)
+    {
+        switch (ExecuteCondition)
+        {
+            case eActionCondition.AlwaysExecute:
+            {
+                return true;
+            }
+            case eActionCondition.OnActionSuccess:
+            {
+                if (entity.ActionResults.ContainsKey(ConditionActionID))
+                {
+                    return entity.ActionResults[ConditionActionID].Success;
+                }
+                else
+                {
+                    Debug.LogError($"Condition action for action {ActionID} has not been executed.");
+                    return false;
+                }
+            }
+            case eActionCondition.OnActionFail:
+            {
+                if (entity.ActionResults.ContainsKey(ConditionActionID))
+                {
+                    return !entity.ActionResults[ConditionActionID].Success;
+                }
+                else
+                {
+                    Debug.LogError($"Condition action for action {ActionID} has not been executed.");
+                    return false;
+                }
+            }
+            case eActionCondition.OnMinChargeRatio:
+            {
+                return MinChargeRatio <= entity.SkillChargeRatio;
+            }
+            default:
+            {
+                Debug.LogError($"Unsupported execute condition: {ExecuteCondition}");
+                return false;
+            }
+        }
+    }
 }

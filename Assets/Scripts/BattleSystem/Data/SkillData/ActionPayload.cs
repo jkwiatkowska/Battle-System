@@ -11,6 +11,25 @@ public abstract class ActionPayload : Action
         FriendlyEntities
     }
 
-    public eTarget Target;  // Which entities the payload affects
+    public eTarget Target;      // Which entities the payload affects
     public PayloadData Payload;
+
+    public override void Execute(Entity entity, out ActionResult actionResult)
+    {
+        actionResult = new ActionResult();
+
+        if (!ConditionMet(entity))
+        {
+            return;
+        }
+
+        var targets = GetTargetsForAction(entity);
+
+        if (targets.Count == 0)
+        {
+            return;
+        }
+    }
+
+    public abstract List<Entity> GetTargetsForAction(Entity entity);
 }
