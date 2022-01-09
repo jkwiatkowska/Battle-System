@@ -16,8 +16,7 @@ public class ActionPayloadArea : ActionPayload
         public Vector2 Dimensions;              // Rectangle length/width or circle radius/cone angle
         public Vector2 InnerDimensions;         // Can make a smaller shape to create a cutout (for example a donut)
 
-        public PositionData AreaPosition;
-        public float Rotation;
+        public TransformData AreaTransform;
 
         // To do: add a way to define falloff ratios
     }
@@ -30,7 +29,7 @@ public class ActionPayloadArea : ActionPayload
         {
             foreach (var area in AreasAffected)
             {
-                if (area.AreaPosition.PositionOrigin == PositionData.ePositionOrigin.SelectedTargetPosition)
+                if (area.AreaTransform.PositionOrigin == TransformData.ePositionOrigin.SelectedTargetPosition)
                 {
                     return true;
                 }
@@ -77,7 +76,7 @@ public class ActionPayloadArea : ActionPayload
 
         foreach (var area in AreasAffected)
         {
-            var foundPosition = area.AreaPosition.TryGetPositionFromData(entity, out Vector2 areaPosition, out Vector2 areaForward);
+            var foundPosition = area.AreaTransform.TryGetTransformFromData(entity, out Vector2 areaPosition, out Vector2 areaForward);
             if (!foundPosition)
             {
                 continue;
@@ -96,9 +95,10 @@ public class ActionPayloadArea : ActionPayload
                     for (int i = potentialTargets.Count - 1; i >= 0; i--)
                     {
                         var target = potentialTargets[i];
+                        var targetPosition = Utility.Get2DPosition(target.transform.position);
 
                         // Check if the target is inside circle
-                        var distance = Vector2.SqrMagnitude(areaPosition - Utility.Get2DPosition(target.transform.position));
+                        var distance = Vector2.SqrMagnitude(areaPosition - targetPosition);
                         if (distance < minDistance || distance > maxDistance)
                         {
                             continue;
@@ -107,7 +107,11 @@ public class ActionPayloadArea : ActionPayload
                         // Check if the target is inside cone
                         if (minAngle > 0.0f || maxAngle < 360.0f) // If not a circle
                         {
-
+                            var angle = Vector2.Angle(areaPosition, targetPosition);
+                            if (angle < minAngle || angle > maxAngle)
+                            {
+                                continue;
+                            }
                         }
 
                         targets.Add(target);

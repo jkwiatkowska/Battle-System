@@ -6,7 +6,7 @@ public class ActionSummon : Action
 {
     public string EntityID;
 
-    public PositionData SummonAtPosition;
+    public TransformData SummonAtPosition;
 
     public float SummonDuration;                        // 0 if infinite
     public Dictionary<string, float> SharedAttributes;  // Summoned entity can inherit the caster's attributes
@@ -27,6 +27,6 @@ public class ActionSummon : Action
 
     public override bool NeedsTarget()
     {
-        return SummonAtPosition.PositionOrigin != PositionData.ePositionOrigin.SelectedTargetPosition;
+        return SummonAtPosition.PositionOrigin != TransformData.ePositionOrigin.SelectedTargetPosition;
     }
 }

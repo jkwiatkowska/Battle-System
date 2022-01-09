@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PositionData
+public class TransformData
 {
     public enum ePositionOrigin
     {
@@ -10,7 +10,7 @@ public class PositionData
         CasterPosition,         // The entity casting the skill
         SelectedTargetPosition, // Selected targetable
         TaggedEntityPosition,   // Entity referenced with a string tag
-        //PositionFromInput       // To do
+        //PositionFromInput     
     }
 
     public ePositionOrigin PositionOrigin;  // Where a skill is positioned
@@ -19,7 +19,10 @@ public class PositionData
     public Vector2 PositionOffset;          // Position offset from position origin
     public Vector2 RandomPositionOffset;    // Range of a random offset from the summon position, for each x and y axis
 
-    public bool TryGetPositionFromData(Entity entity, out Vector2 position, out Vector2 forward)
+    public float ForwardRotationOffset;     // The forward vector can be rotated.
+    public float RandomForwardOffset;       // Randomness can be applied to this as well. 
+
+    public bool TryGetTransformFromData(Entity entity, out Vector2 position, out Vector2 forward)
     {
         position = new Vector2();
         forward = new Vector2();
@@ -71,16 +74,23 @@ public class PositionData
             }
         }
 
-        // Add offset.
-        position += PositionOffset;
+        // Add offsets.
+        var forwardRotation = ForwardRotationOffset + Random.Range(0.0f, RandomForwardOffset);
+        forward = Utility.Rotate(forward, forwardRotation);
+        forward.Normalize();
+
+        var positionOffset = PositionOffset;
         if (RandomPositionOffset.x != 0.0f)
         {
-            position.x += Random.Range(0.0f, RandomPositionOffset.x);
+            positionOffset.x += Random.Range(0.0f, RandomPositionOffset.x);
         }
         if (RandomPositionOffset.y != 0.0f)
         {
-            position.y += Random.Range(0.0f, RandomPositionOffset.y);
+            positionOffset.y += Random.Range(0.0f, RandomPositionOffset.y);
         }
+        positionOffset *= forward;
+
+        position += positionOffset;
 
         return true;
     }

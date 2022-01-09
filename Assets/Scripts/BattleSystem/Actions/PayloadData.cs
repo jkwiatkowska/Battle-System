@@ -19,10 +19,9 @@ public class PayloadData
         public ePayloadComponentType ComponentType;
 
         public float Potency;                           // Multiplier
-        public string DepletableAffected;               // Usually hp, but can be other things like energy
         public string Attribute;                        // The payload can scale off different attributes, depletables or action results (for example damage dealt).
 
-        public PayloadComponent(ePayloadComponentType type, float potency, string attribute)
+        public PayloadComponent(ePayloadComponentType type, float potency, string attribute = "")
         {
             ComponentType = type;
             Potency = potency;
@@ -33,6 +32,7 @@ public class PayloadData
     public List<string> Affinities;                     // Can define what kind of payload this is, affected by damage bonuses and resistances
 
     public List<PayloadComponent> PayloadComponents;    // The components are added together. Example: 20% TargetMaxHP + 1000 (FlatValue)
+    public string DepletableAffected;                   // Typically hp, but can be other things like energy
 
     public Dictionary<string, bool> Flags;              // Flags to customise the payload 
 

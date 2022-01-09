@@ -14,10 +14,10 @@ public static class Utility
         float sin = Mathf.Sin(degrees * Mathf.Deg2Rad);
         float cos = Mathf.Cos(degrees * Mathf.Deg2Rad);
 
-        float tx = v.x;
-        float ty = v.y;
-        v.x = (cos * tx) - (sin * ty);
-        v.y = (sin * tx) + (cos * ty);
+        float x = v.x;
+        float y = v.y;
+        v.x = (cos * x) - (sin * y);
+        v.y = (sin * x) + (cos * y);
         return v;
     }
 }
