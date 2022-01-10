@@ -29,6 +29,17 @@ public abstract class ActionPayload : Action
         {
             return;
         }
+
+        var payload = new Payload(entity, this);
+        foreach (var target in targets)
+        {
+            var chance = Formulae.PayloadSuccessChance(Payload, entity, target);
+            if (chance > Random.value)
+            {
+                continue;
+            }
+            actionResult.Value += payload.ApplyPayload(entity, target);
+        }
     }
 
     public abstract List<Entity> GetTargetsForAction(Entity entity);

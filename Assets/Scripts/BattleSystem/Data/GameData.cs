@@ -12,7 +12,6 @@ public static class GameData
     
     static Dictionary<string, FactionData> FactionData; // Define entity allegiance and relations
     static Dictionary<string, EntityData> EntityData;
-    static Dictionary<string, PayloadData> PayloadData;
     static Dictionary<string, SkillData> SkillData;
 
     public static int MaxEntityLevel;
@@ -24,6 +23,30 @@ public static class GameData
 
     public static void LoadMockData()
     {
+        MaxEntityLevel = 100;
+
+        EntityDepletables = new List<string>()
+        {
+            "hp",
+            "mp"
+        };
+
+        HitPoints = "hp";
+
+        EntityAttributes = new List<string>()
+        {
+            "atk",
+            "def",
+            "critChance",
+            "critDamage"
+        };
+
+        PayloadFlags = new List<string>()
+        {
+            "ignoreDef",
+            "canCrit"
+        };
+
         FactionData = new Dictionary<string, FactionData>
         {
             {
@@ -55,9 +78,23 @@ public static class GameData
                 "Player",
                 new EntityData()
                 {
-                    BaseAttributes = new Dictionary<string, Vector2>(),
-                    StartingDepletables = new Dictionary<string, float>(),
-                    MaxDepletables = new Dictionary<string, Vector2>(),
+                    BaseAttributes = new Dictionary<string, Vector2>()
+                    {
+                        { "atk", new Vector2(100, 1000) },
+                        { "def", new Vector2(100, 1000) },
+                        { "critChance", new Vector2(5, 20) },
+                        { "critDamage", new Vector2(50, 100) },
+                    },
+                    StartingDepletables = new Dictionary<string, float>()
+                    {
+                        { "hp", 1.0f },
+                        { "mp", 1.0f }
+                    },
+                    MaxDepletables = new Dictionary<string, Vector2>()
+                    {
+                        { "hp", new Vector2(100, 1000) },
+                        { "mp", new Vector2(100, 1000) }
+                    },
                     IsTargetable = true,
                     Faction = "Player",
                     IsAI = false
@@ -67,12 +104,93 @@ public static class GameData
                 "Dummy",
                 new EntityData()
                 {
-                    BaseAttributes = new Dictionary<string, Vector2>(),
-                    StartingDepletables = new Dictionary<string, float>(),
-                    MaxDepletables = new Dictionary<string, Vector2>(),
+                    BaseAttributes = new Dictionary<string, Vector2>()
+                    {
+                        { "atk", new Vector2(100, 1000) },
+                        { "def", new Vector2(100, 1000) },
+                        { "critChance", new Vector2(5, 20) },
+                        { "critDamage", new Vector2(50, 100) },
+                    },
+                    StartingDepletables = new Dictionary<string, float>()
+                    {
+                        { "hp", 1.0f },
+                        { "mp", 1.0f }
+                    },
+                    MaxDepletables = new Dictionary<string, Vector2>()
+                    {
+                        { "hp", new Vector2(100, 1000) },
+                        { "mp", new Vector2(100, 1000) }
+                    },
                     IsTargetable = true,
                     Faction = "Dummy",
                     IsAI = false
+                }
+            }
+        };
+
+        SkillData = new Dictionary<string, SkillData>()
+        {
+            {
+                "singleTargetAttack",
+                new SkillData()
+                {
+                    SkillID = "singleTargetAttack",
+                    ParallelSkill = false,
+                    SkillTimeline = new List<Action>()
+                    {
+                        new ActionPayloadDirect()
+                        {
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.SelectedEntity,
+                            MaxTargetCount = 1,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            Payload = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", false },
+                                    { "canCrit", true }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterAttribute, 1.5f, "atk")
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "healAll",
+                new SkillData()
+                {
+                    SkillID = "healAll",
+                    ParallelSkill = false,
+                    SkillTimeline = new List<Action>()
+                    {
+                        new ActionPayloadDirect()
+                        {
+                            ActionID = "healAllAction",
+                            SkillID = "skillID",
+                            ActionType = Action.eActionType.PayloadDirect,
+                            Timestamp = 0.0f,
+                            ExecuteCondition = Action.eActionCondition.AlwaysExecute,
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.SelectedEntity,
+                            MaxTargetCount = 20,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            Payload = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", true },
+                                    { "canCrit", false }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(global::PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax, -1.0f, "hp")
+                                }
+                            }
+                        }
+                    }
                 }
             }
         };
@@ -147,19 +265,6 @@ public static class GameData
         else
         {
             Debug.LogError($"Entity ID {entityID} could not be found.");
-            return null;
-        }
-    }
-
-    public static PayloadData GetPayloadData(string payloadID)
-    {
-        if (PayloadData.ContainsKey(payloadID))
-        {
-            return PayloadData[payloadID];
-        }
-        else
-        {
-            Debug.LogError($"Payload ID {payloadID} could not be found.");
             return null;
         }
     }

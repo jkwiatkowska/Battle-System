@@ -12,7 +12,7 @@ public class ActionPayloadDirect : ActionPayload
     }
 
     public eDirectActionTargets ActionTargets;
-    public int TargetCount;
+    public int MaxTargetCount;
     public string EntityTag;
 
     public override bool NeedsTarget()
@@ -57,11 +57,13 @@ public class ActionPayloadDirect : ActionPayload
             {
                 if (Target == eTarget.FriendlyEntities)
                 {
-                    targets = targetingSystem.GetAllFriendlyEntites();
+                    var all = targetingSystem.GetAllFriendlyEntites();
+                    targets = all.GetRange(0, Mathf.Max(all.Count - 1, MaxTargetCount));
                 }
                 else if (Target == eTarget.EnemyEntities)
                 {
-                    targets = targetingSystem.GetAllEnemyEntites();
+                    var all = targetingSystem.GetAllEnemyEntites();
+                    targets = all.GetRange(0, Mathf.Max(all.Count - 1, MaxTargetCount));
                 }
                 break;
             }
@@ -70,6 +72,7 @@ public class ActionPayloadDirect : ActionPayload
                 if (Target == eTarget.FriendlyEntities)
                 {
                     targets = targetingSystem.GetAllFriendlyEntites();
+                    
                 }
                 else if (Target == eTarget.EnemyEntities)
                 {
@@ -77,7 +80,7 @@ public class ActionPayloadDirect : ActionPayload
                 }
 
                 // Randomly remove entities from list until the desired number is left
-                while (targets.Count > TargetCount)
+                while (targets.Count > MaxTargetCount)
                 {
                     targets.RemoveAt(Random.Range(0, targets.Count));
                 }
@@ -87,7 +90,18 @@ public class ActionPayloadDirect : ActionPayload
             {
                 if (entity.TaggedEntities.ContainsKey(EntityTag) && entity.TaggedEntities[EntityTag] != null)
                 {
-                    targets.Add(entity.TaggedEntities[EntityTag]);
+                    var taggedEntities = entity.TaggedEntities[EntityTag];
+                    for (int i = 0; i < taggedEntities.Count; i++)
+                    {
+                        if (i <= MaxTargetCount)
+                        {
+                            targets.Add(taggedEntities[i]);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
                 }
                 break;
             }

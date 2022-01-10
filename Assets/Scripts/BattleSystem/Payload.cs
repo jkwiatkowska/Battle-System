@@ -69,12 +69,12 @@ public class Payload
         }
 
         // Damage can be further adjusted here, for example by applying multipliers
-        var totalDamage = Damage.GetOutgoingDamage(caster, change);
+        var totalDamage = Formulae.OutgoingDamage(caster, change, Action.Payload);
 
         PayloadDamage.Add(new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, totalDamage));
     }
 
-    public void ApplyPayload(Entity target)
+    public float ApplyPayload(Entity caster, Entity target)
     {
         float change = 0.0f;
 
@@ -107,8 +107,10 @@ public class Payload
         }
 
         // Incoming damage can be calculated using target attributes and other variables here. 
-        float totalChange = Damage.GetIncomingDamage(target, change);
+        float totalChange = Formulae.IncomingDamage(caster, target, change, Action.Payload);
 
         target.ApplyChangeToDepletable(Action.Payload.DepletableAffected, totalChange);
+
+        return totalChange;
     }
 }

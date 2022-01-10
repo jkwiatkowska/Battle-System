@@ -23,7 +23,7 @@ public class Entity : MonoBehaviour
     public float SkillChargeRatio                           { get; private set; }
 
     [SerializeField] protected TargetingSystem TargetingSystem;
-    public Dictionary<string, Entity> TaggedEntities        { get; private set; }
+    public Dictionary<string, List<Entity>> TaggedEntities  { get; private set; }
 
     public string FactionOverride                           { get; private set; }
 
@@ -51,6 +51,19 @@ public class Entity : MonoBehaviour
         get
         {
             return TargetingSystem;
+        }
+    }
+
+    public float DepletableRatio(string depletableName)
+    {
+        if (DepletablesCurrent.ContainsKey(depletableName) && DepletablesMax.ContainsKey(depletableName))
+        {
+            return DepletablesCurrent[depletableName] / DepletablesMax[depletableName];
+        }
+        else
+        {
+            Debug.LogError($"Depletable name {depletableName} is invalid.");
+            return 0.0f;
         }
     }
     #endregion

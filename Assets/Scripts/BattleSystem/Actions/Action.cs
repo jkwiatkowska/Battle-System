@@ -1,13 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class Action
 {
     public enum eActionType
     {
-        CollectCost,                // If a skill has a cost to be used, this action is used to collect it at the desired time.
         ApplyCooldown,              // If a skill has a cooldown, this action is used to put it on cooldown at the desired time.
+        CollectCost,                // If a skill has a cost to be used, this action is used to collect it at the desired time.
         PayloadArea,                // Applies a defined payload to all entities in a given area.
         PayloadDirect,              // Applies a payload to specified entities. 
         SpawnProjectile,            // Spawns an entity that moves in a specific way and can execute skills on contact or timeout. 
@@ -20,7 +18,14 @@ public abstract class Action
         AlwaysExecute,              // No condition
         OnActionSuccess,            // Only execute if the condition action was executed succesfully.
         OnActionFail,               // Only execute if the condition action failed to execute.
-        OnMinChargeRatio,           // If the skill has been charged for a long enough time, the action can execute.
+        OnMinValue,                 // Checks if a certain value is low enough.
+    }
+
+    // Used by OnMinValue condition
+    public enum eConditionValueType
+    {
+        ChargeRatio,
+        DepletableRatio,
     }
 
     public string ActionID;         // Used to identify actions and their results.
@@ -30,7 +35,9 @@ public abstract class Action
 
     public eActionCondition ExecuteCondition;
     public string ConditionActionID;
-    public float MinChargeRatio;
+    public float ConditionMinValue;
+    public eConditionValueType ConditionValueType;
+    public string ConditionValueName;    // If depletable
 
     public abstract void Execute(Entity entity, out ActionResult actionResult);
     public abstract bool NeedsTarget();
@@ -66,9 +73,24 @@ public abstract class Action
                     return false;
                 }
             }
-            case eActionCondition.OnMinChargeRatio:
+            case eActionCondition.OnMinValue:
             {
-                return MinChargeRatio <= entity.SkillChargeRatio;
+                switch (ConditionValueType)
+                {
+                    case eConditionValueType.ChargeRatio:
+                    {
+                        return ConditionMinValue <= entity.SkillChargeRatio;
+                    }
+                    case eConditionValueType.DepletableRatio:
+                    {
+                        return ConditionMinValue <= entity.DepletableRatio(ConditionValueName);
+                    }
+                    default:
+                    {
+                        Debug.LogError($"Unsupported condition value type: {ConditionValueType}");
+                        return false;
+                    }
+                }
             }
             default:
             {

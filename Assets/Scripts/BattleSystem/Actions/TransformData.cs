@@ -55,10 +55,11 @@ public class TransformData
             }
             case ePositionOrigin.TaggedEntityPosition:
             {
-                if (entity.TaggedEntities.ContainsKey(EntityTag) && entity.TaggedEntities[EntityTag] != null)
+                if (entity.TaggedEntities.ContainsKey(EntityTag) && entity.TaggedEntities[EntityTag] != null && entity.TaggedEntities[EntityTag].Count > 0)
                 {
-                    position = Utility.Get2DPosition(entity.TaggedEntities[EntityTag].transform.position);
-                    forward = Utility.Get2DPosition(entity.TaggedEntities[EntityTag].transform.forward);
+                    var taggedEntity = entity.TaggedEntities[EntityTag][0];
+                    position = Utility.Get2DPosition(taggedEntity.transform.position);
+                    forward = Utility.Get2DPosition(taggedEntity.transform.forward);
                 }
                 else
                 {

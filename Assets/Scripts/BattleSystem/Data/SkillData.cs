@@ -6,7 +6,6 @@ public class SkillData
 {
     public string SkillID;                      // Used to obtain data about a skill.
 
-    public float Duration;                      // Execution is stopped after this much time passes.
     public bool ParallelSkill;                  // Parallel skills can be activated as the same time as other skills, without cancelling them. 
                                                 // A skill can only be parallel if it does not require a selected target or if it has a charge time.  
 

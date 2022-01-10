@@ -47,11 +47,11 @@ public class PayloadData
     // - Force applied
     // - Consider conditional passives that apply to payload
 
-    public PayloadData(List<string> affinities, List<PayloadComponent> payloadComponents, Dictionary<string, bool> flags, float successChance = 1.0f)
+    public PayloadData()
     {
-        Affinities = affinities;
-        PayloadComponents = payloadComponents;
-        Flags = flags;
-        SuccessChance = successChance;
+        Affinities = new List<string>();
+        PayloadComponents = new List<PayloadComponent>();
+        Flags = new Dictionary<string, bool>();
+        SuccessChance = 1.0f;
     }
 }
