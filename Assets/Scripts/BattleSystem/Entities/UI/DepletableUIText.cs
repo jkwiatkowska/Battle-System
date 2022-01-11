@@ -7,8 +7,13 @@ public class DepletableUIText : DepletableUI
 {
     [SerializeField] Text Text;
 
-    public override void UpdateValues(float current, float max)
+    public override void SetValues(float current, float max)
     {
         Text.text = $"{Mathf.Floor(current)} / {Mathf.Floor(max)} {Names.DepletableName(DepletableName)}";
+    }
+
+    public override void UpdateValues(float current, float max)
+    {
+        SetValues(current, max);
     }
 }

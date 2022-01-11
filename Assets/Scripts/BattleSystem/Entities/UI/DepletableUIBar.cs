@@ -32,6 +32,11 @@ public class DepletableUIBar : DepletableUI
         currentFill = SlowBar.fillAmount;
     }
 
+    public override void SetValues(float current, float max)
+    {
+        SetFill(current / max, true);
+    }
+
     public override void UpdateValues(float current, float max)
     {
         SetFill(current / max);

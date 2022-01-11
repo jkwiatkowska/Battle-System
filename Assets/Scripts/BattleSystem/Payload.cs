@@ -26,7 +26,7 @@ public class Payload
             {
                 case PayloadData.PayloadComponent.ePayloadComponentType.FlatValue:
                 {
-                    change -= component.Potency;
+                    change += component.Potency;
                     break;
                 }
                 case PayloadData.PayloadComponent.ePayloadComponentType.CasterAttribute:
@@ -35,7 +35,7 @@ public class Payload
                     {
                         Debug.LogError($"Invalid attribute [{component.Attribute}] for [{Action.ActionID}] payload. It should be an entity attribute name.");
                     }
-                    change -= component.Potency * caster.BaseAttributes[component.Attribute];
+                    change += component.Potency * caster.BaseAttributes[component.Attribute];
                     break;
                 }
                 case PayloadData.PayloadComponent.ePayloadComponentType.CasterDepletableMax:
@@ -44,7 +44,7 @@ public class Payload
                     {
                         Debug.LogError($"Invalid attribute [{component.Attribute}] for [{Action.ActionID}] payload. The attribute should be a name of a depletable value.");
                     }
-                    change -= component.Potency * caster.DepletablesMax[component.Attribute];
+                    change += component.Potency * caster.DepletablesMax[component.Attribute];
                     break;
                 }
                 case PayloadData.PayloadComponent.ePayloadComponentType.CasterDepletableCurrent:
@@ -53,7 +53,7 @@ public class Payload
                     {
                         Debug.LogError($"Invalid attribute [{component.Attribute}] for [{Action.ActionID}] payload. The attribute should be a name of a depletable value.");
                     }
-                    change -= component.Potency * caster.DepletablesCurrent[component.Attribute];
+                    change += component.Potency * caster.DepletablesCurrent[component.Attribute];
                     break;
                 }
                 case PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax:
@@ -86,17 +86,17 @@ public class Payload
             {
                 case PayloadData.PayloadComponent.ePayloadComponentType.FlatValue:
                 {
-                    change += component.Potency;
+                    change -= component.Potency;
                     break;
                 }
                 case PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableCurrent:
                 {
-                    change += component.Potency * target.DepletablesCurrent[component.Attribute];
+                    change -= component.Potency * target.DepletablesCurrent[component.Attribute];
                     break;
                 }
                 case PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax:
                 {
-                    change += component.Potency * target.DepletablesMax[component.Attribute];
+                    change -= component.Potency * target.DepletablesMax[component.Attribute];
                     break;
                 }
                 default:

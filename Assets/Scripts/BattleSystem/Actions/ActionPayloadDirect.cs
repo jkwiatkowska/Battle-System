@@ -58,12 +58,12 @@ public class ActionPayloadDirect : ActionPayload
                 if (Target == eTarget.FriendlyEntities)
                 {
                     var all = targetingSystem.GetAllFriendlyEntites();
-                    targets = all.GetRange(0, Mathf.Max(all.Count - 1, MaxTargetCount));
+                    targets = all.GetRange(0, Mathf.Min(all.Count, MaxTargetCount));
                 }
                 else if (Target == eTarget.EnemyEntities)
                 {
                     var all = targetingSystem.GetAllEnemyEntites();
-                    targets = all.GetRange(0, Mathf.Max(all.Count - 1, MaxTargetCount));
+                    targets = all.GetRange(0, Mathf.Min(all.Count, MaxTargetCount));
                 }
                 break;
             }

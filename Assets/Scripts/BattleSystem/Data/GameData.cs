@@ -169,8 +169,8 @@ public static class GameData
                             ActionType = Action.eActionType.PayloadDirect,
                             Timestamp = 0.0f,
                             ExecuteCondition = Action.eActionCondition.AlwaysExecute,
-                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.SelectedEntity,
-                            MaxTargetCount = 20,
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
+                            MaxTargetCount = 50,
                             Target = ActionPayload.eTarget.EnemyEntities,
                             Payload = new PayloadData()
                             {
@@ -181,7 +181,7 @@ public static class GameData
                                 },
                                 PayloadComponents = new List<PayloadData.PayloadComponent>()
                                 {
-                                    new PayloadData.PayloadComponent(global::PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax, -1.0f, "hp")
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax, -1.0f, "hp")
                                 },
                                 Affinities = new List<string>()
                                 {

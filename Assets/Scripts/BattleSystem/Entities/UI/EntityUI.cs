@@ -64,7 +64,7 @@ public class EntityUI : MonoBehaviour
         var current = Entity.DepletablesCurrent[ui.DepletableName];
         var max = Entity.DepletablesMax[ui.DepletableName];
 
-        ui.UpdateValues(current, max);
+        ui.SetValues(current, max);
     }
 
     public void RemoveDepletableUI(DepletableUI ui)

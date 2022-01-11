@@ -44,6 +44,8 @@ public abstract class ActionPayload : Action
             actionResult.Value += payload.ApplyPayload(entity, target);
             actionResult.Count += 1;
         }
+
+        actionResult.Success = actionResult.Count > 0;
     }
 
     public abstract List<Entity> GetTargetsForAction(Entity entity);
