@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class TargetingSystemPlayer : TargetingSystem
 {
+    TargetUI TargetUI; 
     [SerializeField] float DistanceWeight = 0.5f;
     [SerializeField] float AngleWeight = 0.5f;
     [SerializeField] float InputCooldown = 0.25f;
@@ -16,12 +17,52 @@ public class TargetingSystemPlayer : TargetingSystem
 
     public override void Setup(Entity parent)
     {
+        TargetUI = FindObjectOfType<TargetUI>();
+        if (TargetUI == null)
+        {
+            Debug.LogError("TargetUI could not be found");
+        }
+
         base.Setup(parent);
 
-        Player = Parent.GetComponent<EntityMovement>();
+        Player = Parent.GetComponentInChildren<EntityMovement>();
         if (Player == null)
         {
             Debug.LogError("Player entity does not have a player controller component.");
+        }
+    }
+
+    public override void SelectTarget(Targetable entity)
+    {
+        base.SelectTarget(entity);
+
+        var entityUI = entity.GetComponentInChildren<EntityUI>();
+        if (entityUI != null)
+        {
+            TargetUI.SelectTarget(entityUI);
+        }
+        else
+        {
+            Debug.LogError($"Entity {entity.Entity.EntityUID} is missing EntityUI.");
+        }
+    }
+
+    public override void ClearSelection()
+    {
+        var entity = SelectedTarget;
+        base.ClearSelection();
+
+        if (entity != null)
+        {
+            var entityUI = entity.GetComponentInChildren<EntityUI>();
+            if (entityUI != null)
+            {
+                TargetUI.ClearSelection(entityUI);
+            }
+            else
+            {
+                Debug.LogError($"Entity {entity.Entity.EntityUID} is missing EntityUI.");
+            }
         }
     }
 

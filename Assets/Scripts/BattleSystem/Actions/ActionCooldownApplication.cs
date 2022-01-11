@@ -18,7 +18,7 @@ public class ActionCooldownApplication : Action
 
         foreach (var skill in SharedCooldown)
         {
-            var availableTime = BattleSystem.TimeSinceStart + Formulae.CooldownTime(entity, skill, Cooldown);
+            var availableTime = BattleSystem.TimeSinceStart + Formulae.CooldownTime(entity, skill, this);
             entity.SetSkillAvailableTime(skill, availableTime);
         }
 

@@ -198,8 +198,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   EntityID: Dummy
-  Animator: {fileID: 0}
-  TargetingSystem: {fileID: 4181005303031294397}
+  EntityLevel: 1
 --- !u!114 &4181005303031294397
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -325,6 +324,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ae4477df78305f4eb66c2cb3882162c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  EntityNameText: []
+  EntityLevelText: []
+  DepletableUIs: []
 --- !u!1 &6934705421087133247
 GameObject:
   m_ObjectHideFlags: 0

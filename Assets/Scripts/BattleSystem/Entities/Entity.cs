@@ -5,24 +5,24 @@ using UnityEngine;
 public class Entity : MonoBehaviour
 {
     [SerializeField] string EntityID;
-    [SerializeField] Animator Animator;
-    [SerializeField] AudioRenderer AudioRenderer;
+    [SerializeField] int EntityLevel = 1;
+
+    EntityUI EntityUI;
     public string EntityUID                                 { get; private set; }
     static int EntityCount = 0;
-    public Dictionary<string, float> Attributes             { get; private set; }
-    public Dictionary<string, float> DepletablesCurrent     { get; private set; }
-    public Dictionary<string, float> DepletablesMax         { get; private set; }
-    public int EntityLevel                                  { get; private set; }
+    public Dictionary<string, float> Attributes             { get; protected set; }
+    public Dictionary<string, float> DepletablesCurrent     { get; protected set; }
+    public Dictionary<string, float> DepletablesMax         { get; protected set; }
 
     protected Dictionary<string, float> SkillAvailableTime;
-    public Dictionary<string, ActionResult> ActionResults   { get; private set; }
+    public Dictionary<string, ActionResult> ActionResults   { get; protected set; }
     protected string CurrentSkill;
     protected Dictionary<string, Coroutine> SkillCoroutines;
-    protected SkillChargeData SkillCharge                   { get; private set; }
-    protected float SkillChargeStartTime                    { get; private set; }
-    public float SkillChargeRatio                           { get; private set; }
+    protected SkillChargeData SkillCharge;
+    protected float SkillChargeStartTime;
+    public float SkillChargeRatio                           { get; protected set; }
 
-    [SerializeField] protected TargetingSystem TargetingSystem;
+    public TargetingSystem TargetingSystem                  { get; protected set; }
     public Dictionary<string, List<Entity>> TaggedEntities  { get; private set; }
 
     public string FactionOverride                           { get; private set; }
@@ -31,6 +31,22 @@ public class Entity : MonoBehaviour
 
 
     #region Getters
+    public string ID
+    {
+        get
+        {
+            return EntityID;
+        }
+    }
+
+    public int Level
+    {
+        get
+        {
+            return EntityLevel;
+        }
+    }
+
     public EntityData EntityData
     {
         get
@@ -83,7 +99,18 @@ public class Entity : MonoBehaviour
 
         BattleSystem.Instance.AddEntity(this);
 
+        TargetingSystem = GetComponentInChildren<TargetingSystem>();
+        if (TargetingSystem == null)
+        {
+            Debug.LogError("TargetingSystem could not be found");
+        }
         TargetingSystem.Setup(this);
+
+        EntityUI = GetComponentInChildren<EntityUI>();
+        if (EntityUI == null)
+        {
+            Debug.LogError("EntityUI could not be found");
+        }
 
         name = EntityUID;
     }
@@ -99,22 +126,25 @@ public class Entity : MonoBehaviour
 
         if (DepletablesCurrent != null)
         {
-            foreach (var depletable in DepletablesCurrent)
+            foreach (var depletable in GameData.EntityDepletables)
             {
-                if (isInCombat)
+                if (DepletablesCurrent.ContainsKey(depletable))
                 {
-                    var recovery = EntityData.DepletableRecovery[depletable.Key].x * Time.deltaTime;
-                    if (recovery != 0.0f)
+                    if (isInCombat)
                     {
-                        ApplyChangeToDepletable(depletable.Key, recovery);
+                        var recovery = EntityData.DepletableRecovery[depletable].x * DepletablesMax[depletable] * Time.deltaTime;
+                        if (recovery != 0.0f)
+                        {
+                            ApplyChangeToDepletable(depletable, recovery);
+                        }
                     }
-                }
-                else
-                {
-                    var recovery = EntityData.DepletableRecovery[depletable.Key].y * Time.deltaTime;
-                    if (recovery != 0.0f)
+                    else
                     {
-                        ApplyChangeToDepletable(depletable.Key, recovery);
+                        var recovery = EntityData.DepletableRecovery[depletable].y * DepletablesMax[depletable] * Time.deltaTime;
+                        if (recovery != 0.0f)
+                        {
+                            ApplyChangeToDepletable(depletable, recovery);
+                        }
                     }
                 }
             }
@@ -165,7 +195,7 @@ public class Entity : MonoBehaviour
 
         foreach (var action in skillData.SkillChargeData.PreChargeTimeline)
         {
-            var timeBeforeAction = startTime + action.Timestamp - BattleSystem.TimeSinceStart;
+            var timeBeforeAction = startTime + action.TimestampForEntity(this) - BattleSystem.TimeSinceStart;
             if (timeBeforeAction > 0.0f)
             {
                 yield return new WaitForSeconds(timeBeforeAction);
@@ -184,7 +214,7 @@ public class Entity : MonoBehaviour
 
         foreach (var action in skillData.SkillTimeline)
         {
-            var timeBeforeAction = startTime + action.Timestamp - BattleSystem.TimeSinceStart;
+            var timeBeforeAction = startTime + action.TimestampForEntity(this) - BattleSystem.TimeSinceStart;
             if (timeBeforeAction > 0.0f)
             {
                 yield return new WaitForSeconds(timeBeforeAction);
@@ -210,7 +240,7 @@ public class Entity : MonoBehaviour
     {
         // Update UI
 
-        if (BattleSystem.TimeSinceStart < SkillChargeStartTime + SkillCharge.FullChargeTime)
+        if (BattleSystem.TimeSinceStart < SkillChargeStartTime + SkillCharge.FullChargeTimeForEntity(this))
         {
             SkillChargeStop();
         }
@@ -221,10 +251,10 @@ public class Entity : MonoBehaviour
         // Hide UI
 
         var timeElapsed = BattleSystem.TimeSinceStart - SkillChargeStartTime;
-        if (timeElapsed >= SkillCharge.RequiredChargeTime)
+        if (timeElapsed >= SkillCharge.RequiredChargeTimeForEntity(this))
         {
-            var minCharge = SkillCharge.RequiredChargeTime;
-            var maxCharge = SkillCharge.FullChargeTime;
+            var minCharge = SkillCharge.RequiredChargeTimeForEntity(this);
+            var maxCharge = SkillCharge.FullChargeTimeForEntity(this);
             SkillChargeRatio = maxCharge - minCharge / timeElapsed - minCharge;
 
             var skillData = GameData.GetSkillData(CurrentSkill);
@@ -276,7 +306,19 @@ public class Entity : MonoBehaviour
     #region Change Functions
     public void ApplyChangeToDepletable(string depletable, float change)
     {
+        var previous = DepletablesCurrent[depletable];
         DepletablesCurrent[depletable] = Mathf.Clamp(DepletablesCurrent[depletable] + change, 0, DepletablesMax[depletable]);
+        if (previous != DepletablesCurrent[depletable])
+        {
+            if (EntityUI != null)
+            {
+                EntityUI.UpdateDepletableUI(depletable);
+            }
+            else
+            {
+                Debug.LogError($"Entity {EntityUID} is missing EntityUI.");
+            }
+        }
     }
     #endregion
 

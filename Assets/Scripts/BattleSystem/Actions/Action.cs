@@ -99,4 +99,9 @@ public abstract class Action
             }
         }
     }
+
+    public float TimestampForEntity(Entity entity)
+    {
+        return Formulae.ActionTime(entity, this);
+    }
 }

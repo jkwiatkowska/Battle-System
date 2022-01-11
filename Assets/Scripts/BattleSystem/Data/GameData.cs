@@ -4,15 +4,16 @@ using UnityEngine;
 
 public static class GameData
 {
-    public static List<string> Affinities;              // Damage types and resistances can be calculated using these
-    public static List<string> EntityDepletables;       // Values like hit points, mana, stamina, etc.
-    public static string HitPoints;                     // Which of the depletables represents HP
-    public static List<string> EntityAttributes;        // Stats mainly used to determine outgoing and incoming damage
-    public static List<string> PayloadFlags;            // Flags to customise payload damage
-    
-    static Dictionary<string, FactionData> FactionData; // Define entity allegiance and relations
-    static Dictionary<string, EntityData> EntityData;
-    static Dictionary<string, SkillData> SkillData;
+    public static List<string> Affinities;                      // Damage types and resistances can be calculated using these
+    public static List<string> EntityDepletables;               // Values like hit points, mana, stamina, etc.
+    public static string HitPoints;                             // Which of the depletables represents HP
+    public static List<string> EntityAttributes;                // Stats mainly used to determine outgoing and incoming damage
+    public static List<string> PayloadFlags;                    // Flags to customise payload damage
+
+    public static Dictionary<string, FactionData> FactionData;  // Define entity allegiance and relations
+    public static string PlayerFaction;                         // Which of the factions the player is in
+    public static Dictionary<string, EntityData> EntityData;
+    public static Dictionary<string, SkillData> SkillData;
 
     public static int MaxEntityLevel;
 
@@ -24,6 +25,13 @@ public static class GameData
     public static void LoadMockData()
     {
         MaxEntityLevel = 100;
+
+        Affinities = new List<string>()
+        {
+            "physical",
+            "magic",
+            "healing"
+        };
 
         EntityDepletables = new List<string>()
         {
@@ -95,6 +103,11 @@ public static class GameData
                         { "hp", new Vector2(100, 1000) },
                         { "mp", new Vector2(100, 1000) }
                     },
+                    DepletableRecovery = new Dictionary<string, Vector2>()
+                    {
+                        { "hp", new Vector2(0.0f, 0.025f) },
+                        { "mp", new Vector2(0.0f, 0.025f) }
+                    },
                     IsTargetable = true,
                     Faction = "Player",
                     IsAI = false
@@ -113,13 +126,18 @@ public static class GameData
                     },
                     StartingDepletables = new Dictionary<string, float>()
                     {
-                        { "hp", 1.0f },
+                        { "hp", 0.5f },
                         { "mp", 1.0f }
                     },
                     MaxDepletables = new Dictionary<string, Vector2>()
                     {
                         { "hp", new Vector2(100, 1000) },
                         { "mp", new Vector2(100, 1000) }
+                    },
+                    DepletableRecovery = new Dictionary<string, Vector2>()
+                    {
+                        { "hp", new Vector2(0.0f, 0.1f) },
+                        { "mp", new Vector2(0.0f, 0.1f) }
                     },
                     IsTargetable = true,
                     Faction = "Dummy",
@@ -153,6 +171,10 @@ public static class GameData
                                 PayloadComponents = new List<PayloadData.PayloadComponent>()
                                 {
                                     new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterAttribute, 1.5f, "atk")
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "physical"
                                 }
                             }
                         }
@@ -187,6 +209,10 @@ public static class GameData
                                 PayloadComponents = new List<PayloadData.PayloadComponent>()
                                 {
                                     new PayloadData.PayloadComponent(global::PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax, -1.0f, "hp")
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "healing"
                                 }
                             }
                         }

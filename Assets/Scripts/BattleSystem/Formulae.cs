@@ -4,9 +4,9 @@ using UnityEngine;
 
 public static class Formulae
 {
+    // This class can be used to customise skill-related values such as damage and casting time based on entity attributes, payload flags and other variables. 
     public static float OutgoingDamage(Entity caster, float rawDamage, PayloadData payloadData)
     {
-        // Caster attributes and payload may affect the outgoing damage
         var outgoingDamage = rawDamage;
 
         return outgoingDamage;
@@ -14,29 +14,48 @@ public static class Formulae
 
     public static float IncomingDamage(Entity caster, Entity target, float rawDamage, PayloadData payloadData)
     {
-        // Caster and target attributes as well as payload flags may affect the damage it receives.
         var flags = payloadData.Flags;
 
         var isCrit = flags["canCrit"] && caster.Attributes["critChance"] >= Random.value;
         var critMultiplier = isCrit ? (1.0f + caster.Attributes["critDamage"]) : 1.0f;
 
-        var defMultiplier = flags["ignoreDef"] ? 1.0f : 1.0f - target.Attributes["def"] / (target.Attributes["def"] + 5 * caster.EntityLevel + 500.0f);
+        var defMultiplier = flags["ignoreDef"] ? 1.0f : 1.0f - target.Attributes["def"] / (target.Attributes["def"] + 5 * caster.Level + 500.0f);
         var incomingDamage = rawDamage * critMultiplier * defMultiplier;
 
         return incomingDamage;
     }
 
-    public static float CooldownTime(Entity entity, string skillID, float cooldownTime)
+    public static float ActionTime(Entity entity, Action action)
     {
-        // Entity attributes can affect the skill cooldown time.
-        var cooldown = cooldownTime;
+        var timeMultiplier = 1.0f;
+        var actionTime = action.Timestamp * timeMultiplier;
+
+        return actionTime;
+    }
+
+    public static float RequiredChargeTime(Entity entity, SkillChargeData skillChargeData)
+    {
+        var chargeTime = skillChargeData.RequiredChargeTime;
+
+        return chargeTime;
+    }
+
+    public static float FullChargeTime(Entity entity, SkillChargeData skillChargeData)
+    {
+        var chargeTime = skillChargeData.FullChargeTime;
+
+        return chargeTime;
+    }
+
+    public static float CooldownTime(Entity entity, string skillID, ActionCooldownApplication action)
+    {
+        var cooldown = action.Cooldown;
 
         return cooldown;
     }
 
     public static float PayloadSuccessChance(PayloadData payloadData, Entity caster, Entity target)
     {
-        // Entity attributes can affect the chance of a payload being successfully applied.
         var successChance = payloadData.SuccessChance;
 
         return successChance;

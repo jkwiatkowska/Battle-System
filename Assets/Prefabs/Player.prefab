@@ -344,6 +344,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ae4477df78305f4eb66c2cb3882162c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  EntityNameText: []
+  EntityLevelText: []
+  DepletableUIs: []
 --- !u!1 &8799224500870727289
 GameObject:
   m_ObjectHideFlags: 0
@@ -623,7 +626,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   EntityID: Player
-  TargetingSystem: {fileID: 8799224501291485291}
+  EntityLevel: 1
 --- !u!114 &8799224501291485268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -652,7 +655,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3171c43dfb508b41a0d2d7f8d290caa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Parent: {fileID: 8799224501291485268}
   DistanceWeight: 0.8
   AngleWeight: 0.2
   InputCooldown: 0.25
