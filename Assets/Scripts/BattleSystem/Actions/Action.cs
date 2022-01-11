@@ -26,6 +26,7 @@ public abstract class Action
     {
         ChargeRatio,
         DepletableRatio,
+        RandomValue
     }
 
     public string ActionID;         // Used to identify actions and their results.
@@ -84,6 +85,10 @@ public abstract class Action
                     case eConditionValueType.DepletableRatio:
                     {
                         return ConditionMinValue <= entity.DepletableRatio(ConditionValueName);
+                    }
+                    case eConditionValueType.RandomValue:
+                    {
+                        return ConditionMinValue <= Random.value; 
                     }
                     default:
                     {

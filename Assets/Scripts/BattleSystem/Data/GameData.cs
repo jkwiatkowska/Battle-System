@@ -6,7 +6,6 @@ public static class GameData
 {
     public static List<string> Affinities;                      // Damage types and resistances can be calculated using these
     public static List<string> EntityDepletables;               // Values like hit points, mana, stamina, etc.
-    public static string HitPoints;                             // Which of the depletables represents HP
     public static List<string> EntityAttributes;                // Stats mainly used to determine outgoing and incoming damage
     public static List<string> PayloadFlags;                    // Flags to customise payload damage
 
@@ -15,8 +14,6 @@ public static class GameData
     public static Dictionary<string, EntityData> EntityData;
     public static Dictionary<string, SkillData> SkillData;
 
-    public static int MaxEntityLevel;
-
     public static void LoadData(string path)
     {
 
@@ -24,8 +21,6 @@ public static class GameData
 
     public static void LoadMockData()
     {
-        MaxEntityLevel = 100;
-
         Affinities = new List<string>()
         {
             "physical",
@@ -39,10 +34,10 @@ public static class GameData
             "mp"
         };
 
-        HitPoints = "hp";
-
         EntityAttributes = new List<string>()
         {
+            "hp",
+            "mp",
             "atk",
             "def",
             "critChance",
@@ -86,27 +81,14 @@ public static class GameData
                 "Player",
                 new EntityData()
                 {
-                    BaseAttributes = new Dictionary<string, Vector2>()
+                    BaseAttributes = new Dictionary<string, float>()
                     {
-                        { "atk", new Vector2(100, 1000) },
-                        { "def", new Vector2(100, 1000) },
-                        { "critChance", new Vector2(5, 20) },
-                        { "critDamage", new Vector2(50, 100) },
-                    },
-                    StartingDepletables = new Dictionary<string, float>()
-                    {
-                        { "hp", 1.0f },
-                        { "mp", 1.0f }
-                    },
-                    MaxDepletables = new Dictionary<string, Vector2>()
-                    {
-                        { "hp", new Vector2(100, 1000) },
-                        { "mp", new Vector2(100, 1000) }
-                    },
-                    DepletableRecovery = new Dictionary<string, Vector2>()
-                    {
-                        { "hp", new Vector2(0.0f, 0.025f) },
-                        { "mp", new Vector2(0.0f, 0.025f) }
+                        { "hp", 500.0f },
+                        { "mp", 500.0f },
+                        { "atk", 100.0f },
+                        { "def", 100.0f },
+                        { "critChance", 0.1f },
+                        { "critDamage", 0.5f },
                     },
                     IsTargetable = true,
                     Faction = "Player",
@@ -117,27 +99,14 @@ public static class GameData
                 "Dummy",
                 new EntityData()
                 {
-                    BaseAttributes = new Dictionary<string, Vector2>()
+                    BaseAttributes = new Dictionary<string, float>()
                     {
-                        { "atk", new Vector2(100, 1000) },
-                        { "def", new Vector2(100, 1000) },
-                        { "critChance", new Vector2(5, 20) },
-                        { "critDamage", new Vector2(50, 100) },
-                    },
-                    StartingDepletables = new Dictionary<string, float>()
-                    {
-                        { "hp", 0.5f },
-                        { "mp", 1.0f }
-                    },
-                    MaxDepletables = new Dictionary<string, Vector2>()
-                    {
-                        { "hp", new Vector2(100, 1000) },
-                        { "mp", new Vector2(100, 1000) }
-                    },
-                    DepletableRecovery = new Dictionary<string, Vector2>()
-                    {
-                        { "hp", new Vector2(0.0f, 0.1f) },
-                        { "mp", new Vector2(0.0f, 0.1f) }
+                        { "hp", 500.0f },
+                        { "mp", 500.0f },
+                        { "atk", 100.0f },
+                        { "def", 100.0f },
+                        { "critChance", 0.1f },
+                        { "critDamage", 0.5f },
                     },
                     IsTargetable = true,
                     Faction = "Dummy",
@@ -158,6 +127,8 @@ public static class GameData
                     {
                         new ActionPayloadDirect()
                         {
+                            ActionID = "singleTargetAttackAction",
+                            SkillID = "singleTargetAttack",
                             ActionTargets = ActionPayloadDirect.eDirectActionTargets.SelectedEntity,
                             MaxTargetCount = 1,
                             Target = ActionPayload.eTarget.EnemyEntities,
@@ -175,7 +146,9 @@ public static class GameData
                                 Affinities = new List<string>()
                                 {
                                     "physical"
-                                }
+                                },
+                                SuccessChance = 1.0f,
+                                DepletableAffected = "hp"
                             }
                         }
                     }
@@ -192,7 +165,7 @@ public static class GameData
                         new ActionPayloadDirect()
                         {
                             ActionID = "healAllAction",
-                            SkillID = "skillID",
+                            SkillID = "healAll",
                             ActionType = Action.eActionType.PayloadDirect,
                             Timestamp = 0.0f,
                             ExecuteCondition = Action.eActionCondition.AlwaysExecute,
@@ -213,7 +186,9 @@ public static class GameData
                                 Affinities = new List<string>()
                                 {
                                     "healing"
-                                }
+                                },
+                                SuccessChance = 1.0f,
+                                DepletableAffected = "hp"
                             }
                         }
                     }

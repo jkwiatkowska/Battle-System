@@ -7,10 +7,7 @@ public class TargetingSystemPlayer : TargetingSystem
     TargetUI TargetUI; 
     [SerializeField] float DistanceWeight = 0.5f;
     [SerializeField] float AngleWeight = 0.5f;
-    [SerializeField] float InputCooldown = 0.25f;
     [SerializeField] float MaxDistance = 100.0f;
-
-    float InputCd = 0.0f;
 
     EntityMovement Player;
     float PlayerLastMoved;
@@ -68,11 +65,6 @@ public class TargetingSystemPlayer : TargetingSystem
 
     public void SwitchTarget()
     {
-        if (InputCd > 0.0f)
-        {
-            return;
-        }
-
         if (Player.LastMoved == PlayerLastMoved)
         {
             Debug.Log("Selecting next");
@@ -84,8 +76,6 @@ public class TargetingSystemPlayer : TargetingSystem
             base.SelectBestEnemy();
             PlayerLastMoved = Player.LastMoved;
         }
-
-        InputCd = InputCooldown;
     }
 
     public void SelectWithMouse()
@@ -98,23 +88,20 @@ public class TargetingSystemPlayer : TargetingSystem
             var target = hit.transform.gameObject.GetComponent<Targetable>();
             if (target != null)
             {
-                base.SelectTarget(target);
+                SelectTarget(target);
             }
             else
             {
-                base.ClearSelection();
+                ClearSelection();
             }
 
             Debug.Log(hit.transform.gameObject.name);
-
-            InputCd = InputCooldown;
         }
     }
 
     protected override void Update()
     {
-        base.UpdateEntityLists();
-        InputCd -= Time.deltaTime;
+        UpdateEntityLists();
     }
 
     protected override void ProcessEnemyEntityList()

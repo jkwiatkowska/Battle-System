@@ -33,12 +33,16 @@ public abstract class ActionPayload : Action
         var payload = new Payload(entity, this);
         foreach (var target in targets)
         {
+            // If payload isn't guaranteed to trigger.
             var chance = Formulae.PayloadSuccessChance(Payload, entity, target);
-            if (chance > Random.value)
+            if (Random.value > chance)
             {
                 continue;
             }
+
+            // Apply payload and update result.
             actionResult.Value += payload.ApplyPayload(entity, target);
+            actionResult.Count += 1;
         }
     }
 

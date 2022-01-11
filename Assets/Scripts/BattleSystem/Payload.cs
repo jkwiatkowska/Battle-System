@@ -19,6 +19,7 @@ public class Payload
 
         // Go through the payload data and add up all values that can be derived from the caster.
         // Values dependent on the target are added when incoming damage is calculated.
+        PayloadDamage = new List<PayloadData.PayloadComponent>();
         foreach (var component in Action.Payload.PayloadComponents)
         {
             switch (component.ComponentType)
@@ -30,11 +31,11 @@ public class Payload
                 }
                 case PayloadData.PayloadComponent.ePayloadComponentType.CasterAttribute:
                 {
-                    if (!caster.Attributes.ContainsKey(component.Attribute))
+                    if (!caster.BaseAttributes.ContainsKey(component.Attribute))
                     {
                         Debug.LogError($"Invalid attribute [{component.Attribute}] for [{Action.ActionID}] payload. It should be an entity attribute name.");
                     }
-                    change -= component.Potency * caster.Attributes[component.Attribute];
+                    change -= component.Potency * caster.BaseAttributes[component.Attribute];
                     break;
                 }
                 case PayloadData.PayloadComponent.ePayloadComponentType.CasterDepletableMax:
@@ -85,17 +86,17 @@ public class Payload
             {
                 case PayloadData.PayloadComponent.ePayloadComponentType.FlatValue:
                 {
-                    change -= component.Potency;
+                    change += component.Potency;
                     break;
                 }
                 case PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableCurrent:
                 {
-                    change -= component.Potency * target.DepletablesCurrent[component.Attribute];
+                    change += component.Potency * target.DepletablesCurrent[component.Attribute];
                     break;
                 }
                 case PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax:
                 {
-                    change -= component.Potency * target.DepletablesMax[component.Attribute];
+                    change += component.Potency * target.DepletablesMax[component.Attribute];
                     break;
                 }
                 default:

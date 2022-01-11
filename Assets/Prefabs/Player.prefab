@@ -532,12 +532,12 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8799224501291485265}
+  - component: {fileID: 8711827123449261809}
+  - component: {fileID: 8799224501291485268}
+  - component: {fileID: 8799224501291485291}
   - component: {fileID: 8799224501291485264}
   - component: {fileID: 8799224501291485271}
   - component: {fileID: 8799224501291485270}
-  - component: {fileID: 8799224501291485269}
-  - component: {fileID: 8799224501291485268}
-  - component: {fileID: 8799224501291485291}
   m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
@@ -562,6 +562,51 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8711827123449261809
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8799224501291485266}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9508ae16dcb767040b68fc3f04bcbd7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  EntityID: Player
+  EntityLevel: 1
+--- !u!114 &8799224501291485268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8799224501291485266}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74f086776cd309e48bba2d5b54807b82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ParentEntity: {fileID: 0}
+  ShowWhenSelected:
+  - {fileID: 8799224500870727289}
+  ShowWhenNotSelected: []
+--- !u!114 &8799224501291485291
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8799224501291485266}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3171c43dfb508b41a0d2d7f8d290caa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DistanceWeight: 0.8
+  AngleWeight: 0.2
+  MaxDistance: 50
 --- !u!114 &8799224501291485264
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -580,8 +625,6 @@ MonoBehaviour:
   TerrainLayers:
     serializedVersion: 2
     m_Bits: 8
-  Camera: {fileID: 0}
-  Rigidbody: {fileID: 8799224501291485271}
   GroundCheckSphereRadius: 0.22
 --- !u!54 &8799224501291485271
 Rigidbody:
@@ -613,49 +656,3 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 1, z: 0}
---- !u!114 &8799224501291485269
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8799224501291485266}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 202e67203bb371f44a3448441e2ec9c8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  EntityID: Player
-  EntityLevel: 1
---- !u!114 &8799224501291485268
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8799224501291485266}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 74f086776cd309e48bba2d5b54807b82, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ParentEntity: {fileID: 8799224501291485269}
-  ShowWhenSelected:
-  - {fileID: 8799224500870727289}
-  ShowWhenNotSelected: []
---- !u!114 &8799224501291485291
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8799224501291485266}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d3171c43dfb508b41a0d2d7f8d290caa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  DistanceWeight: 0.8
-  AngleWeight: 0.2
-  InputCooldown: 0.25
-  MaxDistance: 50

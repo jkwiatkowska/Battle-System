@@ -151,8 +151,6 @@ public class TargetingSystem : MonoBehaviour
         TrySelectParent();
     }
 
-
-
     public virtual void UpdateEntityLists()
     {
         var allEntities = BattleSystem.Instance.TargetableEntities;

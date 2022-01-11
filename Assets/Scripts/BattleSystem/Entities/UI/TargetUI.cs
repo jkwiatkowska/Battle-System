@@ -32,7 +32,7 @@ public class TargetUI : MonoBehaviour
     {
         foreach (var ui in DepletableUI)
         {
-            entityUI.AddDepletableUI(ui);
+            entityUI.RemoveDepletableUI(ui);
         }
 
         Canvas.SetActive(false);

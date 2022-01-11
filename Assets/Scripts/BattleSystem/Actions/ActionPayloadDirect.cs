@@ -17,7 +17,7 @@ public class ActionPayloadDirect : ActionPayload
 
     public override bool NeedsTarget()
     {
-        return ActionTargets != eDirectActionTargets.SelectedEntity && Target == eTarget.EnemyEntities;
+        return ActionTargets == eDirectActionTargets.SelectedEntity && Target == eTarget.EnemyEntities;
     }
 
     public override List<Entity> GetTargetsForAction(Entity entity)

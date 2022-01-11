@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Targetable : MonoBehaviour
 {
-    [SerializeField] Entity ParentEntity;
+    Entity ParentEntity;
     [SerializeField] List<GameObject> ShowWhenSelected;
     [SerializeField] List<GameObject> ShowWhenNotSelected;
     public Entity Entity
@@ -21,6 +21,7 @@ public class Targetable : MonoBehaviour
 
     private void Awake()
     {
+        ParentEntity = GetComponentInParent<Entity>();
         ToggleSelect(false);
     }
 

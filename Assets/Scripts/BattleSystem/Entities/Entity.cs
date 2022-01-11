@@ -10,9 +10,9 @@ public class Entity : MonoBehaviour
     EntityUI EntityUI;
     public string EntityUID                                 { get; private set; }
     static int EntityCount = 0;
-    public Dictionary<string, float> Attributes             { get; protected set; }
-    public Dictionary<string, float> DepletablesCurrent     { get; protected set; }
-    public Dictionary<string, float> DepletablesMax         { get; protected set; }
+    public Dictionary<string, float> BaseAttributes         { get; private set; }
+    public Dictionary<string, float> DepletablesCurrent     { get; private set; }
+    public Dictionary<string, float> DepletablesMax         { get; private set; }
 
     protected Dictionary<string, float> SkillAvailableTime;
     public Dictionary<string, ActionResult> ActionResults   { get; protected set; }
@@ -91,9 +91,18 @@ public class Entity : MonoBehaviour
         EntityCount++;
         EntityLevel = entityLevel;
 
-        Attributes = EntityData.GetAttributesForLevel(entityLevel);
-        DepletablesCurrent = EntityData.GetStartingDepletablesForLevel(entityLevel);
-        DepletablesMax = EntityData.GetMaxDepletablesForLevel(entityLevel);
+        BaseAttributes = new Dictionary<string, float>();
+        foreach (var attribute in GameData.EntityAttributes)
+        {
+            BaseAttributes.Add(attribute, Formulae.EntityBaseAttribute(this, attribute));
+        }
+        DepletablesMax = new Dictionary<string, float>();
+        DepletablesCurrent = new Dictionary<string, float>();
+        foreach (var depletable in GameData.EntityDepletables)
+        {
+            DepletablesMax.Add(depletable, Formulae.DepletableMaxValue(this, depletable));
+            DepletablesCurrent.Add(depletable, Formulae.DepletableStartValue(this, depletable));
+        }
 
         SkillAvailableTime = new Dictionary<string, float>();
 
@@ -112,6 +121,9 @@ public class Entity : MonoBehaviour
             Debug.LogError("EntityUI could not be found");
         }
 
+        SkillCoroutines = new Dictionary<string, Coroutine>();
+        ActionResults = new Dictionary<string, ActionResult>();
+
         name = EntityUID;
     }
 
@@ -122,29 +134,16 @@ public class Entity : MonoBehaviour
 
     protected virtual void Update()
     {
-        var isInCombat = IsInCombat();
-
         if (DepletablesCurrent != null)
         {
             foreach (var depletable in GameData.EntityDepletables)
             {
                 if (DepletablesCurrent.ContainsKey(depletable))
                 {
-                    if (isInCombat)
+                    var recovery = Formulae.DepletableRecoveryRate(this, depletable) * Time.deltaTime;
+                    if (recovery != 0.0f)
                     {
-                        var recovery = EntityData.DepletableRecovery[depletable].x * DepletablesMax[depletable] * Time.deltaTime;
-                        if (recovery != 0.0f)
-                        {
-                            ApplyChangeToDepletable(depletable, recovery);
-                        }
-                    }
-                    else
-                    {
-                        var recovery = EntityData.DepletableRecovery[depletable].y * DepletablesMax[depletable] * Time.deltaTime;
-                        if (recovery != 0.0f)
-                        {
-                            ApplyChangeToDepletable(depletable, recovery);
-                        }
+                        ApplyChangeToDepletable(depletable, recovery);
                     }
                 }
             }
@@ -261,6 +260,7 @@ public class Entity : MonoBehaviour
             var skillCoroutine = StartCoroutine(UseSkillCoroutine(skillData));
             SkillCoroutines[CurrentSkill] = skillCoroutine;
 
+            SkillCharge = null;
             return true;
         }
         else
@@ -281,7 +281,10 @@ public class Entity : MonoBehaviour
         {
             CancelSkill(CurrentSkill);
 
-            SkillChargeStop();
+            if (SkillCharge != null)
+            {
+                SkillChargeStop();
+            }
         }
     }
 

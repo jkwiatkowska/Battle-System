@@ -8,9 +8,8 @@ public class EntityMovement : MonoBehaviour
     [SerializeField] float JumpHeight = 1.0f;
     [SerializeField] CapsuleCollider Collider;
     [SerializeField] LayerMask TerrainLayers;
-    [SerializeField] PlayerCamera Camera;
-    [SerializeField] Rigidbody Rigidbody;
     [SerializeField] float GroundCheckSphereRadius;
+    PlayerCamera Camera;
 
     Vector3 Velocity;
     Vector3 GroundCheckSphereOffset;
@@ -24,6 +23,7 @@ public class EntityMovement : MonoBehaviour
 
     private void Awake()
     {
+        Camera = FindObjectOfType<PlayerCamera>();
         GravitationalForce = Constants.Gravity;
         Velocity = new Vector3();
         GroundCheckSphereOffset = new Vector3(0.0f, GroundCheckSphereRadius, 0.0f);
