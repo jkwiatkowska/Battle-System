@@ -8,6 +8,7 @@ public class SkillData
 
     public bool ParallelSkill;                  // Parallel skills can be activated as the same time as other skills, without cancelling them. 
                                                 // A skill can only be parallel if it does not require a selected target or if it has a charge time.  
+    public bool Interruptible;                  // If true, a skill can be interrupted by other entities. 
 
     public SkillChargeData SkillChargeData;     // A charge time before skill execution can be added. Additional actions can be executed at that point.
     public List<Action> SkillTimeline;          // Actions executed during skill cast.

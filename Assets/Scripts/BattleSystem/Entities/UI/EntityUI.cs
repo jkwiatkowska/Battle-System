@@ -12,9 +12,9 @@ public class EntityUI : MonoBehaviour
     Dictionary<string, List<DepletableUI>> DepletableUI;
     Camera Camera;
     
-    private void Awake()
+    public void Setup(Entity entity)
     {
-        Entity = GetComponentInParent<Entity>();
+        Entity = entity;
         Camera = Camera.main;
 
         DepletableUI = new Dictionary<string, List<DepletableUI>>();

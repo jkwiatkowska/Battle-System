@@ -9,8 +9,8 @@ public class DepletableUIBar : DepletableUI
     [SerializeField] private Image SlowBar;
     [SerializeField] private float UpdateSpeed;
 
-    public float currentFill = 0;
-    public float fillGoal = 0;
+    float currentFill = 0;
+    float fillGoal = 0;
 
     public void SetFill(float fillRatio, bool instant = false)
     {

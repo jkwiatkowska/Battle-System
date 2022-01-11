@@ -120,6 +120,10 @@ public class Entity : MonoBehaviour
         {
             Debug.LogError("EntityUI could not be found");
         }
+        else
+        {
+            EntityUI.Setup(this);
+        }
 
         SkillCoroutines = new Dictionary<string, Coroutine>();
         ActionResults = new Dictionary<string, ActionResult>();
