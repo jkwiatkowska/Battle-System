@@ -44,7 +44,14 @@ public static class NamesAndText
 
     public static string DamageText(ActionPayload action, float value)
     {
-        var text = $"{Mathf.Round(value)} {DepletableName(action.Payload.DepletableAffected)}";
+        var text = "";
+
+        if (value > 0)
+        {
+            text = "+";
+        }
+
+        text += $"{Mathf.Round(value)} {DepletableName(action.Payload.DepletableAffected)}";
 
         return text;
     }

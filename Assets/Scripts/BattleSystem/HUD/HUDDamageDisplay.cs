@@ -6,26 +6,34 @@ using UnityEngine.UI;
 public class HUDDamageDisplay : MonoBehaviour
 {
     [SerializeField] Canvas HUD;
-    [SerializeField] GameObject DamageTextPrefabPlayer;
-    [SerializeField] GameObject DamageTextPrefabEnemy;
+    [SerializeField] DamageText DamageTextPrefab;
+    [SerializeField] Color DamageColor;
+    [SerializeField] Color HealingColor;
 
     public static HUDDamageDisplay Instance;
-
     void Awake()
     {
         Instance = this;    
     }
 
-    public void DisplayDamage(string textToDisplay, Entity target, bool isPlayer)
+    public void DisplayDamage(Entity target, ActionPayload action, float change)
     {
-        GameObject damageText = Instantiate((isPlayer ? DamageTextPrefabPlayer : DamageTextPrefabEnemy), transform);
+        DamageText damageText = Instantiate(DamageTextPrefab, transform);
 
-        var text = damageText.GetComponentInChildren<Text>();
-        text.text = textToDisplay;
+        string text = NamesAndText.DamageText(action, change);
 
         var position = target.transform.position;
         position.y += target.EntityData.Height;
 
-        damageText.GetComponent<DamageText>().Setup(position, HUD, text);
+        damageText.Setup(position, HUD, text);
+
+        if (change > 0)
+        {
+            damageText.SetColor(HealingColor);
+        }
+        else if (change < 0)
+        {
+            damageText.SetColor(DamageColor);
+        }
     }
 }

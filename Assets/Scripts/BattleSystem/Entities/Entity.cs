@@ -7,7 +7,7 @@ public class Entity : MonoBehaviour
     [SerializeField] string EntityID;
     [SerializeField] int EntityLevel = 1;
 
-    EntityUI EntityUI;
+    EntityCanvas EntityCanvas;
     public string EntityUID                                 { get; private set; }
     static int EntityCount = 0;
     public Dictionary<string, float> BaseAttributes         { get; private set; }
@@ -123,14 +123,14 @@ public class Entity : MonoBehaviour
         }
         TargetingSystem.Setup(this);
 
-        EntityUI = GetComponentInChildren<EntityUI>();
-        if (EntityUI == null)
+        EntityCanvas = GetComponentInChildren<EntityCanvas>();
+        if (EntityCanvas == null)
         {
-            Debug.LogError("EntityUI could not be found");
+            Debug.LogError("EntityCanvas could not be found");
         }
         else
         {
-            EntityUI.Setup(this);
+            EntityCanvas.Setup(this);
         }
 
         SkillCoroutines = new Dictionary<string, Coroutine>();
@@ -244,12 +244,12 @@ public class Entity : MonoBehaviour
         SkillCharge = skillChargeData;
         SkillChargeStartTime = BattleSystem.TimeSinceStart;
 
-        // Show charge UI 
+        // Show charge display 
     }
 
     public virtual void SkillChargeUpdate()
     {
-        // Update UI
+        // Update charge display
 
         if (BattleSystem.TimeSinceStart < SkillChargeStartTime + SkillCharge.FullChargeTimeForEntity(this))
         {
@@ -259,7 +259,7 @@ public class Entity : MonoBehaviour
 
     public virtual bool SkillChargeStop()
     {
-        // Hide UI
+        // Hide charge display
 
         var timeElapsed = BattleSystem.TimeSinceStart - SkillChargeStartTime;
         if (timeElapsed >= SkillCharge.RequiredChargeTimeForEntity(this))
@@ -325,13 +325,13 @@ public class Entity : MonoBehaviour
         DepletablesCurrent[depletable] = Mathf.Clamp(DepletablesCurrent[depletable] + change, 0, DepletablesMax[depletable]);
         if (previous != DepletablesCurrent[depletable])
         {
-            if (EntityUI != null)
+            if (EntityCanvas != null)
             {
-                EntityUI.UpdateDepletableUI(depletable);
+                EntityCanvas.UpdateDepletableDisplay(depletable);
             }
             else
             {
-                Debug.LogError($"Entity {EntityUID} is missing EntityUI.");
+                Debug.LogError($"Entity {EntityUID} is missing EntityDisplay.");
             }
 
             return previous - DepletablesCurrent[depletable];

@@ -228,7 +228,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowWhenSelected:
-  - {fileID: 5474480296748496896}
+  - {fileID: 5898862650144901177}
   ShowWhenNotSelected: []
 --- !u!114 &8799224501291485291
 MonoBehaviour:
@@ -391,7 +391,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5256719702630343125, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_Name
-      value: EntityUI
+      value: EntityCanvas
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
@@ -400,8 +400,8 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5256719702630343124, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
   m_PrefabInstance: {fileID: 219229857905911461}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &5474480296748496896 stripped
+--- !u!1 &5898862650144901177 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 5256719702196330149, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
+  m_CorrespondingSourceObject: {fileID: 5968998175909932700, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
   m_PrefabInstance: {fileID: 219229857905911461}
   m_PrefabAsset: {fileID: 0}

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TargetingSystemPlayer : TargetingSystem
 {
-    TargetUI TargetUI; 
+    HUDTarget TargetHUD; 
     [SerializeField] float DistanceWeight = 0.5f;
     [SerializeField] float AngleWeight = 0.5f;
     [SerializeField] float MaxDistance = 100.0f;
@@ -14,10 +14,10 @@ public class TargetingSystemPlayer : TargetingSystem
 
     public override void Setup(Entity parent)
     {
-        TargetUI = FindObjectOfType<TargetUI>();
-        if (TargetUI == null)
+        TargetHUD = FindObjectOfType<HUDTarget>();
+        if (TargetHUD == null)
         {
-            Debug.LogError("TargetUI could not be found");
+            Debug.LogError("TargetHUD could not be found");
         }
 
         base.Setup(parent);
@@ -33,14 +33,14 @@ public class TargetingSystemPlayer : TargetingSystem
     {
         base.SelectTarget(entity);
 
-        var entityUI = entity.GetComponentInChildren<EntityUI>();
-        if (entityUI != null)
+        var entityCanvas = entity.GetComponentInChildren<EntityCanvas>();
+        if (entityCanvas != null)
         {
-            TargetUI.SelectTarget(entityUI);
+            TargetHUD.SelectTarget(entityCanvas);
         }
         else
         {
-            Debug.LogError($"Entity {entity.Entity.EntityUID} is missing EntityUI.");
+            Debug.LogError($"Entity {entity.Entity.EntityUID} is missing EntityCanvas.");
         }
     }
 
@@ -51,14 +51,14 @@ public class TargetingSystemPlayer : TargetingSystem
 
         if (entity != null)
         {
-            var entityUI = entity.GetComponentInChildren<EntityUI>();
-            if (entityUI != null)
+            var entityCanvas = entity.GetComponentInChildren<EntityCanvas>();
+            if (entityCanvas != null)
             {
-                TargetUI.ClearSelection(entityUI);
+                TargetHUD.ClearSelection(entityCanvas);
             }
             else
             {
-                Debug.LogError($"Entity {entity.Entity.EntityUID} is missing EntityUI.");
+                Debug.LogError($"Entity {entity.Entity.EntityUID} is missing EntityCanvas.");
             }
         }
     }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class DepletableUIText : DepletableUI
+public class DepletableDisplayText : DepletableDisplay
 {
     [SerializeField] Text Text;
 
