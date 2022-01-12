@@ -12,4 +12,7 @@ public class EntityData
     public string Faction;
 
     public bool IsAI;                                       // AI entities hold a list of skills that they automatically execute.
+
+    public float Radius;
+    public float Height;
 }

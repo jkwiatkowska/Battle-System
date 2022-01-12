@@ -74,11 +74,11 @@ public class EntityUI : MonoBehaviour
 
     public void SetEntityNameText(Text text)
     {
-        text.text = Names.EntityName(Entity);
+        text.text = NamesAndText.EntityName(Entity);
     }
 
     public void SetEntityLevelText(Text text)
     {
-        text.text = Names.EntityLevel(Entity);
+        text.text = NamesAndText.EntityLevel(Entity);
     }
 }

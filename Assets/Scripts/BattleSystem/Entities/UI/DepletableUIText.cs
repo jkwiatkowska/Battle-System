@@ -9,7 +9,7 @@ public class DepletableUIText : DepletableUI
 
     public override void SetValues(float current, float max)
     {
-        Text.text = $"{Mathf.Floor(current)} / {Mathf.Floor(max)} {Names.DepletableName(DepletableName)}";
+        Text.text = $"{Mathf.Floor(current)} / {Mathf.Floor(max)} {NamesAndText.DepletableName(DepletableName)}";
     }
 
     public override void UpdateValues(float current, float max)

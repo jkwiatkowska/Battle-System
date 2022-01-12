@@ -75,6 +75,8 @@ public static class GameData
             }
         };
 
+        PlayerFaction = "Player";
+
         EntityData = new Dictionary<string, EntityData>
         {
             {
@@ -92,7 +94,9 @@ public static class GameData
                     },
                     IsTargetable = true,
                     Faction = "Player",
-                    IsAI = false
+                    IsAI = false,
+                    Radius = 0.05f,
+                    Height = 1.0f
                 }
             },
             {
@@ -110,7 +114,9 @@ public static class GameData
                     },
                     IsTargetable = true,
                     Faction = "Dummy",
-                    IsAI = false
+                    IsAI = false,
+                    Radius = 0.5f,
+                    Height = 1.0f
                 }
             }
         };

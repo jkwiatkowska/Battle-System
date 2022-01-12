@@ -41,8 +41,13 @@ public abstract class ActionPayload : Action
             }
 
             // Apply payload and update result.
-            actionResult.Value += payload.ApplyPayload(entity, target);
+            var damageDealt = payload.ApplyPayload(entity, target);
+            actionResult.Value += damageDealt;
             actionResult.Count += 1;
+
+            // Show damage number on HUD
+            var damageText = NamesAndText.DamageText(this, damageDealt);
+            HUDDamageDisplay.Instance.DisplayDamage(damageText, target, BattleSystem.IsOnPlayerSide(entity.FactionData.FactionID));
         }
 
         actionResult.Success = actionResult.Count > 0;

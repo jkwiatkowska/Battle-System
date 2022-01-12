@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class Names
+public static class NamesAndText
 {
-    // This class can be used to customise how entity, skill and attribute names.
+    // This class can be used to customise how entity, skill and attribute names and other text appears in game.
     // By default it simply returns their IDs, but it can be customised to get the names from somewhere else, for example a dictionary or a localisation file. 
 
     public static string EntityName(Entity entity)
@@ -40,5 +40,12 @@ public static class Names
         var name = attribute.ToUpper();
 
         return name;
+    }
+
+    public static string DamageText(ActionPayload action, float value)
+    {
+        var text = $"{Mathf.Round(value)} {DepletableName(action.Payload.DepletableAffected)}";
+
+        return text;
     }
 }

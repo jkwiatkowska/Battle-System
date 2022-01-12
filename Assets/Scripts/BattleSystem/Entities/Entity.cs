@@ -59,9 +59,17 @@ public class Entity : MonoBehaviour
     {
         get
         {
-            return GameData.GetFactionData(EntityID);
+            if (FactionOverride != null)
+            {
+                return GameData.GetFactionData(FactionOverride);
+            }
+            else
+            {
+                return GameData.GetFactionData(EntityID);
+            }
         }
     }
+
     public TargetingSystem EntityTargetingSystem
     {
         get
@@ -311,7 +319,7 @@ public class Entity : MonoBehaviour
     }
 
     #region Change Functions
-    public void ApplyChangeToDepletable(string depletable, float change)
+    public float ApplyChangeToDepletable(string depletable, float change)
     {
         var previous = DepletablesCurrent[depletable];
         DepletablesCurrent[depletable] = Mathf.Clamp(DepletablesCurrent[depletable] + change, 0, DepletablesMax[depletable]);
@@ -325,6 +333,12 @@ public class Entity : MonoBehaviour
             {
                 Debug.LogError($"Entity {EntityUID} is missing EntityUI.");
             }
+
+            return previous - DepletablesCurrent[depletable];
+        }
+        else
+        {
+            return 0.0f;
         }
     }
     #endregion

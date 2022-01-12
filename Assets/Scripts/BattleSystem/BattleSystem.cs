@@ -58,10 +58,10 @@ public class BattleSystem : MonoBehaviour
         }
 
         var entity = Instance.Entities[entityUID];
-        var entityFaction = !string.IsNullOrEmpty(entity.FactionOverride) ? entity.FactionOverride : entity.FactionData.FactionID;
+        var entityFaction = entity.FactionData.FactionID;
 
         var targetEntity = Instance.Entities[targetUID];
-        var targetFaction = !string.IsNullOrEmpty(targetEntity.FactionOverride) ? targetEntity.FactionOverride : targetEntity.FactionData.FactionID;
+        var targetFaction = targetEntity.FactionData.FactionID;
 
         if (entityFaction == targetFaction)
         {
@@ -83,16 +83,31 @@ public class BattleSystem : MonoBehaviour
         }
 
         var entity = Instance.Entities[entityUID];
-        var entityFaction = !string.IsNullOrEmpty(entity.FactionOverride) ? entity.FactionOverride : entity.FactionData.FactionID;
+        var entityFaction = entity.FactionData.FactionID;
 
         var targetEntity = Instance.Entities[targetUID];
-        var targetFaction = !string.IsNullOrEmpty(targetEntity.FactionOverride) ? targetEntity.FactionOverride : targetEntity.FactionData.FactionID;
+        var targetFaction = targetEntity.FactionData.FactionID;
 
         if (entityFaction == targetFaction)
         {
             return false;
         }
         if (GameData.GetFactionData(entityFaction).EnemyFactions.Contains(targetFaction))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public static bool IsOnPlayerSide(string factionID)
+    {
+        if (factionID == GameData.PlayerFaction)
+        {
+            return true;
+        }
+
+        if (GameData.GetFactionData(GameData.PlayerFaction).FriendlyFactions.Contains(factionID))
         {
             return true;
         }
