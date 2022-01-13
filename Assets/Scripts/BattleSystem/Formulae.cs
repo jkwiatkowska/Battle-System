@@ -55,11 +55,11 @@ public static class Formulae
 
     public static float DepletableRecoveryRate(Entity entity, string depletable)
     {
-        var recoveryRate = 0.02f;
+        var recoveryRate = 0.2f;
 
         if (entity.IsInCombat())
         {
-            recoveryRate = 0.01f;
+            recoveryRate = 0.1f;
         }
 
         return recoveryRate;

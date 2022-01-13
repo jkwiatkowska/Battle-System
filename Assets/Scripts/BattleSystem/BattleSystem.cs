@@ -6,6 +6,7 @@ public class BattleSystem : MonoBehaviour
 {
     [SerializeField] string DataPath;
     public static BattleSystem Instance { get; private set; }
+    TargetingSystemPlayer PlayerTargeting;
 
     public Dictionary<string, Entity> Entities { get; private set; }
     public List<Targetable> TargetableEntities { get; private set; }
@@ -20,6 +21,8 @@ public class BattleSystem : MonoBehaviour
         Entities = new Dictionary<string, Entity>();
         TargetableEntities = new List<Targetable>();
         TimeSinceStart = 0.0f;
+
+        PlayerTargeting = FindObjectOfType<TargetingSystemPlayer>();
     }
     
     void Update()
@@ -45,9 +48,22 @@ public class BattleSystem : MonoBehaviour
         }
     }
 
-    public void RemoveEntity(string entityUID)
+    public void RemoveEntity(Entity entity)
     {
-        Entities.Remove(entityUID);
+        Entities.Remove(entity.EntityUID);
+
+        var targetable = entity.GetComponentInChildren<Targetable>();
+        if (targetable == null)
+        {
+            Debug.LogError($"Entity {entity.EntityUID} is missing a targetable component.");
+        }
+
+        TargetableEntities.Remove(targetable);
+
+        if (targetable.Selected && PlayerTargeting != null)
+        {
+            FindObjectOfType<TargetingSystemPlayer>().ClearSelection();
+        }
     }
 
     public static bool IsFriendly(string entityUID, string targetUID)

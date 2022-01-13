@@ -116,7 +116,23 @@ public static class GameData
                     Faction = "Dummy",
                     IsAI = false,
                     Radius = 0.5f,
-                    Height = 1.0f
+                    Height = 1.0f,
+                    LifeDepletables = new List<string>()
+                    {
+                        "hp"
+                    },
+                    OnDeath = new List<Action>()
+                    {
+                        new ActionDestroySelf()
+                        {
+                            ActionID = "deathAction",
+                            SkillID = "",
+                            ActionType = Action.eActionType.DestroySelf,
+                            Timestamp = 2.0f,
+
+                            ExecuteCondition = Action.eActionCondition.AlwaysExecute
+                        }
+                    }
                 }
             }
         };

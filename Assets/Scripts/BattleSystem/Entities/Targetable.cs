@@ -7,6 +7,7 @@ public class Targetable : MonoBehaviour
     Entity ParentEntity;
     [SerializeField] List<GameObject> ShowWhenSelected;
     [SerializeField] List<GameObject> ShowWhenNotSelected;
+    public bool Selected { get; private set; }
     public Entity Entity
     {
         get
@@ -27,6 +28,8 @@ public class Targetable : MonoBehaviour
 
     public void ToggleSelect(bool select)
     {
+        Selected = select;
+
         foreach (var item in ShowWhenSelected)
         {
             item.SetActive(select);

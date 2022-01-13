@@ -4,16 +4,26 @@ using UnityEngine;
 
 public class Entity : MonoBehaviour
 {
+    public enum eEntityState
+    {
+        Idle,
+        ChargingSkill,
+        CastingSkill,
+        Dead
+    }
+
     [SerializeField] string EntityID;
     [SerializeField] int EntityLevel = 1;
 
-    EntityCanvas EntityCanvas;
     public string EntityUID                                 { get; private set; }
     static int EntityCount = 0;
+
+    // Attributes
     public Dictionary<string, float> BaseAttributes         { get; private set; }
     public Dictionary<string, float> DepletablesCurrent     { get; private set; }
     public Dictionary<string, float> DepletablesMax         { get; private set; }
 
+    // Skills
     protected Dictionary<string, float> SkillAvailableTime;
     public Dictionary<string, ActionResult> ActionResults   { get; protected set; }
     protected string CurrentSkill;
@@ -22,75 +32,14 @@ public class Entity : MonoBehaviour
     protected float SkillChargeStartTime;
     public float SkillChargeRatio                           { get; protected set; }
 
+    // Other objects that make up an entity
+    EntityCanvas EntityCanvas;
     public TargetingSystem TargetingSystem                  { get; protected set; }
     public Dictionary<string, List<Entity>> TaggedEntities  { get; private set; }
 
+    // State
+    public eEntityState EntityState                         { get; private set; }
     public string FactionOverride                           { get; private set; }
-
-    public float TimeOfLastAttack                           { get; private set;}
-
-
-    #region Getters
-    public string ID
-    {
-        get
-        {
-            return EntityID;
-        }
-    }
-
-    public int Level
-    {
-        get
-        {
-            return EntityLevel;
-        }
-    }
-
-    public EntityData EntityData
-    {
-        get
-        {
-            return GameData.GetEntityData(EntityID);
-        }
-    }
-
-    public FactionData FactionData
-    {
-        get
-        {
-            if (FactionOverride != null)
-            {
-                return GameData.GetFactionData(FactionOverride);
-            }
-            else
-            {
-                return GameData.GetFactionData(EntityID);
-            }
-        }
-    }
-
-    public TargetingSystem EntityTargetingSystem
-    {
-        get
-        {
-            return TargetingSystem;
-        }
-    }
-
-    public float DepletableRatio(string depletableName)
-    {
-        if (DepletablesCurrent.ContainsKey(depletableName) && DepletablesMax.ContainsKey(depletableName))
-        {
-            return DepletablesCurrent[depletableName] / DepletablesMax[depletableName];
-        }
-        else
-        {
-            Debug.LogError($"Depletable name {depletableName} is invalid.");
-            return 0.0f;
-        }
-    }
-    #endregion
 
     public virtual void Setup(string entityID, int entityLevel)
     {
@@ -136,6 +85,8 @@ public class Entity : MonoBehaviour
         SkillCoroutines = new Dictionary<string, Coroutine>();
         ActionResults = new Dictionary<string, ActionResult>();
 
+        EntityState = eEntityState.Idle;
+
         name = EntityUID;
     }
 
@@ -155,7 +106,7 @@ public class Entity : MonoBehaviour
                     var recovery = Formulae.DepletableRecoveryRate(this, depletable) * Time.deltaTime;
                     if (recovery != 0.0f)
                     {
-                        ApplyChangeToDepletable(depletable, recovery);
+                        ApplyChangeToDepletable(depletable, ref recovery);
                     }
                 }
             }
@@ -185,7 +136,7 @@ public class Entity : MonoBehaviour
 
         if (skillData.HasChargeTime)
         {
-            SkillChargeStart(skillData.SkillChargeData);
+            SkillChargeStart(skillData);
         }
         else
         {
@@ -199,12 +150,12 @@ public class Entity : MonoBehaviour
         SkillCoroutines.Add(skillData.SkillID, skillCoroutine);
     }
 
-    public virtual IEnumerator PreSkillChargeCoroutine(SkillData skillData)
+    public virtual IEnumerator ExecuteActionsCoroutine(List<Action> timeline)
     {
         var startTime = BattleSystem.TimeSinceStart;
         ActionResults.Clear();
 
-        foreach (var action in skillData.SkillChargeData.PreChargeTimeline)
+        foreach (var action in timeline)
         {
             var timeBeforeAction = startTime + action.TimestampForEntity(this) - BattleSystem.TimeSinceStart;
             if (timeBeforeAction > 0.0f)
@@ -220,6 +171,11 @@ public class Entity : MonoBehaviour
 
     public virtual IEnumerator UseSkillCoroutine(SkillData skillData)
     {
+        if (!skillData.ParallelSkill)
+        {
+            EntityState = eEntityState.CastingSkill;
+        }
+
         var startTime = BattleSystem.TimeSinceStart;
         ActionResults.Clear();
 
@@ -235,14 +191,20 @@ public class Entity : MonoBehaviour
             ActionResults[action.ActionID] = actionResult;
         }
 
-        yield return null;
+        if (!skillData.ParallelSkill)
+        {
+            EntityState = eEntityState.Idle;
+        }
     }
 
     #region Skill Charge
-    public virtual void SkillChargeStart(SkillChargeData skillChargeData)
+    public virtual void SkillChargeStart(SkillData skillData)
     {
-        SkillCharge = skillChargeData;
+        EntityState = eEntityState.ChargingSkill;
+        SkillCharge = skillData.SkillChargeData;
         SkillChargeStartTime = BattleSystem.TimeSinceStart;
+
+        SkillCoroutines[skillData.SkillID] = StartCoroutine(ExecuteActionsCoroutine(skillData.SkillChargeData.PreChargeTimeline));
 
         // Show charge display 
     }
@@ -313,16 +275,11 @@ public class Entity : MonoBehaviour
     }
     #endregion
 
-    public virtual void DestroyEntity()
-    {
-        BattleSystem.Instance.RemoveEntity(EntityUID);
-    }
-
     #region Change Functions
-    public float ApplyChangeToDepletable(string depletable, float change)
+    public void ApplyChangeToDepletable(string depletable, ref float change)
     {
         var previous = DepletablesCurrent[depletable];
-        DepletablesCurrent[depletable] = Mathf.Clamp(DepletablesCurrent[depletable] + change, 0, DepletablesMax[depletable]);
+        DepletablesCurrent[depletable] = Mathf.Clamp(DepletablesCurrent[depletable] + change, 0.0f, DepletablesMax[depletable]);
         if (previous != DepletablesCurrent[depletable])
         {
             if (EntityCanvas != null)
@@ -334,16 +291,101 @@ public class Entity : MonoBehaviour
                 Debug.LogError($"Entity {EntityUID} is missing EntityDisplay.");
             }
 
-            return previous - DepletablesCurrent[depletable];
+            change = previous - DepletablesCurrent[depletable];
+
+            if (DepletablesCurrent[depletable] <= 0.0f && EntityData.LifeDepletables.Contains(depletable))
+            {
+                Die();
+            }
         }
         else
         {
-            return 0.0f;
+            change = 0.0f;
         }
+    }
+    public virtual void Die()
+    {
+        EntityState = eEntityState.Dead;
+
+        StartCoroutine(ExecuteActionsCoroutine(EntityData.OnDeath));
+    }
+
+    public virtual void DestroyEntity()
+    {
+        BattleSystem.Instance.RemoveEntity(this);
+        Destroy(gameObject);
     }
     #endregion
 
-    #region Bool Checks
+    #region Getters and Checks
+    public string ID
+    {
+        get
+        {
+            return EntityID;
+        }
+    }
+
+    public int Level
+    {
+        get
+        {
+            return EntityLevel;
+        }
+    }
+
+    public EntityData EntityData
+    {
+        get
+        {
+            return GameData.GetEntityData(EntityID);
+        }
+    }
+
+    public FactionData FactionData
+    {
+        get
+        {
+            if (FactionOverride != null)
+            {
+                return GameData.GetFactionData(FactionOverride);
+            }
+            else
+            {
+                return GameData.GetFactionData(EntityID);
+            }
+        }
+    }
+
+    public TargetingSystem EntityTargetingSystem
+    {
+        get
+        {
+            return TargetingSystem;
+        }
+    }
+
+    public bool Alive
+    {
+        get
+        {
+            return EntityState != eEntityState.Dead;
+        }
+    }
+
+    public float DepletableRatio(string depletableName)
+    {
+        if (DepletablesCurrent.ContainsKey(depletableName) && DepletablesMax.ContainsKey(depletableName))
+        {
+            return DepletablesCurrent[depletableName] / DepletablesMax[depletableName];
+        }
+        else
+        {
+            Debug.LogError($"Depletable name {depletableName} is invalid.");
+            return 0.0f;
+        }
+    }
+
     public virtual bool IsInCombat()
     {
         return false;

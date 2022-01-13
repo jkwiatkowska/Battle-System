@@ -60,6 +60,7 @@ public class ActionCostCollection : Action
             return;
         }
 
-        entity.ApplyChangeToDepletable(DepletableName, -GetValue(entity));
+        var value = -GetValue(entity);
+        entity.ApplyChangeToDepletable(DepletableName, ref value);
     }
 }

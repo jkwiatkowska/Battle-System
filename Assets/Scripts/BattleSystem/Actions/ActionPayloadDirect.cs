@@ -57,12 +57,12 @@ public class ActionPayloadDirect : ActionPayload
             {
                 if (Target == eTarget.FriendlyEntities)
                 {
-                    var all = targetingSystem.GetAllFriendlyEntites();
+                    var all = targetingSystem.GetAllFriendlyEntites().FindAll(t => CheckTargetableState(t));
                     targets = all.GetRange(0, Mathf.Min(all.Count, MaxTargetCount));
                 }
                 else if (Target == eTarget.EnemyEntities)
                 {
-                    var all = targetingSystem.GetAllEnemyEntites();
+                    var all = targetingSystem.GetAllEnemyEntites().FindAll(t => CheckTargetableState(t));
                     targets = all.GetRange(0, Mathf.Min(all.Count, MaxTargetCount));
                 }
                 break;
@@ -71,12 +71,12 @@ public class ActionPayloadDirect : ActionPayload
             {
                 if (Target == eTarget.FriendlyEntities)
                 {
-                    targets = targetingSystem.GetAllFriendlyEntites();
+                    targets = targetingSystem.GetAllFriendlyEntites().FindAll(t => CheckTargetableState(t));
                     
                 }
                 else if (Target == eTarget.EnemyEntities)
                 {
-                    targets = targetingSystem.GetAllEnemyEntites();
+                    targets = targetingSystem.GetAllEnemyEntites().FindAll(t => CheckTargetableState(t));
                 }
 
                 // Randomly remove entities from list until the desired number is left

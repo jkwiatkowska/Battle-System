@@ -11,7 +11,15 @@ public abstract class ActionPayload : Action
         FriendlyEntities
     }
 
-    public eTarget Target;      // Which entities the payload affects
+    public enum eTargetState
+    {
+        Alive,
+        Dead,
+        Any
+    }
+
+    public eTarget Target;              // Which entities the payload affects
+    public eTargetState TargetState;    // What state the target has to be in to be affected
     public PayloadData Payload;
 
     public override void Execute(Entity entity, out ActionResult actionResult)
@@ -56,4 +64,25 @@ public abstract class ActionPayload : Action
     }
 
     public abstract List<Entity> GetTargetsForAction(Entity entity);
+
+    protected bool CheckTargetableState(Entity target)
+    {
+        if (TargetState == eTargetState.Any)
+        {
+            return true;
+        }
+
+        if (TargetState == eTargetState.Alive)
+        {
+            return target.Alive;
+        }
+
+        if (TargetState == eTargetState.Dead)
+        {
+            return !target.Alive;
+        }
+
+        Debug.LogError($"Unsupported target state: {TargetState}");
+        return false;
+    }
 }

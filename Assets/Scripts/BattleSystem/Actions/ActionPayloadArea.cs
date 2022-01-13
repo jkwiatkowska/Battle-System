@@ -59,12 +59,12 @@ public class ActionPayloadArea : ActionPayload
         {
             case eTarget.EnemyEntities:
             {
-                potentialTargets = targetingSystem.GetAllEnemyEntites();
+                potentialTargets = targetingSystem.GetAllEnemyEntites().FindAll(t => CheckTargetableState(t));
                 break;
             }
             case eTarget.FriendlyEntities:
             {
-                potentialTargets = targetingSystem.GetAllFriendlyEntites();
+                potentialTargets = targetingSystem.GetAllFriendlyEntites().FindAll(t => CheckTargetableState(t));
                 break;
             }
             default:

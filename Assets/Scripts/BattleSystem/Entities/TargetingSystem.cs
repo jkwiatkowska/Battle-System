@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class TargetingSystem : MonoBehaviour
 {
-    protected Entity Parent;
-    public Targetable SelectedTarget { get; protected set; }
+    public Entity Parent                        { get; protected set; }
+    public Targetable SelectedTarget            { get; protected set; }
 
-    public List<Targetable> EnemyEntities { get; protected set; }
-    public List<Targetable> FriendlyEntities { get; protected set; }
+    public List<Targetable> EnemyEntities       { get; protected set; }
+    public List<Targetable> FriendlyEntities    { get; protected set; }
 
     public bool FriendlySelected
     {
@@ -51,15 +51,10 @@ public class TargetingSystem : MonoBehaviour
     {
         ClearSelection();
         SelectedTarget = entity;
-        SelectedTarget.ToggleSelect(true);
     }
 
     public virtual void ClearSelection()
     {
-        if (SelectedTarget != null)
-        {
-            SelectedTarget.ToggleSelect(false);
-        }
         SelectedTarget = null;
     }
 

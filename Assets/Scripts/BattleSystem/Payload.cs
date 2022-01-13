@@ -110,8 +110,8 @@ public class Payload
         // Incoming damage can be calculated using target attributes and other variables here. 
         var totalChange = Formulae.IncomingDamage(caster, target, change, Action.Payload);
 
-        var actualChange = target.ApplyChangeToDepletable(Action.Payload.DepletableAffected, totalChange);
+        target.ApplyChangeToDepletable(Action.Payload.DepletableAffected, ref totalChange);
 
-        return actualChange;
+        return totalChange;
     }
 }

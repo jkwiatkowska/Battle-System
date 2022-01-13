@@ -33,6 +33,8 @@ public class TargetingSystemPlayer : TargetingSystem
     {
         base.SelectTarget(entity);
 
+        SelectedTarget.ToggleSelect(true);
+
         var entityCanvas = entity.GetComponentInChildren<EntityCanvas>();
         if (entityCanvas != null)
         {
@@ -47,6 +49,12 @@ public class TargetingSystemPlayer : TargetingSystem
     public override void ClearSelection()
     {
         var entity = SelectedTarget;
+
+        if (SelectedTarget != null)
+        {
+            SelectedTarget.ToggleSelect(false);
+        }
+
         base.ClearSelection();
 
         if (entity != null)
