@@ -140,19 +140,26 @@ public static class GameData
         SkillData = new Dictionary<string, SkillData>()
         {
             {
-                "singleTargetAttack",
+                "chargedAttack",
                 new SkillData()
                 {
-                    SkillID = "singleTargetAttack",
-                    ParallelSkill = false,
+                    SkillID = "chargedAttack",
+                    SkillChargeData = new SkillChargeData()
+                    {
+                        RequiredChargeTime = 0.5f,
+                        FullChargeTime = 3.0f,
+                        MovementCancelsCharge = true,
+                        PreChargeTimeline = new List<Action>(),
+                        ShowUI = true
+                    },
                     SkillTimeline = new List<Action>()
                     {
                         new ActionPayloadDirect()
                         {
-                            ActionID = "singleTargetAttackAction",
-                            SkillID = "singleTargetAttack",
-                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.SelectedEntity,
-                            MaxTargetCount = 1,
+                            ActionID = "randomTargetAttackAction",
+                            SkillID = "chargedAttack",
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.RandomEntities,
+                            MaxTargetCount = 5,
                             Target = ActionPayload.eTarget.EnemyEntities,
                             Payload = new PayloadData()
                             {
@@ -171,7 +178,40 @@ public static class GameData
                                 },
                                 SuccessChance = 1.0f,
                                 DepletableAffected = "hp"
-                            }
+                            },
+                            Timestamp = 0.1f,
+                            ExecuteCondition = Action.eActionCondition.OnMinValue,
+                            ConditionValueType = Action.eConditionValueType.ChargeRatio,
+                            ConditionMinValue = 1.0f
+                        },
+                        new ActionPayloadDirect()
+                        {
+                            ActionID = "singleTargetAttackAction",
+                            SkillID = "chargedAttack",
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.SelectedEntity,
+                            MaxTargetCount = 1,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            Payload = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", true },
+                                    { "canCrit", false }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 100)
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "physical"
+                                },
+                                SuccessChance = 1.0f,
+                                DepletableAffected = "hp"
+                            },
+                            Timestamp = 0.1f,
+                            ExecuteCondition = Action.eActionCondition.OnActionFail,
+                            ConditionActionID = "randomTargetAttackAction"
                         }
                     }
                 }
@@ -181,7 +221,6 @@ public static class GameData
                 new SkillData()
                 {
                     SkillID = "healAll",
-                    ParallelSkill = false,
                     SkillTimeline = new List<Action>()
                     {
                         new ActionPayloadDirect()

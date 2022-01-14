@@ -75,12 +75,10 @@ public class TargetingSystemPlayer : TargetingSystem
     {
         if (Player.LastMoved == PlayerLastMoved)
         {
-            Debug.Log("Selecting next");
             base.SelectNextEnemy();
         }
         else
         {
-            Debug.Log("Selecting best");
             base.SelectBestEnemy();
             PlayerLastMoved = Player.LastMoved;
         }

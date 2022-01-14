@@ -21,9 +21,9 @@ public static class NamesAndText
         return name;
     }
 
-    public static string SkillName(SkillData skillData)
+    public static string SkillName(string skillID)
     {
-        var name = skillData.SkillID;
+        var name = skillID;
 
         return name;
     }
@@ -52,6 +52,13 @@ public static class NamesAndText
         }
 
         text += $"{Mathf.Round(value)} {DepletableName(action.Payload.DepletableAffected)}";
+
+        return text;
+    }
+
+    public static string SkillChargeProgressText(float elapsedTime, float fullTime)
+    {
+        var text = (fullTime - elapsedTime).ToString("0.00") + 's';
 
         return text;
     }

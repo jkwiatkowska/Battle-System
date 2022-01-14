@@ -56,7 +56,7 @@ public abstract class ActionPayload : Action
             // Show damage number on HUD
             if (change != 0.0f)
             {
-                HUDDamageDisplay.Instance.DisplayDamage(target, this, -change);
+                HUDPopupTextDisplay.Instance.DisplayDamage(target, this, -change);
             }
         }
 

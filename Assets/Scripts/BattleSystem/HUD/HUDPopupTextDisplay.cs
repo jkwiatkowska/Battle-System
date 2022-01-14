@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class HUDDamageDisplay : MonoBehaviour
+public class HUDPopupTextDisplay : MonoBehaviour
 {
     [SerializeField] Canvas HUD;
-    [SerializeField] DamageText DamageTextPrefab;
+    [SerializeField] PopupText DamageTextPrefab;
     [SerializeField] Color DamageColor;
     [SerializeField] Color HealingColor;
 
-    public static HUDDamageDisplay Instance;
+    public static HUDPopupTextDisplay Instance;
     void Awake()
     {
         Instance = this;    
@@ -18,7 +18,7 @@ public class HUDDamageDisplay : MonoBehaviour
 
     public void DisplayDamage(Entity target, ActionPayload action, float change)
     {
-        DamageText damageText = Instantiate(DamageTextPrefab, transform);
+        PopupText damageText = Instantiate(DamageTextPrefab, transform);
 
         string text = NamesAndText.DamageText(action, change);
 

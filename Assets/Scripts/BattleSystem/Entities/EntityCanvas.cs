@@ -8,10 +8,11 @@ public class EntityCanvas : MonoBehaviour
     Entity Entity;
     [SerializeField] List<Text> EntityNameText;
     [SerializeField] List<Text> EntityLevelText;
+    [SerializeField] List<SkillChargeProgress> SkillChargeDisplay;
     [SerializeField] List<DepletableDisplay> DepletableDisplays;
     Dictionary<string, List<DepletableDisplay>> DepletableDisplay;
     Camera Camera;
-    
+
     public void Setup(Entity entity)
     {
         Entity = entity;
@@ -37,6 +38,40 @@ public class EntityCanvas : MonoBehaviour
     void LateUpdate()
     {
         transform.LookAt(transform.position + Camera.transform.rotation * Vector3.forward, Camera.transform.rotation * Vector3.up);
+    }
+
+    public void StartSkillCharge(SkillChargeData skillChargeData, string skillID)
+    {
+        foreach (var display in SkillChargeDisplay)
+        {
+            display.gameObject.SetActive(true);
+            display.StartCharge(skillChargeData.RequiredChargeTime, skillChargeData.FullChargeTime, skillID);
+        }
+    }
+
+    public void StopSkillCharge()
+    {
+        foreach (var display in SkillChargeDisplay)
+        {
+            display.gameObject.SetActive(false);
+        }
+    }
+
+    public void AddSkillChargeDisplay(SkillChargeProgress display)
+    {
+        if (Entity.EntityState == Entity.eEntityState.ChargingSkill)
+        {
+            var data = Entity.SkillCharge;
+            display.StartCharge(data.RequiredChargeTime, data.FullChargeTime, Entity.CurrentSkill, Entity.SkillChargeStartTime);
+            display.gameObject.SetActive(true);
+        }
+        SkillChargeDisplay.Add(display);
+    }
+
+    public void RemoveSkillChargeDisplay(SkillChargeProgress display)
+    {
+        display.gameObject.SetActive(false);
+        SkillChargeDisplay.Remove(display);
     }
 
     public void UpdateDepletableDisplay(string depletableName)

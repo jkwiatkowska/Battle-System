@@ -7,6 +7,7 @@ public class Entity : MonoBehaviour
     public enum eEntityState
     {
         Idle,
+        Transition,
         ChargingSkill,
         CastingSkill,
         Dead
@@ -26,15 +27,16 @@ public class Entity : MonoBehaviour
     // Skills
     protected Dictionary<string, float> SkillAvailableTime;
     public Dictionary<string, ActionResult> ActionResults   { get; protected set; }
-    protected string CurrentSkill;
-    protected Dictionary<string, Coroutine> SkillCoroutines;
-    protected SkillChargeData SkillCharge;
-    protected float SkillChargeStartTime;
+    public string CurrentSkill                              { get; protected set; }
+    protected Coroutine SkillCoroutine;
+    public SkillChargeData SkillCharge                      { get; protected set; }
+    public float SkillChargeStartTime                       { get; protected set; }
     public float SkillChargeRatio                           { get; protected set; }
 
     // Other objects that make up an entity
     EntityCanvas EntityCanvas;
     public TargetingSystem TargetingSystem                  { get; protected set; }
+    EntityMovement EntityMovement;
     public Dictionary<string, List<Entity>> TaggedEntities  { get; private set; }
 
     // State
@@ -72,6 +74,8 @@ public class Entity : MonoBehaviour
         }
         TargetingSystem.Setup(this);
 
+        EntityMovement = GetComponentInChildren<EntityMovement>();
+
         EntityCanvas = GetComponentInChildren<EntityCanvas>();
         if (EntityCanvas == null)
         {
@@ -82,7 +86,6 @@ public class Entity : MonoBehaviour
             EntityCanvas.Setup(this);
         }
 
-        SkillCoroutines = new Dictionary<string, Coroutine>();
         ActionResults = new Dictionary<string, ActionResult>();
 
         EntityState = eEntityState.Idle;
@@ -111,6 +114,11 @@ public class Entity : MonoBehaviour
                 }
             }
         }
+
+        if (EntityState == eEntityState.ChargingSkill)
+        {
+            SkillChargeUpdate();
+        }
     }
 
     #region Skills
@@ -118,11 +126,8 @@ public class Entity : MonoBehaviour
     {
         var skillData = GameData.GetSkillData(skillID);
 
-        if (!skillData.ParallelSkill)
-        {
-            CancelCurrentSkill();
-            CurrentSkill = skillID;
-        }
+        CancelSkill();
+        CurrentSkill = skillID;
 
         if (skillData.NeedsTarget)
         {
@@ -147,7 +152,7 @@ public class Entity : MonoBehaviour
     protected virtual void StartSkillCoroutine(SkillData skillData)
     {
         var skillCoroutine = StartCoroutine(UseSkillCoroutine(skillData));
-        SkillCoroutines.Add(skillData.SkillID, skillCoroutine);
+        SkillCoroutine = skillCoroutine;
     }
 
     public virtual IEnumerator ExecuteActionsCoroutine(List<Action> timeline)
@@ -171,10 +176,7 @@ public class Entity : MonoBehaviour
 
     public virtual IEnumerator UseSkillCoroutine(SkillData skillData)
     {
-        if (!skillData.ParallelSkill)
-        {
-            EntityState = eEntityState.CastingSkill;
-        }
+        EntityState = eEntityState.CastingSkill;
 
         var startTime = BattleSystem.TimeSinceStart;
         ActionResults.Clear();
@@ -191,10 +193,7 @@ public class Entity : MonoBehaviour
             ActionResults[action.ActionID] = actionResult;
         }
 
-        if (!skillData.ParallelSkill)
-        {
-            EntityState = eEntityState.Idle;
-        }
+        EntityState = eEntityState.Idle;
     }
 
     #region Skill Charge
@@ -204,16 +203,18 @@ public class Entity : MonoBehaviour
         SkillCharge = skillData.SkillChargeData;
         SkillChargeStartTime = BattleSystem.TimeSinceStart;
 
-        SkillCoroutines[skillData.SkillID] = StartCoroutine(ExecuteActionsCoroutine(skillData.SkillChargeData.PreChargeTimeline));
+        SkillCoroutine = StartCoroutine(ExecuteActionsCoroutine(skillData.SkillChargeData.PreChargeTimeline));
 
-        // Show charge display 
+        EntityCanvas.StartSkillCharge(SkillCharge, CurrentSkill);
     }
 
     public virtual void SkillChargeUpdate()
     {
         // Update charge display
+        var chargeComplete = BattleSystem.TimeSinceStart > (SkillChargeStartTime + SkillCharge.FullChargeTimeForEntity(this));
+        var chargeCancelled = SkillCharge.MovementCancelsCharge && EntityMovement != null && EntityMovement.LastMoved > SkillChargeStartTime;
 
-        if (BattleSystem.TimeSinceStart < SkillChargeStartTime + SkillCharge.FullChargeTimeForEntity(this))
+        if (chargeComplete || chargeCancelled)
         {
             SkillChargeStop();
         }
@@ -221,24 +222,32 @@ public class Entity : MonoBehaviour
 
     public virtual bool SkillChargeStop()
     {
-        // Hide charge display
-
-        var timeElapsed = BattleSystem.TimeSinceStart - SkillChargeStartTime;
-        if (timeElapsed >= SkillCharge.RequiredChargeTimeForEntity(this))
+        if (EntityState != eEntityState.ChargingSkill)
         {
-            var minCharge = SkillCharge.RequiredChargeTimeForEntity(this);
-            var maxCharge = SkillCharge.FullChargeTimeForEntity(this);
-            SkillChargeRatio = maxCharge - minCharge / timeElapsed - minCharge;
+            return false;
+        }
+
+        EntityState = eEntityState.Transition;
+
+        EntityCanvas.StopSkillCharge();
+        
+        var timeElapsed = BattleSystem.TimeSinceStart - SkillChargeStartTime;
+        var minCharge = SkillCharge.RequiredChargeTimeForEntity(this);
+        if (timeElapsed >= minCharge)
+        {
+            var fullCharge = SkillCharge.FullChargeTimeForEntity(this);
+            SkillChargeRatio = timeElapsed / fullCharge;
 
             var skillData = GameData.GetSkillData(CurrentSkill);
             var skillCoroutine = StartCoroutine(UseSkillCoroutine(skillData));
-            SkillCoroutines[CurrentSkill] = skillCoroutine;
+            SkillCoroutine = skillCoroutine;
 
             SkillCharge = null;
             return true;
         }
         else
         {
+            SkillCharge = null;
             return false;
         }
     }
@@ -249,30 +258,21 @@ public class Entity : MonoBehaviour
         SkillAvailableTime[skillID] = time;
     }
 
-    public virtual void CancelCurrentSkill()
+    public virtual void CancelSkill()
     {
-        if (!string.IsNullOrEmpty(CurrentSkill))
+        if (SkillCharge != null)
         {
-            CancelSkill(CurrentSkill);
-
-            if (SkillCharge != null)
-            {
-                SkillChargeStop();
-            }
+            SkillChargeStop();
         }
+
+        if (SkillCoroutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(SkillCoroutine);
     }
 
-    public virtual void CancelSkill(string skillID)
-    {
-        if (SkillCoroutines.ContainsKey(skillID))
-        {
-            if (SkillCoroutines[skillID] != null)
-            {
-                StopCoroutine(SkillCoroutines[skillID]);
-            }
-            SkillCoroutines.Remove(skillID);
-        }
-    }
     #endregion
 
     #region Change Functions

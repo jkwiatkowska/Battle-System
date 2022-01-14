@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class DamageText : MonoBehaviour
+public class PopupText : MonoBehaviour
 {
     [SerializeField] float Duration = 0.5f;
     [SerializeField] Vector2 PositionOffsetPerSecond;
