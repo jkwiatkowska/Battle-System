@@ -18,15 +18,25 @@ public abstract class ActionPayload : Action
         Any
     }
 
-    public eTarget Target;              // Which entities the payload affects
-    public eTargetState TargetState;    // What state the target has to be in to be affected
+    public enum eTargetPriority
+    {
+        Random, 
+        Nearest,
+        Furthest
+    }
+
+    public eTarget Target;                  // Which entities the payload affects
+    public eTargetState TargetState;        // What state the target has to be in to be affected
     public PayloadData Payload;
+
+    public int TargetLimit;                 // Targets can be limited for actions that affect multiple targets
+    public eTargetPriority TargetPriority;  // If there's a target limit, targets can be prioritised based on specified criteria
 
     public override void Execute(Entity entity, out ActionResult actionResult)
     {
         actionResult = new ActionResult();
 
-        if (!ConditionMet(entity))
+        if (!ConditionsMet(entity))
         {
             return;
         }
@@ -36,6 +46,40 @@ public abstract class ActionPayload : Action
         if (targets.Count == 0)
         {
             return;
+        }
+
+        if (targets.Count > TargetLimit)
+        {
+            switch (TargetPriority)
+            {
+                case eTargetPriority.Random:
+                {
+                    while (targets.Count > TargetLimit)
+                    {
+                        targets.RemoveAt(Random.Range(0, targets.Count));
+                    }
+                    break;
+                }
+                case eTargetPriority.Nearest:
+                {
+                    targets.Sort((t1, t2) => (entity.transform.position - t1.transform.position).sqrMagnitude.
+                                    CompareTo((entity.transform.position - t2.transform.position).sqrMagnitude));
+                    targets = targets.GetRange(0, TargetLimit);
+                    break;
+                }
+                case eTargetPriority.Furthest:
+                {
+                    targets.Sort((t2, t1) => (entity.transform.position - t1.transform.position).sqrMagnitude.
+                                    CompareTo((entity.transform.position - t2.transform.position).sqrMagnitude));
+                    targets = targets.GetRange(0, TargetLimit);
+                    break;
+                }
+                default:
+                {
+                    Debug.LogError($"Unsupported target priority - {TargetPriority}");
+                    break;
+                }
+            }
         }
 
         var payload = new Payload(entity, this);

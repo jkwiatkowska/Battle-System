@@ -43,7 +43,7 @@ public class ActionPayloadArea : ActionPayload
     {
         actionResult = new ActionResult();
 
-        if (!ConditionMet(entity))
+        if (!ConditionsMet(entity))
         {
             return;
         }

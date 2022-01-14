@@ -21,7 +21,7 @@ public class ActionAnimationSet<T> : Action
     {
         actionResult = new ActionResult();
 
-        if (!ConditionMet(entity))
+        if (!ConditionsMet(entity))
         {
             return;
         }

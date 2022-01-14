@@ -55,12 +55,16 @@ public class ActionCostCollection : Action
     {
         actionResult = new ActionResult();
 
-        if (!ConditionMet(entity) || !CanCollectCost(entity))
+        if (!ConditionsMet(entity) || !CanCollectCost(entity))
         {
             return;
         }
 
         var value = -GetValue(entity);
+
         entity.ApplyChangeToDepletable(DepletableName, ref value);
+
+        actionResult.Success = true;
+        actionResult.Value = value;
     }
 }

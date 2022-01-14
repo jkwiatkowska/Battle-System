@@ -124,6 +124,11 @@ public class Entity : MonoBehaviour
     #region Skills
     public virtual void UseSkill(string skillID)
     {
+        if (CurrentSkill == skillID)
+        {
+            return;
+        }
+
         var skillData = GameData.GetSkillData(skillID);
 
         CancelSkill();
@@ -135,8 +140,10 @@ public class Entity : MonoBehaviour
 
             if (!hasTarget)
             {
-                // Ensure target is close enough and turn toward it. 
+                TargetingSystem.SelectBestEnemy();
             }
+
+            // Turn towards target first
         }
 
         if (skillData.HasChargeTime)
@@ -193,6 +200,7 @@ public class Entity : MonoBehaviour
             ActionResults[action.ActionID] = actionResult;
         }
 
+        CurrentSkill = null;
         EntityState = eEntityState.Idle;
     }
 
@@ -230,7 +238,12 @@ public class Entity : MonoBehaviour
         EntityState = eEntityState.Transition;
 
         EntityCanvas.StopSkillCharge();
-        
+
+        if (SkillCoroutine != null)
+        {
+            StopCoroutine(SkillCoroutine);
+        }
+
         var timeElapsed = BattleSystem.TimeSinceStart - SkillChargeStartTime;
         var minCharge = SkillCharge.RequiredChargeTimeForEntity(this);
         if (timeElapsed >= minCharge)
@@ -248,6 +261,7 @@ public class Entity : MonoBehaviour
         else
         {
             SkillCharge = null;
+            CurrentSkill = null;
             return false;
         }
     }
@@ -271,6 +285,7 @@ public class Entity : MonoBehaviour
         }
 
         StopCoroutine(SkillCoroutine);
+        CurrentSkill = null;
     }
 
     #endregion

@@ -19,7 +19,7 @@ public class ActionSummon : Action
     {
         actionResult = new ActionResult();
 
-        if (!ConditionMet(entity))
+        if (!ConditionsMet(entity))
         {
             return;
         }

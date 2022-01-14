@@ -85,7 +85,7 @@ public static class GameData
                 {
                     BaseAttributes = new Dictionary<string, float>()
                     {
-                        { "hp", 500.0f },
+                        { "hp", 600.0f },
                         { "mp", 500.0f },
                         { "atk", 100.0f },
                         { "def", 100.0f },
@@ -129,8 +129,6 @@ public static class GameData
                             SkillID = "",
                             ActionType = Action.eActionType.DestroySelf,
                             Timestamp = 2.0f,
-
-                            ExecuteCondition = Action.eActionCondition.AlwaysExecute
                         }
                     }
                 }
@@ -139,6 +137,47 @@ public static class GameData
 
         SkillData = new Dictionary<string, SkillData>()
         {
+            {
+                "singleTargetAttack",
+                new SkillData()
+                {
+                    SkillID = "singleTargetAttack",
+                    SkillTimeline = new List<Action>()
+                    {
+                        new ActionPayloadDirect()
+                        {
+                            ActionID = "singleTargetAttackAction",
+                            SkillID = "singleTargetAttack",
+                            ActionType = Action.eActionType.PayloadDirect,
+                            Timestamp = 0.0f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.SelectedEntity,
+                            TargetLimit = 1,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            Payload = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", false },
+                                    { "canCrit", false }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 10),
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterDepletableCurrent, 1, "mp")
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "physical"
+                                },
+                                SuccessChance = 1.0f,
+                                DepletableAffected = "hp"
+                            },
+                            ActionConditions = new List<ActionCondition>()
+                        }
+                    }
+                }
+            },
             {
                 "chargedAttack",
                 new SkillData()
@@ -154,12 +193,23 @@ public static class GameData
                     },
                     SkillTimeline = new List<Action>()
                     {
+                        new ActionCostCollection()
+                        {
+                            ActionID = "mpCollect",
+                            Timestamp = 0.0f,
+                            ActionConditions = new List<ActionCondition>(),
+                            ValueType = ActionCostCollection.eCostValueType.CurrentMult,
+                            DepletableName = "mp",
+                            Value = 0.5f,
+                            Optional = false
+                        },
                         new ActionPayloadDirect()
                         {
                             ActionID = "randomTargetAttackAction",
                             SkillID = "chargedAttack",
-                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.RandomEntities,
-                            MaxTargetCount = 5,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
+                            TargetLimit = 6,
                             Target = ActionPayload.eTarget.EnemyEntities,
                             Payload = new PayloadData()
                             {
@@ -174,22 +224,29 @@ public static class GameData
                                 },
                                 Affinities = new List<string>()
                                 {
-                                    "physical"
+                                    "magic"
                                 },
                                 SuccessChance = 1.0f,
                                 DepletableAffected = "hp"
                             },
                             Timestamp = 0.1f,
-                            ExecuteCondition = Action.eActionCondition.OnMinValue,
-                            ConditionValueType = Action.eConditionValueType.ChargeRatio,
-                            ConditionMinValue = 1.0f
+                            ActionConditions = new List<ActionCondition>()
+                            {
+                                new ActionCondition()
+                                {
+                                    Condition = ActionCondition.eActionCondition.OnValueAbove,
+                                    ConditionValueType = ActionCondition.eConditionValueType.ChargeRatio,
+                                    ConditionValueBoundary = 1.0f
+                                }
+                            }
                         },
                         new ActionPayloadDirect()
                         {
                             ActionID = "singleTargetAttackAction",
                             SkillID = "chargedAttack",
-                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.SelectedEntity,
-                            MaxTargetCount = 1,
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
+                            TargetPriority = ActionPayload.eTargetPriority.Nearest,
+                            TargetLimit = 2,
                             Target = ActionPayload.eTarget.EnemyEntities,
                             Payload = new PayloadData()
                             {
@@ -204,14 +261,20 @@ public static class GameData
                                 },
                                 Affinities = new List<string>()
                                 {
-                                    "physical"
+                                    "magic"
                                 },
                                 SuccessChance = 1.0f,
                                 DepletableAffected = "hp"
                             },
                             Timestamp = 0.1f,
-                            ExecuteCondition = Action.eActionCondition.OnActionFail,
-                            ConditionActionID = "randomTargetAttackAction"
+                            ActionConditions = new List<ActionCondition>()
+                            {
+                                new ActionCondition()
+                                {
+                                    Condition = ActionCondition.eActionCondition.OnActionFail,
+                                    ConditionTarget = "randomTargetAttackAction"
+                                }
+                            }
                         }
                     }
                 }
@@ -229,9 +292,9 @@ public static class GameData
                             SkillID = "healAll",
                             ActionType = Action.eActionType.PayloadDirect,
                             Timestamp = 0.0f,
-                            ExecuteCondition = Action.eActionCondition.AlwaysExecute,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
                             ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
-                            MaxTargetCount = 50,
+                            TargetLimit = 50,
                             Target = ActionPayload.eTarget.EnemyEntities,
                             Payload = new PayloadData()
                             {
@@ -250,7 +313,8 @@ public static class GameData
                                 },
                                 SuccessChance = 1.0f,
                                 DepletableAffected = "hp"
-                            }
+                            },
+                            ActionConditions = new List<ActionCondition>() 
                         }
                     }
                 }

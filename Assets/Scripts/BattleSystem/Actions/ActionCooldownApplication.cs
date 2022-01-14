@@ -11,7 +11,7 @@ public class ActionCooldownApplication : Action
     {
         actionResult = new ActionResult();
 
-        if (!ConditionMet(entity))
+        if (!ConditionsMet(entity))
         {
             return;
         }

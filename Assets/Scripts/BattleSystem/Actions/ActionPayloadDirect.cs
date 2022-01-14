@@ -7,12 +7,11 @@ public class ActionPayloadDirect : ActionPayload
     {
         SelectedEntity,
         AllEntities,
-        RandomEntities,
         TaggedEntity
     }
 
     public eDirectActionTargets ActionTargets;
-    public int MaxTargetCount;
+
     public string EntityTag;
 
     public override bool NeedsTarget()
@@ -57,32 +56,11 @@ public class ActionPayloadDirect : ActionPayload
             {
                 if (Target == eTarget.FriendlyEntities)
                 {
-                    var all = targetingSystem.GetAllFriendlyEntites().FindAll(t => CheckTargetableState(t));
-                    targets = all.GetRange(0, Mathf.Min(all.Count, MaxTargetCount));
-                }
-                else if (Target == eTarget.EnemyEntities)
-                {
-                    var all = targetingSystem.GetAllEnemyEntites().FindAll(t => CheckTargetableState(t));
-                    targets = all.GetRange(0, Mathf.Min(all.Count, MaxTargetCount));
-                }
-                break;
-            }
-            case eDirectActionTargets.RandomEntities:
-            {
-                if (Target == eTarget.FriendlyEntities)
-                {
                     targets = targetingSystem.GetAllFriendlyEntites().FindAll(t => CheckTargetableState(t));
-                    
                 }
                 else if (Target == eTarget.EnemyEntities)
                 {
                     targets = targetingSystem.GetAllEnemyEntites().FindAll(t => CheckTargetableState(t));
-                }
-
-                // Randomly remove entities from list until the desired number is left
-                while (targets.Count > MaxTargetCount)
-                {
-                    targets.RemoveAt(Random.Range(0, targets.Count));
                 }
                 break;
             }
@@ -93,21 +71,14 @@ public class ActionPayloadDirect : ActionPayload
                     var taggedEntities = entity.TaggedEntities[EntityTag];
                     for (int i = 0; i < taggedEntities.Count; i++)
                     {
-                        if (i <= MaxTargetCount)
-                        {
-                            targets.Add(taggedEntities[i]);
-                        }
-                        else
-                        {
-                            break;
-                        }
+                        targets.Add(taggedEntities[i]);
                     }
                 }
                 break;
             }
             default:
             {
-                Debug.LogError($"Unsupported direct action target type: {ActionTargets}");
+                Debug.LogError($"Unsupported direct action target type: {TargetPriority}");
                 break;
             }
         }
