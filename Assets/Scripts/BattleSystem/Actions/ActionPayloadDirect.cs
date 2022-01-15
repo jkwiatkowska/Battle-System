@@ -5,6 +5,7 @@ public class ActionPayloadDirect : ActionPayload
 {
     public enum eDirectActionTargets
     {
+        Self,
         SelectedEntity,
         AllEntities,
         TaggedEntity
@@ -26,6 +27,11 @@ public class ActionPayloadDirect : ActionPayload
 
         switch (ActionTargets)
         {
+            case eDirectActionTargets.Self:
+            {
+                targets.Add(entity);
+                break;
+            }
             case eDirectActionTargets.SelectedEntity:
             {
                 if (Target == eTarget.FriendlyEntities)
@@ -54,13 +60,28 @@ public class ActionPayloadDirect : ActionPayload
             }
             case eDirectActionTargets.AllEntities:
             {
-                if (Target == eTarget.FriendlyEntities)
+                switch (Target)
                 {
-                    targets = targetingSystem.GetAllFriendlyEntites().FindAll(t => CheckTargetableState(t));
-                }
-                else if (Target == eTarget.EnemyEntities)
-                {
-                    targets = targetingSystem.GetAllEnemyEntites().FindAll(t => CheckTargetableState(t));
+                    case eTarget.EnemyEntities:
+                    {
+                        targets = targetingSystem.GetAllEnemyEntities().FindAll(t => CheckTargetableState(t));
+                        break;
+                    }
+                    case eTarget.FriendlyEntities:
+                    {
+                        targets = targetingSystem.GetAllFriendlyEntities().FindAll(t => CheckTargetableState(t));
+                        break;
+                    }
+                    case eTarget.AllEntities:
+                    {
+                        targets = targetingSystem.GetAllTargetableEntities().FindAll(t => CheckTargetableState(t));
+                        break;
+                    }
+                    default:
+                    {
+                        Debug.LogError($"{Target} target type not supported by area actions.");
+                        break;
+                    }
                 }
                 break;
             }

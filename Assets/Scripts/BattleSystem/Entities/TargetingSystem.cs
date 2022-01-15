@@ -181,7 +181,7 @@ public class TargetingSystem : MonoBehaviour
 
     }
 
-    public List<Entity> GetAllFriendlyEntites()
+    public List<Entity> GetAllFriendlyEntities()
     {
         var entities = new List<Entity>();
         foreach (var target in FriendlyEntities)
@@ -191,13 +191,25 @@ public class TargetingSystem : MonoBehaviour
         return entities;
     }
 
-    public List<Entity> GetAllEnemyEntites()
+    public List<Entity> GetAllEnemyEntities()
     {
         var entities = new List<Entity>();
         foreach (var target in EnemyEntities)
         {
             entities.Add(target.Entity);
         }
+        return entities;
+    }
+
+    public List<Entity> GetAllTargetableEntities()
+    {
+        var entities = new List<Entity>();
+
+        foreach (var entity in BattleSystem.Instance.TargetableEntities)
+        {
+            entities.Add(entity.Entity);
+        }
+
         return entities;
     }
 }

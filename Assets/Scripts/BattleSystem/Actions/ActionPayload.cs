@@ -6,7 +6,7 @@ public abstract class ActionPayload : Action
 {
     public enum eTarget
     {
-        Self,
+        AllEntities,
         EnemyEntities,
         FriendlyEntities
     }
