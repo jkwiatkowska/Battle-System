@@ -75,11 +75,8 @@ public class Payload
         PayloadDamage.Add(new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, totalDamage));
     }
 
-    public float ApplyPayload(Entity caster, Entity target, out List<string> flags)
+    public void ApplyPayload(Entity caster, Entity target, PayloadResult result)
     {
-        float change = 0.0f;
-        flags = new List<string>();
-
         // Go through the payload and calculate any damage that's dependent on target.
         foreach (var component in PayloadDamage)
         {
@@ -87,17 +84,17 @@ public class Payload
             {
                 case PayloadData.PayloadComponent.ePayloadComponentType.FlatValue:
                 {
-                    change -= component.Potency;
+                    result.Change -= component.Potency;
                     break;
                 }
                 case PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableCurrent:
                 {
-                    change -= component.Potency * target.DepletablesCurrent[component.Attribute];
+                    result.Change -= component.Potency * target.DepletablesCurrent[component.Attribute];
                     break;
                 }
                 case PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax:
                 {
-                    change -= component.Potency * target.DepletablesMax[component.Attribute];
+                    result.Change -= component.Potency * target.DepletablesMax[component.Attribute];
                     break;
                 }
                 default:
@@ -109,9 +106,9 @@ public class Payload
         }
 
         // Incoming damage can be calculated using target attributes and other variables here. 
-        var totalChange = Formulae.IncomingDamage(caster, target, change, Action.Payload, ref flags);
+        result.Change = Formulae.IncomingDamage(caster, target, result.Change, Action.Payload, ref result.Flags);
 
-        target.ApplyChangeToDepletable(Action.Payload.DepletableAffected, ref totalChange);
+        target.ApplyChangeToDepletable(Action.Payload.DepletableAffected, result);
 
         // Only perform other actions if the target is still alive
         if (target.Alive)
@@ -121,7 +118,5 @@ public class Payload
 
             }
         }
-
-        return totalChange;
     }
 }

@@ -85,23 +85,29 @@ public abstract class ActionPayload : Action
         var payload = new Payload(entity, this);
         foreach (var target in targets)
         {
+            var result = new PayloadResult(Payload, entity, target, SkillID, ActionID, 0.0f, new List<string>());
+
             // If payload isn't guaranteed to trigger.
             var chance = Formulae.PayloadSuccessChance(Payload, entity, target);
             if (Random.value > chance)
             {
                 HUDPopupTextDisplay.Instance.DisplayMiss(target);
+                entity.OnTrigger(TriggerData.eTrigger.OnHitMissed, result);
                 continue;
             }
 
             // Apply payload and update result.
-            var change = payload.ApplyPayload(entity, target, out var flags);
-            actionResult.Value += change;
+            payload.ApplyPayload(entity, target, result);
+            actionResult.Value += result.Change;
             actionResult.Count += 1;
 
+            entity.OnTrigger(TriggerData.eTrigger.OnHitOutgoing, result);
+            target.OnTrigger(TriggerData.eTrigger.OnHitIncoming, result);
+
             // Show damage number on HUD
-            if (change != 0.0f)
+            if (result.Change != 0.0f)
             {
-                HUDPopupTextDisplay.Instance.DisplayDamage(target, this, -change, flags);
+                HUDPopupTextDisplay.Instance.DisplayDamage(target, this, -result.Change, result.Flags);
             }
         }
 

@@ -33,6 +33,9 @@ public class Entity : MonoBehaviour
     public float SkillChargeStartTime                       { get; protected set; }
     public float SkillChargeRatio                           { get; protected set; }
 
+    // Triggers
+    protected Dictionary<TriggerData.eTrigger, List<Trigger>> Triggers;
+
     // Other objects that make up an entity
     EntityCanvas EntityCanvas;
     public TargetingSystem TargetingSystem                  { get; protected set; }
@@ -49,7 +52,10 @@ public class Entity : MonoBehaviour
         EntityUID = entityID + EntityCount.ToString();
         EntityCount++;
         EntityLevel = entityLevel;
+        EntityState = eEntityState.Idle;
+        name = EntityUID;
 
+        // Attributes, skills and triggers
         BaseAttributes = new Dictionary<string, float>();
         foreach (var attribute in GameData.EntityAttributes)
         {
@@ -64,7 +70,15 @@ public class Entity : MonoBehaviour
         }
 
         SkillAvailableTime = new Dictionary<string, float>();
+        ActionResults = new Dictionary<string, ActionResult>();
 
+        Triggers = new Dictionary<TriggerData.eTrigger, List<Trigger>>();
+        foreach (var trigger in EntityData.Triggers)
+        {
+            AddTrigger(new Trigger(trigger));
+        }
+
+        // Dependencies 
         BattleSystem.Instance.AddEntity(this);
 
         TargetingSystem = GetComponentInChildren<TargetingSystem>();
@@ -85,12 +99,6 @@ public class Entity : MonoBehaviour
         {
             EntityCanvas.Setup(this);
         }
-
-        ActionResults = new Dictionary<string, ActionResult>();
-
-        EntityState = eEntityState.Idle;
-
-        name = EntityUID;
     }
 
     protected virtual void Start()
@@ -109,7 +117,7 @@ public class Entity : MonoBehaviour
                     var recovery = Formulae.DepletableRecoveryRate(this, depletable) * Time.deltaTime;
                     if (recovery != 0.0f)
                     {
-                        ApplyChangeToDepletable(depletable, ref recovery);
+                        ApplyChangeToDepletable(depletable, recovery);
                     }
                 }
             }
@@ -161,7 +169,6 @@ public class Entity : MonoBehaviour
         var skillCoroutine = StartCoroutine(UseSkillCoroutine(skillData));
         SkillCoroutine = skillCoroutine;
     }
-
     public virtual IEnumerator ExecuteActionsCoroutine(List<Action> timeline)
     {
         var startTime = BattleSystem.TimeSinceStart;
@@ -290,8 +297,94 @@ public class Entity : MonoBehaviour
 
     #endregion
 
+    #region Triggers
+    public void AddTrigger(Trigger trigger)
+    {
+        if (!Triggers.ContainsKey(trigger.TriggerData.Trigger))
+        {
+            Triggers[trigger.TriggerData.Trigger] = new List<Trigger>();
+        }
+
+        Triggers[trigger.TriggerData.Trigger].Add(trigger);
+    }
+
+    public virtual void OnTrigger(TriggerData.eTrigger trigger, PayloadResult payloadResult)
+    {
+        // Variable triggers
+        if (Triggers.ContainsKey(trigger))
+        {
+            foreach (var t in Triggers[trigger])
+            {
+                t.TryExecute(this, payloadResult, out var keep);
+                if (!keep)
+                {
+                    Triggers[trigger].Remove(t);
+                }
+            }
+        }
+
+        // Hard coded triggers
+        switch (trigger)
+        {
+            case TriggerData.eTrigger.OnDeath:
+            {
+                EntityState = eEntityState.Dead;
+                break;
+            }
+            case TriggerData.eTrigger.OnKill:
+            {
+                if (payloadResult != null && TargetingSystem.SelectedTarget.Entity == payloadResult.Target)
+                {
+                    TargetingSystem.ClearSelection();
+                }
+                break;
+            }
+        }
+    }
+    #endregion
+
     #region Change Functions
-    public void ApplyChangeToDepletable(string depletable, ref float change)
+    public void ApplyChangeToDepletable(string depletable, PayloadResult payloadResult)
+    {
+        var previous = DepletablesCurrent[depletable];
+        DepletablesCurrent[depletable] = Mathf.Clamp(DepletablesCurrent[depletable] + payloadResult.Change, 0.0f, DepletablesMax[depletable]);
+        if (previous != DepletablesCurrent[depletable])
+        {
+            if (EntityCanvas != null)
+            {
+                EntityCanvas.UpdateDepletableDisplay(depletable);
+            }
+            else
+            {
+                Debug.LogError($"Entity {EntityUID} is missing EntityDisplay.");
+            }
+
+            payloadResult.Change = previous - DepletablesCurrent[depletable];
+
+            if (payloadResult.Change > 0.0f)
+            {
+                OnTrigger(TriggerData.eTrigger.OnRecoveryReceived, payloadResult);
+                payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnRecoveryDealt, payloadResult);
+            }
+            else if (payloadResult.Change < 0.0f)
+            {
+                OnTrigger(TriggerData.eTrigger.OnDamageReceived, payloadResult);
+                payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnRecoveryReceived, payloadResult);
+            }
+
+            if (DepletablesCurrent[depletable] <= 0.0f && EntityData.LifeDepletables.Contains(depletable))
+            {
+                OnTrigger(TriggerData.eTrigger.OnDeath, payloadResult);
+                payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnKill, payloadResult);
+            }
+        }
+        else
+        {
+            payloadResult.Change = 0.0f;
+        }
+    }
+
+    public void ApplyChangeToDepletable(string depletable, float change)
     {
         var previous = DepletablesCurrent[depletable];
         DepletablesCurrent[depletable] = Mathf.Clamp(DepletablesCurrent[depletable] + change, 0.0f, DepletablesMax[depletable]);
@@ -306,23 +399,12 @@ public class Entity : MonoBehaviour
                 Debug.LogError($"Entity {EntityUID} is missing EntityDisplay.");
             }
 
-            change = previous - DepletablesCurrent[depletable];
-
             if (DepletablesCurrent[depletable] <= 0.0f && EntityData.LifeDepletables.Contains(depletable))
             {
-                Die();
+                EntityState = eEntityState.Dead;
+                OnTrigger(TriggerData.eTrigger.OnDeath, null);
             }
         }
-        else
-        {
-            change = 0.0f;
-        }
-    }
-    public virtual void Die()
-    {
-        EntityState = eEntityState.Dead;
-
-        StartCoroutine(ExecuteActionsCoroutine(EntityData.OnDeath));
     }
 
     public virtual void DestroyEntity()

@@ -62,7 +62,7 @@ public class ActionCostCollection : Action
 
         var value = -GetValue(entity);
 
-        entity.ApplyChangeToDepletable(DepletableName, ref value);
+        entity.ApplyChangeToDepletable(DepletableName, value);
 
         actionResult.Success = true;
         actionResult.Value = value;

@@ -96,7 +96,33 @@ public static class GameData
                     Faction = "Player",
                     IsAI = false,
                     Radius = 0.05f,
-                    Height = 1.0f
+                    Height = 1.0f,
+                    LifeDepletables = new List<string>()
+                    {
+                        "hp"
+                    },
+                    Triggers = new List<TriggerData>()
+                    {
+                        new TriggerData()
+                        {
+                            Trigger = TriggerData.eTrigger.OnDeath,
+                            Cooldown = 0,
+                            Limit = 0,
+                            Actions = new List<Action>()
+                            {
+                                new ActionDestroySelf()
+                                {
+                                    ActionID = "deathAction",
+                                    SkillID = "",
+                                    ActionType = Action.eActionType.DestroySelf,
+                                    Timestamp = 2.0f,
+                                }
+                            },
+                            SkillIDs = new List<string>(),
+                            DepletablesAffected = new List<string>(),
+                            Flags = new List<string>()
+                        }
+                    }
                 }
             },
             {
@@ -121,14 +147,26 @@ public static class GameData
                     {
                         "hp"
                     },
-                    OnDeath = new List<Action>()
+                    Triggers = new List<TriggerData>()
                     {
-                        new ActionDestroySelf()
+                        new TriggerData()
                         {
-                            ActionID = "deathAction",
-                            SkillID = "",
-                            ActionType = Action.eActionType.DestroySelf,
-                            Timestamp = 2.0f,
+                            Trigger = TriggerData.eTrigger.OnDeath,
+                            Cooldown = 0,
+                            Limit = 0,
+                            Actions = new List<Action>()
+                            {
+                                new ActionDestroySelf()
+                                {
+                                    ActionID = "deathAction",
+                                    SkillID = "",
+                                    ActionType = Action.eActionType.DestroySelf,
+                                    Timestamp = 2.0f,
+                                }
+                            },
+                            SkillIDs = new List<string>(),
+                            DepletablesAffected = new List<string>(),
+                            Flags = new List<string>()
                         }
                     }
                 }
