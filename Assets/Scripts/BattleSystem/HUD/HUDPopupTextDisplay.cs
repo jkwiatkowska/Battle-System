@@ -6,9 +6,7 @@ using UnityEngine.UI;
 public class HUDPopupTextDisplay : MonoBehaviour
 {
     [SerializeField] Canvas HUD;
-    [SerializeField] PopupText DamageTextPrefab;
-    [SerializeField] Color DamageColor;
-    [SerializeField] Color HealingColor;
+    [SerializeField] PopupText PopupTextPrefab;
 
     public static HUDPopupTextDisplay Instance;
     void Awake()
@@ -16,24 +14,29 @@ public class HUDPopupTextDisplay : MonoBehaviour
         Instance = this;    
     }
 
-    public void DisplayDamage(Entity target, ActionPayload action, float change)
+    public void DisplayDamage(Entity target, ActionPayload action, float change, List<string> flags)
     {
-        PopupText damageText = Instantiate(DamageTextPrefab, transform);
+        string text = NamesAndText.DamageText(action, change, flags, out var color);
 
-        string text = NamesAndText.DamageText(action, change);
+        DisplayText(target, text, color);
+    }
+
+    public void DisplayMiss(Entity target)
+    {
+        string text = NamesAndText.MissText(out var color);
+
+        DisplayText(target, text, color);
+    }
+
+    public void DisplayText(Entity target, string text, Color color)
+    {
+        PopupText popupText = Instantiate(PopupTextPrefab, transform);
 
         var position = target.transform.position;
         position.y += target.EntityData.Height;
 
-        damageText.Setup(position, HUD, text);
+        popupText.Setup(position, HUD, text);
 
-        if (change > 0)
-        {
-            damageText.SetColor(HealingColor);
-        }
-        else if (change < 0)
-        {
-            damageText.SetColor(DamageColor);
-        }
+        popupText.SetColor(color);
     }
 }

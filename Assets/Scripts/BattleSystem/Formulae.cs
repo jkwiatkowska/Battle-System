@@ -12,11 +12,15 @@ public static class Formulae
         return outgoingDamage;
     }
 
-    public static float IncomingDamage(Entity caster, Entity target, float rawDamage, PayloadData payloadData)
+    public static float IncomingDamage(Entity caster, Entity target, float rawDamage, PayloadData payloadData, ref List<string> resultFlags)
     {
         var flags = payloadData.Flags;
 
         var isCrit = flags["canCrit"] && caster.BaseAttributes["critChance"] >= Random.value;
+        if (isCrit)
+        {
+            resultFlags.Add("critical");
+        }
         var critMultiplier = isCrit ? (1.0f + caster.BaseAttributes["critDamage"]) : 1.0f;
 
         var defMultiplier = flags["ignoreDef"] ? 1.0f : 1.0f - target.BaseAttributes["def"] / (target.BaseAttributes["def"] + 5 * caster.Level + 500.0f);

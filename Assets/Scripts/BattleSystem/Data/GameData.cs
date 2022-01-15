@@ -186,7 +186,7 @@ public static class GameData
                     SkillChargeData = new SkillChargeData()
                     {
                         RequiredChargeTime = 0.5f,
-                        FullChargeTime = 3.0f,
+                        FullChargeTime = 2.0f,
                         MovementCancelsCharge = true,
                         PreChargeTimeline = new List<Action>(),
                         ShowUI = true
@@ -226,7 +226,7 @@ public static class GameData
                                 {
                                     "magic"
                                 },
-                                SuccessChance = 1.0f,
+                                SuccessChance = 0.5f,
                                 DepletableAffected = "hp"
                             },
                             Timestamp = 0.1f,
@@ -305,7 +305,7 @@ public static class GameData
                                 },
                                 PayloadComponents = new List<PayloadData.PayloadComponent>()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax, -1.0f, "hp")
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax, -0.1f, "hp")
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -315,6 +315,96 @@ public static class GameData
                                 DepletableAffected = "hp"
                             },
                             ActionConditions = new List<ActionCondition>() 
+                        },
+                        new ActionPayloadDirect()
+                        {
+                            ActionID = "healAllAction",
+                            SkillID = "healAll",
+                            ActionType = Action.eActionType.PayloadDirect,
+                            Timestamp = 0.3f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
+                            TargetLimit = 50,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            Payload = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", true },
+                                    { "canCrit", false }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax, -0.2f, "hp")
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "healing"
+                                },
+                                SuccessChance = 1.0f,
+                                DepletableAffected = "hp"
+                            },
+                            ActionConditions = new List<ActionCondition>()
+                        },
+                        new ActionPayloadDirect()
+                        {
+                            ActionID = "healAllAction",
+                            SkillID = "healAll",
+                            ActionType = Action.eActionType.PayloadDirect,
+                            Timestamp = 0.6f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
+                            TargetLimit = 50,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            Payload = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", true },
+                                    { "canCrit", false }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax, -0.3f, "hp")
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "healing"
+                                },
+                                SuccessChance = 1.0f,
+                                DepletableAffected = "hp"
+                            },
+                            ActionConditions = new List<ActionCondition>()
+                        },
+                        new ActionPayloadDirect()
+                        {
+                            ActionID = "healAllAction",
+                            SkillID = "healAll",
+                            ActionType = Action.eActionType.PayloadDirect,
+                            Timestamp = 1.0f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
+                            TargetLimit = 50,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            Payload = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", true },
+                                    { "canCrit", false }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax, -0.4f, "hp")
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "healing"
+                                },
+                                SuccessChance = 1.0f,
+                                DepletableAffected = "hp"
+                            },
+                            ActionConditions = new List<ActionCondition>()
                         }
                     }
                 }

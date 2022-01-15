@@ -89,18 +89,19 @@ public abstract class ActionPayload : Action
             var chance = Formulae.PayloadSuccessChance(Payload, entity, target);
             if (Random.value > chance)
             {
+                HUDPopupTextDisplay.Instance.DisplayMiss(target);
                 continue;
             }
 
             // Apply payload and update result.
-            var change = payload.ApplyPayload(entity, target);
+            var change = payload.ApplyPayload(entity, target, out var flags);
             actionResult.Value += change;
             actionResult.Count += 1;
 
             // Show damage number on HUD
             if (change != 0.0f)
             {
-                HUDPopupTextDisplay.Instance.DisplayDamage(target, this, -change);
+                HUDPopupTextDisplay.Instance.DisplayDamage(target, this, -change, flags);
             }
         }
 

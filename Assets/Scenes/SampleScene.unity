@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 24431530}
   - component: {fileID: 24431531}
   m_Layer: 0
-  m_Name: Damage
+  m_Name: PopupText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -172,9 +172,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HUD: {fileID: 1036918386}
-  DamageTextPrefab: {fileID: 7718081166642102969, guid: 5f8eed687de9fa04c96e0bc57360a0cf, type: 3}
-  DamageColor: {r: 0.9056604, g: 0.3033108, b: 0.4457583, a: 0}
-  HealingColor: {r: 0.3254717, g: 1, b: 0.69699985, a: 0}
+  PopupTextPrefab: {fileID: 7718081166642102969, guid: 5f8eed687de9fa04c96e0bc57360a0cf, type: 3}
 --- !u!1 &63463198
 GameObject:
   m_ObjectHideFlags: 0

@@ -42,16 +42,32 @@ public static class NamesAndText
         return name;
     }
 
-    public static string DamageText(ActionPayload action, float value)
+    public static string DamageText(ActionPayload action, float value, List<string> flags, out Color color)
     {
         var text = "";
+        color = Color.red;
 
         if (value > 0)
         {
             text = "+";
+            color = Color.green;
         }
 
         text += $"{Mathf.Round(value)} {DepletableName(action.Payload.DepletableAffected)}";
+
+        if (flags.Contains("critical"))
+        {
+            text += '!';
+        }
+
+        return text;
+    }
+
+    public static string MissText(out Color color)
+    {
+        var text = "Miss!";
+
+        color = Color.grey;
 
         return text;
     }

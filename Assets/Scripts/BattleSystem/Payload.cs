@@ -75,9 +75,10 @@ public class Payload
         PayloadDamage.Add(new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, totalDamage));
     }
 
-    public float ApplyPayload(Entity caster, Entity target)
+    public float ApplyPayload(Entity caster, Entity target, out List<string> flags)
     {
         float change = 0.0f;
+        flags = new List<string>();
 
         // Go through the payload and calculate any damage that's dependent on target.
         foreach (var component in PayloadDamage)
@@ -108,9 +109,18 @@ public class Payload
         }
 
         // Incoming damage can be calculated using target attributes and other variables here. 
-        var totalChange = Formulae.IncomingDamage(caster, target, change, Action.Payload);
+        var totalChange = Formulae.IncomingDamage(caster, target, change, Action.Payload, ref flags);
 
         target.ApplyChangeToDepletable(Action.Payload.DepletableAffected, ref totalChange);
+
+        // Only perform other actions if the target is still alive
+        if (target.Alive)
+        {
+            if (!string.IsNullOrEmpty(Action.Payload.Tag))
+            {
+
+            }
+        }
 
         return totalChange;
     }
