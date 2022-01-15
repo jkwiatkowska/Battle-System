@@ -17,6 +17,7 @@ public class ActionCondition
     {
         ChargeRatio,
         DepletableRatio,
+        DepletableCurrent,
         RandomValue
     }
 
@@ -65,6 +66,10 @@ public class ActionCondition
                     {
                         return ConditionValueBoundary <= entity.DepletableRatio(ConditionTarget);
                     }
+                    case eConditionValueType.DepletableCurrent:
+                    {
+                        return ConditionValueBoundary <= entity.DepletablesCurrent[ConditionTarget];
+                    }
                     case eConditionValueType.RandomValue:
                     {
                         return ConditionValueBoundary <= Random.value;
@@ -87,6 +92,10 @@ public class ActionCondition
                     case eConditionValueType.DepletableRatio:
                     {
                         return ConditionValueBoundary >= entity.DepletableRatio(ConditionTarget);
+                    }
+                    case eConditionValueType.DepletableCurrent:
+                    {
+                        return ConditionValueBoundary >= entity.DepletablesCurrent[ConditionTarget];
                     }
                     case eConditionValueType.RandomValue:
                     {

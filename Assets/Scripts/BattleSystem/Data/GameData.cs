@@ -146,6 +146,45 @@ public static class GameData
                     {
                         new ActionPayloadDirect()
                         {
+                            ActionID = "singleTargetAttackActionSmallMP",
+                            SkillID = "singleTargetAttack",
+                            ActionType = Action.eActionType.PayloadDirect,
+                            Timestamp = 0.0f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.SelectedEntity,
+                            TargetLimit = 1,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            Payload = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", false },
+                                    { "canCrit", true }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 100)
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "physical"
+                                },
+                                SuccessChance = 1.0f,
+                                DepletableAffected = "hp"
+                            },
+                            ActionConditions = new List<ActionCondition>()
+                            {
+                                new ActionCondition()
+                                {
+                                    Condition = ActionCondition.eActionCondition.OnValueBelow,
+                                    ConditionValueType = ActionCondition.eConditionValueType.DepletableCurrent,
+                                    ConditionValueBoundary = 100,
+                                    ConditionTarget = "mp"
+                                }
+                            }
+                        },
+                        new ActionPayloadDirect()
+                        {
                             ActionID = "singleTargetAttackAction",
                             SkillID = "singleTargetAttack",
                             ActionType = Action.eActionType.PayloadDirect,
@@ -174,6 +213,13 @@ public static class GameData
                                 DepletableAffected = "hp"
                             },
                             ActionConditions = new List<ActionCondition>()
+                            {
+                                new ActionCondition()
+                                {
+                                    Condition = ActionCondition.eActionCondition.OnActionFail,
+                                    ConditionTarget = "singleTargetAttackActionSmallMP"
+                                }
+                            }
                         }
                     }
                 }
