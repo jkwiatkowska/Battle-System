@@ -53,7 +53,7 @@ public static class NamesAndText
             color = Color.green;
         }
 
-        text += $"{Mathf.Round(value)} {DepletableName(action.Payload.DepletableAffected)}";
+        text += $"{Mathf.Round(value)} {DepletableName(action.PayloadData.DepletableAffected)}";
 
         if (flags.Contains("critical"))
         {

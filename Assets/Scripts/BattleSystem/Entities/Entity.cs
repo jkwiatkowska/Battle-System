@@ -162,6 +162,8 @@ public class Entity : MonoBehaviour
         CancelSkill();
         CurrentSkill = skillID;
 
+        TargetingSystem.UpdateEntityLists();
+
         if (skillData.NeedsTarget)
         {
             var hasTarget = TargetingSystem.EnemySelected;

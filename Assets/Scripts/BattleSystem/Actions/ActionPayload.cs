@@ -27,7 +27,7 @@ public abstract class ActionPayload : Action
 
     public eTarget Target;                  // Which entities the payload affects
     public eTargetState TargetState;        // What state the target has to be in to be affected
-    public PayloadData Payload;
+    public PayloadData PayloadData;
 
     public int TargetLimit;                 // Targets can be limited for actions that affect multiple targets
     public eTargetPriority TargetPriority;  // If there's a target limit, targets can be prioritised based on specified criteria
@@ -85,10 +85,10 @@ public abstract class ActionPayload : Action
         var payload = new Payload(entity, this);
         foreach (var target in targets)
         {
-            var result = new PayloadResult(Payload, entity, target, SkillID, ActionID, 0.0f, new List<string>());
+            var result = new PayloadResult(PayloadData, entity, target, SkillID, ActionID, 0.0f, new List<string>());
 
             // If payload isn't guaranteed to trigger.
-            var chance = Formulae.PayloadSuccessChance(Payload, entity, target);
+            var chance = Formulae.PayloadSuccessChance(PayloadData, entity, target);
             if (Random.value > chance)
             {
                 HUDPopupTextDisplay.Instance.DisplayMiss(target);

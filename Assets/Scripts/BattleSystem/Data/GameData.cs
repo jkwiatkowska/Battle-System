@@ -187,7 +187,7 @@ public static class GameData
                     {
                         new ActionPayloadDirect()
                         {
-                            ActionID = "singleTargetAttackActionSmallMP",
+                            ActionID = "singleTargetAttackActionSmallHP",
                             SkillID = "singleTargetAttack",
                             ActionType = Action.eActionType.PayloadDirect,
                             Timestamp = 0.0f,
@@ -195,7 +195,7 @@ public static class GameData
                             ActionTargets = ActionPayloadDirect.eDirectActionTargets.SelectedEntity,
                             TargetLimit = 1,
                             Target = ActionPayload.eTarget.EnemyEntities,
-                            Payload = new PayloadData()
+                            PayloadData = new PayloadData()
                             {
                                 Flags = new Dictionary<string, bool>()
                                 {
@@ -204,7 +204,7 @@ public static class GameData
                                 },
                                 PayloadComponents = new List<PayloadData.PayloadComponent>()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 100)
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 200)
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -219,8 +219,25 @@ public static class GameData
                                 {
                                     Condition = ActionCondition.eActionCondition.OnValueBelow,
                                     ConditionValueType = ActionCondition.eConditionValueType.DepletableCurrent,
-                                    ConditionValueBoundary = 100,
-                                    ConditionTarget = "mp"
+                                    ConditionValueBoundary = 200,
+                                    ConditionTarget = "hp"
+                                }
+                            }
+                        },
+                        new ActionCostCollection()
+                        {
+                            ActionID = "hpCollect",
+                            Timestamp = 0.0f,
+                            ValueType = ActionCostCollection.eCostValueType.CurrentMult,
+                            DepletableName = "hp",
+                            Value = 0.1f,
+                            Optional = false,
+                            ActionConditions = new List<ActionCondition>()
+                            {
+                                new ActionCondition()
+                                {
+                                    Condition = ActionCondition.eActionCondition.OnActionFail,
+                                    ConditionTarget = "singleTargetAttackActionSmallHP"
                                 }
                             }
                         },
@@ -234,17 +251,17 @@ public static class GameData
                             ActionTargets = ActionPayloadDirect.eDirectActionTargets.SelectedEntity,
                             TargetLimit = 1,
                             Target = ActionPayload.eTarget.EnemyEntities,
-                            Payload = new PayloadData()
+                            PayloadData = new PayloadData()
                             {
                                 Flags = new Dictionary<string, bool>()
                                 {
                                     { "ignoreDef", false },
-                                    { "canCrit", false }
+                                    { "canCrit", true }
                                 },
                                 PayloadComponents = new List<PayloadData.PayloadComponent>()
                                 {
                                     new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 10),
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterDepletableCurrent, 1, "mp")
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterDepletableCurrent, 1, "hp")
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -258,7 +275,7 @@ public static class GameData
                                 new ActionCondition()
                                 {
                                     Condition = ActionCondition.eActionCondition.OnActionFail,
-                                    ConditionTarget = "singleTargetAttackActionSmallMP"
+                                    ConditionTarget = "singleTargetAttackActionSmallHP"
                                 }
                             }
                         }
@@ -298,25 +315,62 @@ public static class GameData
                             ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
                             TargetLimit = 6,
                             Target = ActionPayload.eTarget.EnemyEntities,
-                            Payload = new PayloadData()
+                            PayloadData = new PayloadData()
                             {
                                 Flags = new Dictionary<string, bool>()
                                 {
-                                    { "ignoreDef", false },
-                                    { "canCrit", true }
+                                    { "ignoreDef", true },
+                                    { "canCrit", false }
                                 },
                                 PayloadComponents = new List<PayloadData.PayloadComponent>()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterAttribute, 1.5f, "atk")
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.ActionResultValue, 1.0f, "mpCollect")
                                 },
                                 Affinities = new List<string>()
                                 {
                                     "magic"
                                 },
-                                SuccessChance = 0.5f,
+                                SuccessChance = 0.6f,
                                 DepletableAffected = "hp"
                             },
                             Timestamp = 0.1f,
+                            ActionConditions = new List<ActionCondition>()
+                            {
+                                new ActionCondition()
+                                {
+                                    Condition = ActionCondition.eActionCondition.OnValueAbove,
+                                    ConditionValueType = ActionCondition.eConditionValueType.ChargeRatio,
+                                    ConditionValueBoundary = 1.0f
+                                }
+                            },
+                        },
+                        new ActionPayloadDirect()
+                        {
+                            ActionID = "randomTargetAttackAction",
+                            SkillID = "chargedAttack",
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
+                            TargetLimit = 6,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            PayloadData = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", true },
+                                    { "canCrit", false }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.ActionResultValue, 1.0f, "mpCollect")
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "magic"
+                                },
+                                SuccessChance = 0.6f,
+                                DepletableAffected = "hp"
+                            },
+                            Timestamp = 0.4f,
                             ActionConditions = new List<ActionCondition>()
                             {
                                 new ActionCondition()
@@ -335,7 +389,7 @@ public static class GameData
                             TargetPriority = ActionPayload.eTargetPriority.Nearest,
                             TargetLimit = 2,
                             Target = ActionPayload.eTarget.EnemyEntities,
-                            Payload = new PayloadData()
+                            PayloadData = new PayloadData()
                             {
                                 Flags = new Dictionary<string, bool>()
                                 {
@@ -383,7 +437,7 @@ public static class GameData
                             ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
                             TargetLimit = 50,
                             Target = ActionPayload.eTarget.EnemyEntities,
-                            Payload = new PayloadData()
+                            PayloadData = new PayloadData()
                             {
                                 Flags = new Dictionary<string, bool>()
                                 {
@@ -413,7 +467,7 @@ public static class GameData
                             ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
                             TargetLimit = 50,
                             Target = ActionPayload.eTarget.EnemyEntities,
-                            Payload = new PayloadData()
+                            PayloadData = new PayloadData()
                             {
                                 Flags = new Dictionary<string, bool>()
                                 {
@@ -443,7 +497,7 @@ public static class GameData
                             ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
                             TargetLimit = 50,
                             Target = ActionPayload.eTarget.EnemyEntities,
-                            Payload = new PayloadData()
+                            PayloadData = new PayloadData()
                             {
                                 Flags = new Dictionary<string, bool>()
                                 {
@@ -473,7 +527,7 @@ public static class GameData
                             ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
                             TargetLimit = 50,
                             Target = ActionPayload.eTarget.EnemyEntities,
-                            Payload = new PayloadData()
+                            PayloadData = new PayloadData()
                             {
                                 Flags = new Dictionary<string, bool>()
                                 {

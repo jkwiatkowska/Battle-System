@@ -20,7 +20,7 @@ public class Payload
         // Go through the payload data and add up all values that can be derived from the caster.
         // Values dependent on the target are added when incoming damage is calculated.
         PayloadDamage = new List<PayloadData.PayloadComponent>();
-        foreach (var component in Action.Payload.PayloadComponents)
+        foreach (var component in Action.PayloadData.PayloadComponents)
         {
             switch (component.ComponentType)
             {
@@ -66,11 +66,28 @@ public class Payload
                     PayloadDamage.Add(component);
                     break;
                 }
+                case PayloadData.PayloadComponent.ePayloadComponentType.ActionResultValue:
+                {
+                    if (caster.ActionResults.ContainsKey(component.Attribute))
+                    {
+                        change -= caster.ActionResults[component.Attribute].Value;
+                    }
+                    else
+                    {
+                        Debug.LogError($"Action {action.ActionID} requires an action result for action {component.Attribute}, but it can't be found.");
+                    }
+                    break;
+                }
+                default:
+                {
+                    Debug.LogError($"Unsupported payload component type: {component.ComponentType}");
+                    break;
+                }
             }
         }
 
         // Damage can be further adjusted here, for example by applying multipliers
-        var totalDamage = Formulae.OutgoingDamage(caster, change, Action.Payload);
+        var totalDamage = Formulae.OutgoingDamage(caster, change, Action.PayloadData);
 
         PayloadDamage.Add(new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, totalDamage));
     }
@@ -106,14 +123,14 @@ public class Payload
         }
 
         // Incoming damage can be calculated using target attributes and other variables here. 
-        result.Change = Formulae.IncomingDamage(caster, target, result.Change, Action.Payload, ref result.Flags);
+        result.Change = Formulae.IncomingDamage(caster, target, result.Change, Action.PayloadData, ref result.Flags);
 
-        target.ApplyChangeToDepletable(Action.Payload.DepletableAffected, result);
+        target.ApplyChangeToDepletable(Action.PayloadData.DepletableAffected, result);
 
         // Only perform other actions if the target is still alive
         if (target.Alive)
         {
-            if (!string.IsNullOrEmpty(Action.Payload.Tag))
+            if (!string.IsNullOrEmpty(Action.PayloadData.Tag))
             {
 
             }

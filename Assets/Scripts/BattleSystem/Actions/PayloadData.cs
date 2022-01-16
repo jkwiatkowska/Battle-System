@@ -19,7 +19,7 @@ public class PayloadData
         public ePayloadComponentType ComponentType;
 
         public float Potency;                           // Multiplier
-        public string Attribute;                        // The payload can scale off different attributes, depletables or action results (for example damage dealt).
+        public string Attribute;                        // The payload can scale off different attributes, depletables or action results (for example damage dealt or cost collected).
 
         public PayloadComponent(ePayloadComponentType type, float potency, string attribute = "")
         {
