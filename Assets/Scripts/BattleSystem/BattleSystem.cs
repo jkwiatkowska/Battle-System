@@ -8,8 +8,8 @@ public class BattleSystem : MonoBehaviour
     public static BattleSystem Instance { get; private set; }
     TargetingSystemPlayer PlayerTargeting;
 
-    public Dictionary<string, Entity> Entities { get; private set; }
-    public List<Targetable> TargetableEntities { get; private set; }
+    public Dictionary<string, Entity> Entities  { get; private set; }
+    public List<Entity> TargetableEntities      { get; private set; }
 
     public static float TimeSinceStart { get; private set; }
 
@@ -19,7 +19,7 @@ public class BattleSystem : MonoBehaviour
 
         Instance = this;
         Entities = new Dictionary<string, Entity>();
-        TargetableEntities = new List<Targetable>();
+        TargetableEntities = new List<Entity>();
         TimeSinceStart = 0.0f;
 
         PlayerTargeting = FindObjectOfType<TargetingSystemPlayer>();
@@ -36,15 +36,7 @@ public class BattleSystem : MonoBehaviour
 
         if (entity.EntityData.IsTargetable)
         {
-            var targetable = entity.GetComponent<Targetable>();
-            if (targetable == null)
-            {
-                Debug.LogError($"Entity {entity.EntityUID} marked as targetable, but it does not have a Targetable component.");
-            }
-            else
-            {
-                TargetableEntities.Add(targetable);
-            }
+            TargetableEntities.Add(entity);
         }
     }
 
@@ -52,18 +44,7 @@ public class BattleSystem : MonoBehaviour
     {
         Entities.Remove(entity.EntityUID);
 
-        var targetable = entity.GetComponentInChildren<Targetable>();
-        if (targetable == null)
-        {
-            Debug.LogError($"Entity {entity.EntityUID} is missing a targetable component.");
-        }
-
-        TargetableEntities.Remove(targetable);
-
-        if (targetable.Selected && PlayerTargeting != null)
-        {
-            FindObjectOfType<TargetingSystemPlayer>().ClearSelection();
-        }
+        TargetableEntities.Remove(entity);
     }
 
     public static bool IsFriendly(string entityUID, string targetUID)

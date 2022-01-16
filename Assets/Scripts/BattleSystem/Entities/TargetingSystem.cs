@@ -5,10 +5,17 @@ using UnityEngine;
 public class TargetingSystem : MonoBehaviour
 {
     public Entity Parent                        { get; protected set; }
-    public Targetable SelectedTarget            { get; protected set; }
+    public Entity SelectedTarget                { get; protected set; }
 
-    public List<Targetable> EnemyEntities       { get; protected set; }
-    public List<Targetable> FriendlyEntities    { get; protected set; }
+    public List<Entity> EnemyEntities           { get; protected set; }
+    public List<Entity> FriendlyEntities        { get; protected set; }
+    public virtual List<Entity> AllEntities
+    {
+        get
+        {
+            return BattleSystem.Instance.TargetableEntities;
+        }    
+    }
 
     public bool FriendlySelected
     {
@@ -19,7 +26,7 @@ public class TargetingSystem : MonoBehaviour
                 return false;
             }
 
-            return BattleSystem.IsFriendly(Parent.EntityUID, SelectedTarget.Entity.EntityUID);
+            return BattleSystem.IsFriendly(Parent.EntityUID, SelectedTarget.EntityUID);
         }
     }
     public bool EnemySelected
@@ -31,15 +38,15 @@ public class TargetingSystem : MonoBehaviour
                 return false;
             }
 
-            return BattleSystem.IsEnemy(Parent.EntityUID, SelectedTarget.Entity.EntityUID);
+            return BattleSystem.IsEnemy(Parent.EntityUID, SelectedTarget.EntityUID);
         }
     }
 
     public virtual void Setup(Entity parent)
     {
         Parent = parent;
-        EnemyEntities = new List<Targetable>();
-        FriendlyEntities = new List<Targetable>();
+        EnemyEntities = new List<Entity>();
+        FriendlyEntities = new List<Entity>();
     }
 
     protected virtual void Update()
@@ -47,7 +54,7 @@ public class TargetingSystem : MonoBehaviour
 
     }
 
-    public virtual void SelectTarget(Targetable entity)
+    public virtual void SelectTarget(Entity entity)
     {
         ClearSelection();
         SelectedTarget = entity;
@@ -62,12 +69,7 @@ public class TargetingSystem : MonoBehaviour
     {
         if (Parent.EntityData.IsTargetable)
         {
-            var target = Parent.GetComponent<Targetable>();
-            if (target == null)
-            {
-                Debug.LogError($"Parent entity {Parent.EntityUID} marked as targetable, but doesn't have a Targetable component.");
-            }
-            SelectTarget(target);
+            SelectTarget(Parent);
 
             return true;
         }
@@ -148,19 +150,17 @@ public class TargetingSystem : MonoBehaviour
 
     public virtual void UpdateEntityLists()
     {
-        var allEntities = BattleSystem.Instance.TargetableEntities;
-
-        EnemyEntities = new List<Targetable>();
-        FriendlyEntities = new List<Targetable>();
+        EnemyEntities.Clear();
+        FriendlyEntities.Clear();
 
         // Go through all entities and add them to the lists
-        foreach(var target in allEntities)
+        foreach(var target in AllEntities)
         {
-            if (BattleSystem.IsEnemy(Parent.EntityUID, target.Entity.EntityUID))
+            if (BattleSystem.IsEnemy(Parent.EntityUID, target.EntityUID))
             {
                 EnemyEntities.Add(target);
             }
-            else if (BattleSystem.IsFriendly(Parent.EntityUID, target.Entity.EntityUID))
+            else if (BattleSystem.IsFriendly(Parent.EntityUID, target.EntityUID))
             {
                 FriendlyEntities.Add(target);
             }
@@ -179,37 +179,5 @@ public class TargetingSystem : MonoBehaviour
     protected virtual void ProcessFriendlyEntityList()
     {
 
-    }
-
-    public List<Entity> GetAllFriendlyEntities()
-    {
-        var entities = new List<Entity>();
-        foreach (var target in FriendlyEntities)
-        {
-            entities.Add(target.Entity);
-        }
-        return entities;
-    }
-
-    public List<Entity> GetAllEnemyEntities()
-    {
-        var entities = new List<Entity>();
-        foreach (var target in EnemyEntities)
-        {
-            entities.Add(target.Entity);
-        }
-        return entities;
-    }
-
-    public List<Entity> GetAllTargetableEntities()
-    {
-        var entities = new List<Entity>();
-
-        foreach (var entity in BattleSystem.Instance.TargetableEntities)
-        {
-            entities.Add(entity.Entity);
-        }
-
-        return entities;
     }
 }

@@ -37,13 +37,15 @@ public class Entity : MonoBehaviour
     protected Dictionary<TriggerData.eTrigger, List<Trigger>> Triggers;
 
     // Other objects that make up an entity
-    EntityCanvas EntityCanvas;
+    public EntityCanvas EntityCanvas                        { get; protected set; }
     public TargetingSystem TargetingSystem                  { get; protected set; }
+    public Targetable Targetable                            { get; protected set; }
     EntityMovement EntityMovement;
     public Dictionary<string, List<Entity>> TaggedEntities  { get; private set; }
 
     // State
     public eEntityState EntityState                         { get; private set; }
+    public bool IsTargetable                                { get; private set; }
     public string FactionOverride                           { get; private set; }
 
     public virtual void Setup(string entityID, int entityLevel)
@@ -77,6 +79,7 @@ public class Entity : MonoBehaviour
         {
             AddTrigger(new Trigger(trigger));
         }
+        IsTargetable = EntityData.IsTargetable;
 
         // Dependencies 
         BattleSystem.Instance.AddEntity(this);
@@ -98,6 +101,19 @@ public class Entity : MonoBehaviour
         else
         {
             EntityCanvas.Setup(this);
+        }
+
+        if (IsTargetable)
+        {
+            Targetable = GetComponentInChildren<Targetable>();
+            if (Targetable != null)
+            {
+                Targetable.Setup(this);
+            }
+            else
+            {
+                Debug.LogError($"Entity {EntityID} marked as targetable, but it does not have a Targetable component.");
+            }
         }
     }
 
@@ -333,7 +349,7 @@ public class Entity : MonoBehaviour
             }
             case TriggerData.eTrigger.OnKill:
             {
-                if (payloadResult != null && TargetingSystem.SelectedTarget.Entity == payloadResult.Target)
+                if (payloadResult != null && TargetingSystem.SelectedTarget == payloadResult.Target)
                 {
                     TargetingSystem.ClearSelection();
                 }

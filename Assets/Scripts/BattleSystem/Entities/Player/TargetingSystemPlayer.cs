@@ -29,11 +29,16 @@ public class TargetingSystemPlayer : TargetingSystem
         }
     }
 
-    public override void SelectTarget(Targetable entity)
+    public override void SelectTarget(Entity entity)
     {
+        if (!entity.Targetable)
+        {
+            return;
+        }
+
         base.SelectTarget(entity);
 
-        SelectedTarget.ToggleSelect(true);
+        SelectedTarget.Targetable.ToggleSelect(true);
 
         var entityCanvas = entity.GetComponentInChildren<EntityCanvas>();
         if (entityCanvas != null)
@@ -42,7 +47,28 @@ public class TargetingSystemPlayer : TargetingSystem
         }
         else
         {
-            Debug.LogError($"Entity {entity.Entity.EntityUID} is missing EntityCanvas.");
+            Debug.LogError($"Entity {entity.EntityUID} is missing EntityCanvas.");
+        }
+    }
+
+    public void SelectWithMouse()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(UnityEngine.Input.mousePosition);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, 100))
+        {
+            var target = hit.transform.gameObject.GetComponent<Entity>();
+            if (target != null && target.IsTargetable)
+            {
+                SelectTarget(target);
+            }
+            else
+            {
+                ClearSelection();
+            }
+
+            Debug.Log(hit.transform.gameObject.name);
         }
     }
 
@@ -52,21 +78,20 @@ public class TargetingSystemPlayer : TargetingSystem
 
         if (SelectedTarget != null)
         {
-            SelectedTarget.ToggleSelect(false);
+            SelectedTarget.Targetable.ToggleSelect(false);
         }
 
         base.ClearSelection();
 
         if (entity != null)
         {
-            var entityCanvas = entity.GetComponentInChildren<EntityCanvas>();
-            if (entityCanvas != null)
+            if (entity.EntityCanvas != null)
             {
-                TargetHUD.ClearSelection(entityCanvas);
+                TargetHUD.ClearSelection(entity.EntityCanvas);
             }
             else
             {
-                Debug.LogError($"Entity {entity.Entity.EntityUID} is missing EntityCanvas.");
+                Debug.LogError($"Entity {entity.EntityUID} is missing EntityCanvas.");
             }
         }
     }
@@ -84,42 +109,16 @@ public class TargetingSystemPlayer : TargetingSystem
         }
     }
 
-    public void SelectWithMouse()
-    {
-        Ray ray = Camera.main.ScreenPointToRay(UnityEngine.Input.mousePosition);
-        RaycastHit hit;
-
-        if (Physics.Raycast(ray, out hit, 100))
-        {
-            var target = hit.transform.gameObject.GetComponent<Targetable>();
-            if (target != null)
-            {
-                SelectTarget(target);
-            }
-            else
-            {
-                ClearSelection();
-            }
-
-            Debug.Log(hit.transform.gameObject.name);
-        }
-    }
-
-    protected override void Update()
-    {
-        UpdateEntityLists();
-    }
-
     protected override void ProcessEnemyEntityList()
     {
         var scores = new Dictionary<string, float>();
 
         foreach (var target in EnemyEntities)
         {
-            scores.Add(target.Entity.EntityUID, GetTargetScore(target));
+            scores.Add(target.EntityUID, GetTargetScore(target));
         }
 
-        EnemyEntities.Sort((e1, e2) => scores[e2.Entity.EntityUID].CompareTo(scores[e1.Entity.EntityUID]));
+        EnemyEntities.Sort((e1, e2) => scores[e2.EntityUID].CompareTo(scores[e1.EntityUID]));
     }
 
     protected override void ProcessFriendlyEntityList()
@@ -127,8 +126,13 @@ public class TargetingSystemPlayer : TargetingSystem
 
     }
 
-    float GetTargetScore(Targetable target)
+    float GetTargetScore(Entity target)
     {
+        if (!target.Alive)
+        {
+            return 0;
+        }
+
         var v = Parent.transform.position - target.transform.position;
         var distanceScore = 1.0f - v.sqrMagnitude / MaxDistance;
 

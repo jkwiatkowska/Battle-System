@@ -105,7 +105,7 @@ public abstract class ActionPayload : Action
             target.OnTrigger(TriggerData.eTrigger.OnHitIncoming, result);
 
             // Show damage number on HUD
-            if (result.Change != 0.0f)
+            if (Mathf.RoundToInt(result.Change) != 0)
             {
                 HUDPopupTextDisplay.Instance.DisplayDamage(target, this, -result.Change, result.Flags);
             }

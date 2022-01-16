@@ -20,9 +20,9 @@ public class Targetable : MonoBehaviour
         }
     }
 
-    private void Awake()
+    public void Setup(Entity parentEntity)
     {
-        ParentEntity = GetComponentInParent<Entity>();
+        ParentEntity = parentEntity;
         ToggleSelect(false);
     }
 

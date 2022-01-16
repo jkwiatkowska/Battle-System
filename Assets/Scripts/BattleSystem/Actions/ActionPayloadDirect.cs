@@ -38,7 +38,7 @@ public class ActionPayloadDirect : ActionPayload
                 {
                     if (targetingSystem.FriendlySelected)
                     {
-                        targets.Add(targetingSystem.SelectedTarget.Entity);
+                        targets.Add(targetingSystem.SelectedTarget);
                     }
                     else
                     {
@@ -49,7 +49,7 @@ public class ActionPayloadDirect : ActionPayload
                 {
                     if (targetingSystem.EnemySelected)
                     {
-                        targets.Add(targetingSystem.SelectedTarget.Entity);
+                        targets.Add(targetingSystem.SelectedTarget);
                     }
                     else
                     {
@@ -64,17 +64,17 @@ public class ActionPayloadDirect : ActionPayload
                 {
                     case eTarget.EnemyEntities:
                     {
-                        targets = targetingSystem.GetAllEnemyEntities().FindAll(t => CheckTargetableState(t));
+                        targets = targetingSystem.EnemyEntities.FindAll(t => CheckTargetableState(t));
                         break;
                     }
                     case eTarget.FriendlyEntities:
                     {
-                        targets = targetingSystem.GetAllFriendlyEntities().FindAll(t => CheckTargetableState(t));
+                        targets = targetingSystem.FriendlyEntities.FindAll(t => CheckTargetableState(t));
                         break;
                     }
                     case eTarget.AllEntities:
                     {
-                        targets = targetingSystem.GetAllTargetableEntities().FindAll(t => CheckTargetableState(t));
+                        targets = targetingSystem.AllEntities.FindAll(t => CheckTargetableState(t));
                         break;
                     }
                     default:
