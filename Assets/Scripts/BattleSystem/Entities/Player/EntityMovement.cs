@@ -77,6 +77,31 @@ public class EntityMovement : MonoBehaviour
         }
     }
 
+    public void RotateToward(Vector3 targetPosition)
+    {
+        StartCoroutine(RotateTowardCoroutine(targetPosition));
+    }
+
+    IEnumerator RotateTowardCoroutine(Vector3 targetPosition)
+    {
+        var targetDirection = targetPosition - transform.position;
+        var initialForward = transform.forward;
+
+        var speed = Formulae.EntityRotateSpeed(Parent);
+        var startTime = BattleSystem.TimeSinceStart;
+
+        do
+        {
+            var timeElapsed = BattleSystem.TimeSinceStart - startTime;
+            var direction = Vector3.RotateTowards(initialForward, targetDirection, timeElapsed * speed, 0.0f);
+
+            transform.rotation = Quaternion.LookRotation(direction);
+
+            yield return null;
+        }
+        while (Vector3.Angle(transform.forward, targetDirection) > 0.5f);
+    }
+
     void UpdateVelocity()
     {
         IsGrounded = Velocity.y <= 0.0f && Physics.CheckSphere(transform.position + GroundCheckSphereOffset, GroundCheckSphereRadius, TerrainLayers);

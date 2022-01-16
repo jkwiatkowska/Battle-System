@@ -171,7 +171,11 @@ public class Entity : MonoBehaviour
                 TargetingSystem.SelectBestEnemy();
             }
 
-            // Turn towards target first
+            if (TargetingSystem.SelectedTarget == null)
+            {
+                return;
+            }
+            EntityMovement.RotateToward(TargetingSystem.SelectedTarget.transform.position);
         }
 
         if (skillData.HasChargeTime)

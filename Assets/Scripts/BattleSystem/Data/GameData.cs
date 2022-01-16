@@ -124,7 +124,7 @@ public static class GameData
                         }
                     },
                     MovementSpeed = 4.0f,
-                    RotateSpeed = 1.0f,
+                    RotateSpeed = 5.0f,
                     JumpHeight = 1.0f
                 }
             },
