@@ -18,4 +18,8 @@ public class EntityData
 
     public float Radius;
     public float Height;
+
+    public float MovementSpeed;
+    public float RotateSpeed;
+    public float JumpHeight;
 }

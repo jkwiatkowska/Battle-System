@@ -4,11 +4,10 @@ using UnityEngine;
 
 public class EntityMovement : MonoBehaviour
 {
-    [SerializeField] float Speed = 4.0f;
-    [SerializeField] float JumpHeight = 1.0f;
-    [SerializeField] CapsuleCollider Collider;
     [SerializeField] LayerMask TerrainLayers;
     [SerializeField] float GroundCheckSphereRadius;
+    Entity Parent;
+    CapsuleCollider Collider;
     PlayerCamera Camera;
 
     Vector3 Velocity;
@@ -21,9 +20,11 @@ public class EntityMovement : MonoBehaviour
 
     public float LastMoved { get; private set; }
 
-    private void Awake()
+    public void Setup(Entity parent)
     {
+        Parent = parent;
         Camera = FindObjectOfType<PlayerCamera>();
+        Collider = GetComponentInChildren<CapsuleCollider>();
         GravitationalForce = Constants.Gravity;
         Velocity = new Vector3();
         GroundCheckSphereOffset = new Vector3(0.0f, GroundCheckSphereRadius, 0.0f);
@@ -57,7 +58,7 @@ public class EntityMovement : MonoBehaviour
         var movementVector = input.x * Camera.GetPlayerXVector() + -input.y * Camera.GetPlayerZVector();
 
         movementVector.Normalize();
-        transform.position += movementVector * Speed * Time.fixedDeltaTime;
+        transform.position += movementVector * Formulae.EntityMovementSpeed(Parent) * Time.fixedDeltaTime;
         transform.rotation = Quaternion.LookRotation(movementVector, Vector3.up);
 
         LastMoved = BattleSystem.TimeSinceStart;
@@ -72,7 +73,7 @@ public class EntityMovement : MonoBehaviour
 
         if (IsGrounded)
         {
-            Velocity.y += Mathf.Sqrt(JumpHeight * -2.0f * GravitationalForce);
+            Velocity.y += Mathf.Sqrt(Formulae.EntityJumpHeight(Parent) * -2.0f * GravitationalForce);
         }
     }
 

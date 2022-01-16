@@ -104,4 +104,25 @@ public static class Formulae
 
         return successChance;
     }
+
+    public static float EntityMovementSpeed(Entity entity)
+    {
+        var speed = entity.EntityData.MovementSpeed;
+
+        return speed;
+    }
+
+    public static float EntityRotateSpeed(Entity entity)
+    {
+        var speed = entity.EntityData.RotateSpeed;
+
+        return speed;
+    }
+
+    public static float EntityJumpHeight(Entity entity)
+    {
+        var height = entity.EntityData.JumpHeight;
+
+        return height;
+    }
 }

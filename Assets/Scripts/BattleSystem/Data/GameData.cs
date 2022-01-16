@@ -122,7 +122,10 @@ public static class GameData
                             DepletablesAffected = new List<string>(),
                             Flags = new List<string>()
                         }
-                    }
+                    },
+                    MovementSpeed = 4.0f,
+                    RotateSpeed = 1.0f,
+                    JumpHeight = 1.0f
                 }
             },
             {

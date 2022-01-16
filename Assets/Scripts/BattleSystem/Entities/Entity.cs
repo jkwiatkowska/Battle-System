@@ -40,7 +40,7 @@ public class Entity : MonoBehaviour
     public EntityCanvas EntityCanvas                        { get; protected set; }
     public TargetingSystem TargetingSystem                  { get; protected set; }
     public Targetable Targetable                            { get; protected set; }
-    EntityMovement EntityMovement;
+    public EntityMovement EntityMovement                    { get; protected set; }
     public Dictionary<string, List<Entity>> TaggedEntities  { get; private set; }
 
     // State
@@ -92,6 +92,10 @@ public class Entity : MonoBehaviour
         TargetingSystem.Setup(this);
 
         EntityMovement = GetComponentInChildren<EntityMovement>();
+        if (EntityMovement != null)
+        {
+            EntityMovement.Setup(this);
+        }
 
         EntityCanvas = GetComponentInChildren<EntityCanvas>();
         if (EntityCanvas == null)
