@@ -192,10 +192,10 @@ public class Entity : MonoBehaviour
 
         foreach (var action in timeline)
         {
-            var timeBeforeAction = startTime + action.TimestampForEntity(this) - BattleSystem.TimeSinceStart;
-            if (timeBeforeAction > 0.0f)
+            var timestamp = startTime + action.TimestampForEntity(this);
+            while (timestamp > BattleSystem.TimeSinceStart)
             {
-                yield return new WaitForSeconds(timeBeforeAction);
+                yield return null;
             }
 
             action.Execute(this, out var actionResult);
@@ -208,20 +208,7 @@ public class Entity : MonoBehaviour
     {
         EntityState = eEntityState.CastingSkill;
 
-        var startTime = BattleSystem.TimeSinceStart;
-        ActionResults.Clear();
-
-        foreach (var action in skillData.SkillTimeline)
-        {
-            var timeBeforeAction = startTime + action.TimestampForEntity(this) - BattleSystem.TimeSinceStart;
-            if (timeBeforeAction > 0.0f)
-            {
-                yield return new WaitForSeconds(timeBeforeAction);
-            }
-
-            action.Execute(this, out var actionResult);
-            ActionResults[action.ActionID] = actionResult;
-        }
+        yield return ExecuteActionsCoroutine(skillData.SkillTimeline);
 
         CurrentSkill = null;
         EntityState = eEntityState.Idle;
