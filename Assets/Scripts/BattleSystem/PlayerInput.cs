@@ -104,11 +104,11 @@ public class PlayerInput : MonoBehaviour
 
     void OnInput()
     {
-        LastInput = BattleSystem.TimeSinceStart + InputCooldown;
+        LastInput = BattleSystem.Time + InputCooldown;
     }
 
     bool ReadInput()
     {
-        return LastInput - BattleSystem.TimeSinceStart <= 0.0f;
+        return LastInput - BattleSystem.Time <= 0.0f;
     }
 }

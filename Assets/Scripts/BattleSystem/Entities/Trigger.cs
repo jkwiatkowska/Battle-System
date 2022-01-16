@@ -26,7 +26,7 @@ public class Trigger
             return null;
         }
 
-        LastUsedTime = BattleSystem.TimeSinceStart;
+        LastUsedTime = BattleSystem.Time;
 
         if (TriggerData.Limit != 0)
         {
@@ -34,17 +34,17 @@ public class Trigger
             usesLeft = UsesLeft > 0;
         }
 
-        return entity.StartCoroutine(entity.ExecuteActionsCoroutine(TriggerData.Actions));
+        return entity.StartCoroutine(TriggerData.Actions.ExecuteActions(entity));
     }
 
     public bool ConditionsMet(PayloadResult payloadResult)
     {
-        if (ExpireTime != 0.0f && ExpireTime < BattleSystem.TimeSinceStart)
+        if (ExpireTime != 0.0f && ExpireTime < BattleSystem.Time)
         {
             return false;
         }
 
-        if (LastUsedTime + TriggerData.Cooldown > BattleSystem.TimeSinceStart)
+        if (LastUsedTime + TriggerData.Cooldown > BattleSystem.Time)
         {
             return false;
         }

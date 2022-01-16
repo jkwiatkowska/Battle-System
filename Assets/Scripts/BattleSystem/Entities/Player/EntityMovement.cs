@@ -37,14 +37,14 @@ public class EntityMovement : MonoBehaviour
 
     public void LockMovement(float time)
     {
-        MovementLock = BattleSystem.TimeSinceStart + time;
+        MovementLock = BattleSystem.Time + time;
     }
 
     public bool IsMovementLocked
     {
         get
         {
-            return MovementLock > BattleSystem.TimeSinceStart;
+            return MovementLock > BattleSystem.Time;
         }
     }
 
@@ -61,7 +61,7 @@ public class EntityMovement : MonoBehaviour
         transform.position += movementVector * Formulae.EntityMovementSpeed(Parent) * Time.fixedDeltaTime;
         transform.rotation = Quaternion.LookRotation(movementVector, Vector3.up);
 
-        LastMoved = BattleSystem.TimeSinceStart;
+        LastMoved = BattleSystem.Time;
     }
 
     public void Jump()
@@ -77,23 +77,18 @@ public class EntityMovement : MonoBehaviour
         }
     }
 
-    public void RotateToward(Vector3 targetPosition)
-    {
-        StartCoroutine(RotateTowardCoroutine(targetPosition));
-    }
-
-    IEnumerator RotateTowardCoroutine(Vector3 targetPosition)
+    public IEnumerator RotateTowardCoroutine(Vector3 targetPosition)
     {
         var targetDirection = targetPosition - transform.position;
         targetDirection.y = 0.0f;
         var initialForward = transform.forward;
 
         var speed = Formulae.EntityRotateSpeed(Parent);
-        var startTime = BattleSystem.TimeSinceStart;
+        var startTime = BattleSystem.Time;
 
         do
         {
-            var timeElapsed = BattleSystem.TimeSinceStart - startTime;
+            var timeElapsed = BattleSystem.Time - startTime;
             var direction = Vector3.RotateTowards(initialForward, targetDirection, timeElapsed * speed, 0.0f);
 
             transform.rotation = Quaternion.LookRotation(direction);

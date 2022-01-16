@@ -19,7 +19,7 @@ public class SkillChargeProgress : MonoBehaviour
 
     public void StartCharge(float requiredChargeTime, float fullChargeTime, string skillID, float chargeStartTime = 0.0f)
     {
-        ChargeStartTime = Mathf.Max(BattleSystem.TimeSinceStart, chargeStartTime);
+        ChargeStartTime = Mathf.Max(BattleSystem.Time, chargeStartTime);
         FullChargeTime = fullChargeTime;
 
         if (RequiredChargeBar != null)
@@ -35,7 +35,7 @@ public class SkillChargeProgress : MonoBehaviour
     
     void Update()
     {
-        var timeElapsed = BattleSystem.TimeSinceStart - ChargeStartTime;
+        var timeElapsed = BattleSystem.Time - ChargeStartTime;
         if (CurrentChargeBar != null)
         {
             CurrentChargeBar.fillAmount = timeElapsed / FullChargeTime;

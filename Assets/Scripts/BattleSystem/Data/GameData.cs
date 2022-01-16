@@ -108,7 +108,7 @@ public static class GameData
                             Trigger = TriggerData.eTrigger.OnDeath,
                             Cooldown = 0,
                             Limit = 0,
-                            Actions = new List<Action>()
+                            Actions = new ActionTimeline()
                             {
                                 new ActionDestroySelf()
                                 {
@@ -157,7 +157,7 @@ public static class GameData
                             Trigger = TriggerData.eTrigger.OnDeath,
                             Cooldown = 0,
                             Limit = 0,
-                            Actions = new List<Action>()
+                            Actions = new ActionTimeline()
                             {
                                 new ActionDestroySelf()
                                 {
@@ -183,7 +183,7 @@ public static class GameData
                 new SkillData()
                 {
                     SkillID = "singleTargetAttack",
-                    SkillTimeline = new List<Action>()
+                    SkillTimeline = new ActionTimeline()
                     {
                         new ActionPayloadDirect()
                         {
@@ -292,10 +292,10 @@ public static class GameData
                         RequiredChargeTime = 0.5f,
                         FullChargeTime = 2.0f,
                         MovementCancelsCharge = true,
-                        PreChargeTimeline = new List<Action>(),
+                        PreChargeTimeline = new ActionTimeline(),
                         ShowUI = true
                     },
-                    SkillTimeline = new List<Action>()
+                    SkillTimeline = new ActionTimeline()
                     {
                         new ActionCostCollection()
                         {
@@ -425,7 +425,7 @@ public static class GameData
                 new SkillData()
                 {
                     SkillID = "healAll",
-                    SkillTimeline = new List<Action>()
+                    SkillTimeline = new ActionTimeline()
                     {
                         new ActionPayloadDirect()
                         {

@@ -9,7 +9,7 @@ public class SkillData
     public bool Interruptible;                  // If true, a skill can be interrupted by other entities. 
 
     public SkillChargeData SkillChargeData;     // A charge time before skill execution can be added. Additional actions can be executed at that point.
-    public List<Action> SkillTimeline;          // Actions executed during skill cast.
+    public ActionTimeline SkillTimeline;          // Actions executed during skill cast.
 
     public bool NeedsTarget                     // Some skills cannot be cast without a target selected.
     {

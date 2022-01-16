@@ -22,7 +22,7 @@ public class PopupText : MonoBehaviour
         Text = GetComponentInChildren<Text>();
         Text.text = text;
 
-        StartTime = BattleSystem.TimeSinceStart;
+        StartTime = BattleSystem.Time;
         Update();
 
         Destroy(gameObject, Duration);
@@ -32,7 +32,7 @@ public class PopupText : MonoBehaviour
     {
         if (WorldPosition != null)
         {
-            var timeSinceStart = BattleSystem.TimeSinceStart - StartTime;
+            var timeSinceStart = BattleSystem.Time - StartTime;
 
             var offset = PositionOffsetPerSecond * timeSinceStart;
 
