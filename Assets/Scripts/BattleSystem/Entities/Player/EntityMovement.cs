@@ -85,6 +85,7 @@ public class EntityMovement : MonoBehaviour
     IEnumerator RotateTowardCoroutine(Vector3 targetPosition)
     {
         var targetDirection = targetPosition - transform.position;
+        targetDirection.y = 0.0f;
         var initialForward = transform.forward;
 
         var speed = Formulae.EntityRotateSpeed(Parent);
