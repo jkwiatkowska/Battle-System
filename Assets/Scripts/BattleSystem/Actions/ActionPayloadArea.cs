@@ -23,33 +23,7 @@ public class ActionPayloadArea : ActionPayload
 
     public List<Area> AreasAffected;
 
-    public override bool NeedsTarget()
-    {
-        if (Target == eTarget.EnemyEntities)
-        {
-            foreach (var area in AreasAffected)
-            {
-                if (area.AreaTransform.PositionOrigin == TransformData.ePositionOrigin.SelectedTargetPosition)
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    public override void Execute(Entity entity, out ActionResult actionResult)
-    {
-        actionResult = new ActionResult();
-
-        if (!ConditionsMet(entity))
-        {
-            return;
-        }
-    }
-
-    public override List<Entity> GetTargetsForAction(Entity entity)
+    public override List<Entity> GetTargetsForAction(Entity entity, Entity target)
     {
         var targets = new List<Entity>();
         var potentialTargets = new List<Entity>();
@@ -81,7 +55,7 @@ public class ActionPayloadArea : ActionPayload
 
         foreach (var area in AreasAffected)
         {
-            var foundPosition = area.AreaTransform.TryGetTransformFromData(entity, out Vector2 areaPosition, out Vector2 areaForward);
+            var foundPosition = area.AreaTransform.TryGetTransformFromData(entity, target, out Vector2 areaPos, out Vector2 areaForward);
             if (!foundPosition)
             {
                 continue;
@@ -99,11 +73,11 @@ public class ActionPayloadArea : ActionPayload
 
                     for (int i = potentialTargets.Count - 1; i >= 0; i--)
                     {
-                        var target = potentialTargets[i];
-                        var targetPosition = Utility.Get2DPosition(target.transform.position);
+                        var t = potentialTargets[i];
+                        var tPos = Utility.Get2DPosition(t.transform.position);
 
                         // Check if the target is inside circle
-                        var distance = Vector2.SqrMagnitude(areaPosition - targetPosition);
+                        var distance = Vector2.SqrMagnitude(areaPos - tPos);
                         if (distance < minDistance || distance > maxDistance)
                         {
                             continue;
@@ -112,21 +86,21 @@ public class ActionPayloadArea : ActionPayload
                         // Check if the target is inside cone
                         if (minAngle > 0.0f || maxAngle < 360.0f) // If not a circle
                         {
-                            var angle = Vector2.Angle(areaPosition, targetPosition);
+                            var angle = Vector2.Angle(areaPos, tPos);
                             if (angle < minAngle || angle > maxAngle)
                             {
                                 continue;
                             }
                         }
 
-                        targets.Add(target);
-                        potentialTargets.Remove(target);
+                        targets.Add(t);
+                        potentialTargets.Remove(t);
                     }
                     break;
                 }
                 case Area.eShape.Rectangle:
                 {
-                    foreach (var target in potentialTargets)
+                    foreach (var t in potentialTargets)
                     {
 
                     }

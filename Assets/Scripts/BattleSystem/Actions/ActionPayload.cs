@@ -32,7 +32,7 @@ public abstract class ActionPayload : Action
     public int TargetLimit;                 // Targets can be limited for actions that affect multiple targets
     public eTargetPriority TargetPriority;  // If there's a target limit, targets can be prioritised based on specified criteria
 
-    public override void Execute(Entity entity, out ActionResult actionResult)
+    public override void Execute(Entity entity, out ActionResult actionResult, Entity target)
     {
         actionResult = new ActionResult();
 
@@ -41,7 +41,7 @@ public abstract class ActionPayload : Action
             return;
         }
 
-        var targets = GetTargetsForAction(entity);
+        var targets = GetTargetsForAction(entity, target);
 
         if (targets.Count == 0)
         {
@@ -83,38 +83,38 @@ public abstract class ActionPayload : Action
         }
 
         var payload = new Payload(entity, this);
-        foreach (var target in targets)
+        foreach (var t in targets)
         {
-            var result = new PayloadResult(PayloadData, entity, target, SkillID, ActionID, 0.0f, new List<string>());
+            var result = new PayloadResult(PayloadData, entity, t, SkillID, ActionID, 0.0f, new List<string>());
 
             // If payload isn't guaranteed to trigger.
-            var chance = Formulae.PayloadSuccessChance(PayloadData, entity, target);
+            var chance = Formulae.PayloadSuccessChance(PayloadData, entity, t);
             if (Random.value > chance)
             {
-                HUDPopupTextDisplay.Instance.DisplayMiss(target);
+                HUDPopupTextDisplay.Instance.DisplayMiss(t);
                 entity.OnTrigger(TriggerData.eTrigger.OnHitMissed, result);
                 continue;
             }
 
             // Apply payload and update result.
-            payload.ApplyPayload(entity, target, result);
+            payload.ApplyPayload(entity, t, result);
             actionResult.Value += result.Change;
             actionResult.Count += 1;
 
             entity.OnTrigger(TriggerData.eTrigger.OnHitOutgoing, result);
-            target.OnTrigger(TriggerData.eTrigger.OnHitIncoming, result);
+            t.OnTrigger(TriggerData.eTrigger.OnHitIncoming, result);
 
             // Show damage number on HUD
             if (Mathf.RoundToInt(result.Change) != 0)
             {
-                HUDPopupTextDisplay.Instance.DisplayDamage(target, this, -result.Change, result.Flags);
+                HUDPopupTextDisplay.Instance.DisplayDamage(t, this, -result.Change, result.Flags);
             }
         }
 
         actionResult.Success = actionResult.Count > 0;
     }
 
-    public abstract List<Entity> GetTargetsForAction(Entity entity);
+    public abstract List<Entity> GetTargetsForAction(Entity entity, Entity target);
 
     protected bool CheckTargetableState(Entity target)
     {

@@ -9,23 +9,21 @@ public class SkillData
     public bool Interruptible;                  // If true, a skill can be interrupted by other entities. 
 
     public SkillChargeData SkillChargeData;     // A charge time before skill execution can be added. Additional actions can be executed at that point.
-    public ActionTimeline SkillTimeline;          // Actions executed during skill cast.
+    public ActionTimeline SkillTimeline;        // Actions executed during skill cast.
 
-    public bool NeedsTarget                     // Some skills cannot be cast without a target selected.
+    public enum eTargetPreferrence
     {
-        get
-        {
-            foreach (var action in SkillTimeline)
-            {
-                if (action.NeedsTarget())
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
+        Any,                                    // Skills that affect the player and don't concern a particular target.
+        Enemy,                                  // Skills that affect an enemy entity.
+        Friendly,                               // Skills that affect a friendly entity.
     }
-    public float Range;                         // Minimum range from target required to execute the skill.
+
+    public bool NeedsTarget;                    // If a skill requires a target, it can only be executed if a preferred target is selected. 
+                                                // This must be set to true if any of the actions require a selected entity.
+                                                // Friendly actions will always default to the caster if a suitable target is not selected.
+
+    public eTargetPreferrence PreferredTarget;  // If a correct target is selected, the skill will only execute when it's in range. 
+    public float Range;                         // Minimum range from target required for the skill to be effective.
 
     public float Cooldown
     {

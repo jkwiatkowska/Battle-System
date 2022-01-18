@@ -15,7 +15,7 @@ public class ActionSummon : Action
 
     public bool LifeLink;                               // If true, the entity will disappear when the caster dies
 
-    public override void Execute(Entity entity, out ActionResult actionResult)
+    public override void Execute(Entity entity, out ActionResult actionResult, Entity target)
     {
         actionResult = new ActionResult();
 
@@ -23,10 +23,5 @@ public class ActionSummon : Action
         {
             return;
         }
-    }
-
-    public override bool NeedsTarget()
-    {
-        return SummonAtPosition.PositionOrigin != TransformData.ePositionOrigin.SelectedTargetPosition;
     }
 }

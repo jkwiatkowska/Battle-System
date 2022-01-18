@@ -20,4 +20,12 @@ public static class Utility
         v.y = (sin * x) + (cos * y);
         return v;
     }
+
+    public static bool IsInRange(Entity entity1, Entity entity2, float range)
+    {
+        var radii = entity1.EntityData.Radius + entity2.EntityData.Radius;
+        var distance = Vector3.SqrMagnitude(entity1.transform.position - entity2.transform.position) - radii * radii;
+
+        return distance <= range * range;
+    }
 }

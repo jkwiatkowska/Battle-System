@@ -17,11 +17,6 @@ public class ActionCostCollection : Action
     public bool Optional;                       // If optional, the skill can be executed and continue without taking the cost. 
                                                 // Can be used to change how skill works depending on whether the cost condition is met.
 
-    public override bool NeedsTarget()
-    {
-        return false;
-    }
-
     public float GetValue(Entity entity)
     {
         switch (ValueType)
@@ -51,7 +46,7 @@ public class ActionCostCollection : Action
         return (GetValue(entity) <= entity.DepletablesCurrent[DepletableName]);
     }
 
-    public override void Execute(Entity entity, out ActionResult actionResult)
+    public override void Execute(Entity entity, out ActionResult actionResult, Entity target)
     {
         actionResult = new ActionResult();
 

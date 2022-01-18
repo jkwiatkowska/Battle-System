@@ -17,7 +17,7 @@ public class ActionAnimationSet<T> : Action
     public string Name;
     public bool ValueBool;
     public string ValueOther;
-    public override void Execute(Entity entity, out ActionResult actionResult)
+    public override void Execute(Entity entity, out ActionResult actionResult, Entity target)
     {
         actionResult = new ActionResult();
 
@@ -85,10 +85,5 @@ public class ActionAnimationSet<T> : Action
                 return;
             }
         }
-    }
-
-    public override bool NeedsTarget()
-    {
-        return false;
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ActionTimeline : List<Action>
 {
-    public IEnumerator ExecuteActions(Entity entity)
+    public IEnumerator ExecuteActions(Entity entity, Entity target)
     {
         var startTime = BattleSystem.Time;
         entity.ActionResults.Clear();
@@ -17,7 +17,7 @@ public class ActionTimeline : List<Action>
                 yield return null;
             }
 
-            action.Execute(entity, out var actionResult);
+            action.Execute(entity, out var actionResult, target);
             entity.ActionResults[action.ActionID] = actionResult;
         }
         yield return null;

@@ -15,15 +15,9 @@ public class ActionPayloadDirect : ActionPayload
 
     public string EntityTag;
 
-    public override bool NeedsTarget()
-    {
-        return ActionTargets == eDirectActionTargets.SelectedEntity && Target == eTarget.EnemyEntities;
-    }
-
-    public override List<Entity> GetTargetsForAction(Entity entity)
+    public override List<Entity> GetTargetsForAction(Entity entity, Entity target)
     {
         var targets = new List<Entity>();
-        var targetingSystem = entity.EntityTargetingSystem;
 
         switch (ActionTargets)
         {
@@ -34,11 +28,17 @@ public class ActionPayloadDirect : ActionPayload
             }
             case eDirectActionTargets.SelectedEntity:
             {
+                // Return empty list if target was lost.
+                if (target == null)
+                {
+                    return targets;
+                }
+
                 if (Target == eTarget.FriendlyEntities)
                 {
-                    if (targetingSystem.FriendlySelected)
+                    if (BattleSystem.IsFriendly(entity.EntityUID, target.EntityUID))
                     {
-                        targets.Add(targetingSystem.SelectedTarget);
+                        targets.Add(entity.Target);
                     }
                     else
                     {
@@ -47,9 +47,9 @@ public class ActionPayloadDirect : ActionPayload
                 }
                 else if (Target == eTarget.EnemyEntities)
                 {
-                    if (targetingSystem.EnemySelected)
+                    if (BattleSystem.IsEnemy(entity.EntityUID, target.EntityUID))
                     {
-                        targets.Add(targetingSystem.SelectedTarget);
+                        targets.Add(entity.Target);
                     }
                     else
                     {
@@ -60,6 +60,8 @@ public class ActionPayloadDirect : ActionPayload
             }
             case eDirectActionTargets.AllEntities:
             {
+                var targetingSystem = entity.TargetingSystem;
+
                 switch (Target)
                 {
                     case eTarget.EnemyEntities:

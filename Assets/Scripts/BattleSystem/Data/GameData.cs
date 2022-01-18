@@ -13,6 +13,7 @@ public static class GameData
     public static string PlayerFaction;                         // Which of the factions the player is in
     public static Dictionary<string, EntityData> EntityData;
     public static Dictionary<string, SkillData> SkillData;
+    public static Dictionary<string, List<string>> SkillGroups; // Cooldowns can be applied to multiple skills at once. 
 
     public static void LoadData(string path)
     {
@@ -185,6 +186,16 @@ public static class GameData
                     SkillID = "singleTargetAttack",
                     SkillTimeline = new ActionTimeline()
                     {
+                        new ActionCooldownApplication()
+                        {
+                            ActionID = "cd",
+                            SkillID = "singleTargetAttack",
+                            ActionType = Action.eActionType.ApplyCooldown,
+                            Timestamp = 0.0f,
+                            Cooldown = 1.0f,
+                            CooldownTarget = ActionCooldownApplication.eCooldownTarget.Skill,
+                            CooldownTargetName = "singleTargetAttack"
+                        },
                         new ActionPayloadDirect()
                         {
                             ActionID = "singleTargetAttackActionSmallHP",
@@ -279,7 +290,10 @@ public static class GameData
                                 }
                             }
                         }
-                    }
+                    },
+                    NeedsTarget = true,
+                    PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
+                    Range = 15.0f
                 }
             },
             {

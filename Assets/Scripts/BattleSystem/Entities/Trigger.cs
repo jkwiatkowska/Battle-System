@@ -34,7 +34,7 @@ public class Trigger
             usesLeft = UsesLeft > 0;
         }
 
-        return entity.StartCoroutine(TriggerData.Actions.ExecuteActions(entity));
+        return entity.StartCoroutine(TriggerData.Actions.ExecuteActions(entity, entity.Target));
     }
 
     public bool ConditionsMet(PayloadResult payloadResult)

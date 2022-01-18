@@ -95,7 +95,7 @@ public class PlayerInput : MonoBehaviour
             {
                 if (Input.GetKey(skill.Key))
                 {
-                    Player.UseSkill(skill.Value);
+                    Player.TryUseSkill(skill.Value);
                     OnInput();
                 }
             }

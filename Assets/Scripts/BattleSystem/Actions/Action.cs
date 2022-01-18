@@ -22,8 +22,7 @@ public abstract class Action
 
     public List<ActionCondition> ActionConditions;
 
-    public abstract void Execute(Entity entity, out ActionResult actionResult);
-    public abstract bool NeedsTarget(); 
+    public abstract void Execute(Entity entity, out ActionResult actionResult, Entity target);
 
     public float TimestampForEntity(Entity entity)
     {
@@ -32,6 +31,11 @@ public abstract class Action
 
     public bool ConditionsMet(Entity entity)
     {
+        if (ActionConditions == null)
+        {
+            return true;
+        }
+
         foreach (var condition in ActionConditions)
         {
             if (!condition.ConditionMet(entity, ActionID))

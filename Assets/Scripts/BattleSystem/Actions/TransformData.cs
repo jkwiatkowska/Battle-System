@@ -30,12 +30,10 @@ public class TransformData
     public float ForwardRotationOffset;     // The forward vector can be rotated.
     public float RandomForwardOffset;       // Randomness can be applied to this as well. 
 
-    public bool TryGetTransformFromData(Entity entity, out Vector2 position, out Vector2 forward)
+    public bool TryGetTransformFromData(Entity entity, Entity target, out Vector2 position, out Vector2 forward)
     {
         position = new Vector2();
         forward = new Vector2();
-
-        var targetingSystem = entity.EntityTargetingSystem;
 
         switch (PositionOrigin)
         {
@@ -53,12 +51,14 @@ public class TransformData
             }
             case ePositionOrigin.SelectedTargetPosition:
             {
-                if (targetingSystem.SelectedTarget == null)
+                // No position if target was lost. 
+                if (target == null)
                 {
-                    Debug.LogError($"Area action requires a target, but none is selected.");
+                    return false;
                 }
-                position = Utility.Get2DPosition(targetingSystem.SelectedTarget.transform.position);
-                forward = Utility.Get2DPosition(targetingSystem.SelectedTarget.transform.forward);
+
+                position = Utility.Get2DPosition(entity.Target.transform.position);
+                forward = Utility.Get2DPosition(entity.Target.transform.forward);
                 break;
             }
             case ePositionOrigin.TaggedEntityPosition:

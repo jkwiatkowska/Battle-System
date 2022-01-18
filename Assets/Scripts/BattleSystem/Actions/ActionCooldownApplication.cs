@@ -4,10 +4,18 @@ using UnityEngine;
 
 public class ActionCooldownApplication : Action
 {
-    public float Cooldown;                      // After using a skill, it goes on cooldown and cannot be used again until this much time passes.
-    public List<string> SharedCooldown;         // Skills affected by this cooldown.
+    public enum eCooldownTarget
+    {
+        Skill,
+        SkillGroup
+    }
 
-    public override void Execute(Entity entity, out ActionResult actionResult)
+    public float Cooldown;                      // After using a skill, it goes on cooldown and cannot be used again until this much time passes.
+    public eCooldownTarget CooldownTarget;      // A cooldown can be applied to a singular skill or a group of skills.
+    public string CooldownTargetName;           // Name of a skill or skill group.
+    
+
+    public override void Execute(Entity entity, out ActionResult actionResult, Entity target)
     {
         actionResult = new ActionResult();
 
@@ -16,17 +24,31 @@ public class ActionCooldownApplication : Action
             return;
         }
 
-        foreach (var skill in SharedCooldown)
+        switch (CooldownTarget)
         {
-            var availableTime = BattleSystem.Time + Formulae.CooldownTime(entity, skill, this);
-            entity.SetSkillAvailableTime(skill, availableTime);
+            case eCooldownTarget.Skill:
+            {
+                var availableTime = BattleSystem.Time + Formulae.CooldownTime(entity, CooldownTargetName, this);
+                entity.SetSkillAvailableTime(CooldownTargetName, availableTime);
+                break;
+            }
+            case eCooldownTarget.SkillGroup:
+            {
+                if (!GameData.SkillGroups.ContainsKey(CooldownTargetName))
+                {
+                    Debug.LogError($"Invalid skill group name: {CooldownTargetName} for action {ActionID}");
+                    return;
+                }
+
+                foreach (var skill in GameData.SkillGroups[CooldownTargetName])
+                {
+                    var availableTime = BattleSystem.Time + Formulae.CooldownTime(entity, skill, this);
+                    entity.SetSkillAvailableTime(skill, availableTime);
+                }
+                break;
+            }
         }
 
         actionResult.Success = true;
-    }
-
-    public override bool NeedsTarget()
-    {
-        return false;
     }
 }

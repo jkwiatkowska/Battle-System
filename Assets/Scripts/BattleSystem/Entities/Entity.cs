@@ -146,42 +146,72 @@ public class Entity : MonoBehaviour
     }
 
     #region Skills
-    public virtual void UseSkill(string skillID)
+    public virtual bool TryUseSkill(string skillID)
     {
+        // Return if already using this skill
         if (CurrentSkill == skillID)
         {
-            return;
+            return false;
         }
+
+        // Make sure the skill isn't on cooldown and any mandatory costs can be afforded. 
+        if (!CanUseSkill(skillID))
+        {
+            return false;
+        }
+
+        // If already casting another skill, interrupt it. 
+        CancelSkill();
 
         var skillData = GameData.GetSkillData(skillID);
 
-        CancelSkill();
-        CurrentSkill = skillID;
-
-        SkillCoroutine = StartCoroutine(UseSkillCoroutine(skillData));
-    }
-
-    public virtual IEnumerator UseSkillCoroutine(SkillData skillData)
-    {
-        // Ensure target
+        // Ensure target if one is required.
         TargetingSystem.UpdateEntityLists();
 
         if (skillData.NeedsTarget)
         {
             var hasTarget = TargetingSystem.EnemySelected;
 
+            // If there is no target, try selecting one.
             if (!hasTarget)
             {
                 TargetingSystem.SelectBestEnemy();
             }
 
-            if (TargetingSystem.SelectedTarget == null)
+            // If one couldn't be found, a skill cannot be used.
+            if (Target == null)
             {
-                yield break;
+                return false;
             }
+        }
 
-            // Rotate toward target
-            yield return EntityMovement.RotateTowardCoroutine(TargetingSystem.SelectedTarget.transform.position);
+        // Ensure target is in range if a target is required or a preferred target is selected
+        if (Target != null)
+        {
+            var checkRange = skillData.NeedsTarget || (skillData.PreferredTarget == SkillData.eTargetPreferrence.Friendly && TargetingSystem.FriendlySelected) ||
+                                                      (skillData.PreferredTarget == SkillData.eTargetPreferrence.Enemy && TargetingSystem.EnemySelected);
+            if (checkRange)
+            {
+                // Return if target is out of range.
+                if (!Utility.IsInRange(this, Target, skillData.Range))
+                {
+                    return false;
+                }
+            }
+        }
+
+        CurrentSkill = skillID;
+
+        SkillCoroutine = StartCoroutine(UseSkillCoroutine(skillData));
+        return true;
+    }
+
+    public virtual IEnumerator UseSkillCoroutine(SkillData skillData)
+    {
+        // Rotate toward target
+        if (Target != null)
+        {
+            yield return EntityMovement.RotateTowardCoroutine(Target.transform.position);
         }
 
         // Charge skill
@@ -192,7 +222,7 @@ public class Entity : MonoBehaviour
 
         EntityState = eEntityState.CastingSkill;
 
-        yield return skillData.SkillTimeline.ExecuteActions(this);
+        yield return skillData.SkillTimeline.ExecuteActions(this, Target);
 
         CurrentSkill = null;
         EntityState = eEntityState.Idle;
@@ -206,7 +236,7 @@ public class Entity : MonoBehaviour
 
         EntityCanvas.StartSkillCharge(SkillCharge, CurrentSkill);
 
-        SkillChargeCoroutine = StartCoroutine(SkillCharge.PreChargeTimeline.ExecuteActions(this));
+        SkillChargeCoroutine = StartCoroutine(SkillCharge.PreChargeTimeline.ExecuteActions(this, Target));
 
         bool chargeComplete;
         bool chargeCancelled;
@@ -299,7 +329,7 @@ public class Entity : MonoBehaviour
             }
             case TriggerData.eTrigger.OnKill:
             {
-                if (payloadResult != null && TargetingSystem.SelectedTarget == payloadResult.Target)
+                if (payloadResult != null && Target == payloadResult.Target)
                 {
                     TargetingSystem.ClearSelection();
                 }
@@ -433,6 +463,18 @@ public class Entity : MonoBehaviour
         get
         {
             return EntityState != eEntityState.Dead;
+        }
+    }
+
+    public Entity Target
+    {
+        get
+        {
+            if (TargetingSystem.SelectedTarget != null)
+            {
+                return TargetingSystem.SelectedTarget;
+            }
+            return this;
         }
     }
 
