@@ -9,7 +9,7 @@ public static class NamesAndText
 
     public static string EntityName(Entity entity)
     {
-        var name = entity.ID;
+        var name = entity.EntityUID;
 
         return name;
     }

@@ -68,8 +68,8 @@ public class ActionPayloadArea : ActionPayload
                     var minDistance = area.InnerDimensions.x * area.InnerDimensions.x;
                     var maxDistance = area.Dimensions.x * area.Dimensions.x;
 
-                    var minAngle = area.InnerDimensions.y;
-                    var maxAngle = area.InnerDimensions.x;
+                    var maxAngle = area.Dimensions.y / 2.0f;
+                    var minAngle = area.InnerDimensions.y / 2.0f;
 
                     for (int i = potentialTargets.Count - 1; i >= 0; i--)
                     {
@@ -77,33 +77,42 @@ public class ActionPayloadArea : ActionPayload
                         var tPos = Utility.Get2DPosition(t.transform.position);
 
                         // Check if the target is inside circle
-                        var distance = Vector2.SqrMagnitude(areaPos - tPos);
+                        var distance = Utility.Distance(areaPos, t);
                         if (distance < minDistance || distance > maxDistance)
                         {
                             continue;
                         }
 
                         // Check if the target is inside cone
-                        if (minAngle > 0.0f || maxAngle < 360.0f) // If not a circle
+                        if (maxAngle < 180.0f || minAngle > 0) // If not a circle.  
                         {
-                            var angle = Vector2.Angle(areaPos, tPos);
-                            if (angle < minAngle || angle > maxAngle)
+                            var direction = (tPos - areaPos).normalized;
+                            var angle = Utility.Angle(areaForward, direction);
+                            if (angle > maxAngle || angle < minAngle)
                             {
                                 continue;
                             }
                         }
 
+                        // Target is inside area.
                         targets.Add(t);
+
+                        // Each target can only be hit once, so remove it from the list of potential targets. 
                         potentialTargets.Remove(t);
                     }
                     break;
                 }
                 case Area.eShape.Rectangle:
                 {
-                    foreach (var t in potentialTargets)
+                    for (int i = potentialTargets.Count - 1; i >= 0; i--)
                     {
 
                     }
+                    break;
+                }
+                default:
+                {
+                    Debug.LogError($"Unsupported area shape: {area.Shape}.");
                     break;
                 }
             }

@@ -445,7 +445,7 @@ public class Entity : MonoBehaviour
             }
             else
             {
-                return GameData.GetFactionData(EntityID);
+                return GameData.GetFactionData(EntityData.Faction);
             }
         }
     }

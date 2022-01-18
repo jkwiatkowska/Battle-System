@@ -297,6 +297,193 @@ public static class GameData
                 }
             },
             {
+                "coneAttack",
+                new SkillData()
+                {
+                    SkillID = "coneAttack",
+                    SkillTimeline = new ActionTimeline()
+                    {
+                        new ActionCooldownApplication()
+                        {
+                            ActionID = "cd",
+                            SkillID = "coneAttack",
+                            ActionType = Action.eActionType.ApplyCooldown,
+                            Timestamp = 0.0f,
+                            Cooldown = 1.0f,
+                            CooldownTarget = ActionCooldownApplication.eCooldownTarget.Skill,
+                            CooldownTargetName = "coneAttack"
+                        },
+                        new ActionPayloadArea()
+                        {
+                            ActionID = "coneAction",
+                            SkillID = "coneAttack",
+                            ActionType = Action.eActionType.PayloadArea,
+                            Timestamp = 0.1f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            TargetLimit = 50,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            AreasAffected = new List<ActionPayloadArea.Area>()
+                            {
+                                new ActionPayloadArea.Area()
+                                {
+                                    Shape = ActionPayloadArea.Area.eShape.Circle,
+                                    Dimensions = new Vector2(2.0f, 90.0f),
+                                    InnerDimensions = new Vector2(0.0f, 0.0f),
+                                    AreaTransform = new TransformData()
+                                    {
+                                        PositionOrigin = TransformData.ePositionOrigin.CasterPosition
+                                    }
+                                }
+                            },
+                            PayloadData = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", false },
+                                    { "canCrit", true }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 70)
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "physical"
+                                },
+                                SuccessChance = 1.0f,
+                                DepletableAffected = "hp"
+                            }
+                        },
+                        new ActionPayloadArea()
+                        {
+                            ActionID = "coneAction2",
+                            SkillID = "coneAttack",
+                            ActionType = Action.eActionType.PayloadArea,
+                            Timestamp = 0.8f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            TargetLimit = 50,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            AreasAffected = new List<ActionPayloadArea.Area>()
+                            {
+                                new ActionPayloadArea.Area()
+                                {
+                                    Shape = ActionPayloadArea.Area.eShape.Circle,
+                                    Dimensions = new Vector2(2.0f, 180.0f),
+                                    InnerDimensions = new Vector2(0.0f, 90.0f),
+                                    AreaTransform = new TransformData()
+                                    {
+                                        PositionOrigin = TransformData.ePositionOrigin.CasterPosition
+                                    }
+                                }
+                            },
+                            PayloadData = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", false },
+                                    { "canCrit", true }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 50)
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "physical"
+                                },
+                                SuccessChance = 1.0f,
+                                DepletableAffected = "hp"
+                            }
+                        },
+                        new ActionPayloadArea()
+                        {
+                            ActionID = "coneAction3",
+                            SkillID = "coneAttack",
+                            ActionType = Action.eActionType.PayloadArea,
+                            Timestamp = 1.6f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            TargetLimit = 50,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            AreasAffected = new List<ActionPayloadArea.Area>()
+                            {
+                                new ActionPayloadArea.Area()
+                                {
+                                    Shape = ActionPayloadArea.Area.eShape.Circle,
+                                    Dimensions = new Vector2(2.0f, 270.0f),
+                                    InnerDimensions = new Vector2(0.0f, 180.0f),
+                                    AreaTransform = new TransformData()
+                                    {
+                                        PositionOrigin = TransformData.ePositionOrigin.CasterPosition
+                                    }
+                                }
+                            },
+                            PayloadData = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", false },
+                                    { "canCrit", true }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 50)
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "physical"
+                                },
+                                SuccessChance = 1.0f,
+                                DepletableAffected = "hp"
+                            }
+                        },
+                        new ActionPayloadArea()
+                        {
+                            ActionID = "coneAction4",
+                            SkillID = "coneAttack",
+                            ActionType = Action.eActionType.PayloadArea,
+                            Timestamp = 2.4f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            TargetLimit = 50,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            AreasAffected = new List<ActionPayloadArea.Area>()
+                            {
+                                new ActionPayloadArea.Area()
+                                {
+                                    Shape = ActionPayloadArea.Area.eShape.Circle,
+                                    Dimensions = new Vector2(3.0f, 360.0f),
+                                    InnerDimensions = new Vector2(0.0f, 270.0f),
+                                    AreaTransform = new TransformData()
+                                    {
+                                        PositionOrigin = TransformData.ePositionOrigin.CasterPosition
+                                    }
+                                }
+                            },
+                            PayloadData = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", false },
+                                    { "canCrit", true }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 50)
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "physical"
+                                },
+                                SuccessChance = 1.0f,
+                                DepletableAffected = "hp"
+                            }
+                        }
+                    }, 
+                    NeedsTarget = true,
+                    PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
+                    Range = 3.0f
+                }
+            },
+            {
                 "chargedAttack",
                 new SkillData()
                 {
