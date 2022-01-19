@@ -21,6 +21,18 @@ public static class Utility
         return v;
     }
 
+    public static float Angle(Vector2 direction)
+    {
+        if (direction.x < 0)
+        {
+            return 360.0f - (Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg * -1.0f);
+        }
+        else
+        {
+            return Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
+        }
+    }
+
     public static float Angle(Vector2 forward, Vector2 direction)
     {
         return Mathf.Acos(Vector2.Dot(direction, forward)) * 57.2958f;
@@ -48,5 +60,19 @@ public static class Utility
         var distance = Distance(entity1, entity2);
 
         return distance <= range * range;
+    }
+
+    public static Vector2 RotateAroundPosition(Vector2 point, float angle, Vector2 centerOfRotation)
+    {
+        var sin = Mathf.Sin(angle);
+        var cos = Mathf.Cos(angle);
+        var temp = new Vector2();
+
+        point -= centerOfRotation;
+        temp.x = point.x * cos - point.y * sin;
+        temp.y = point.x * sin + point.y * cos;
+        point = temp + centerOfRotation;
+
+        return point;
     }
 }

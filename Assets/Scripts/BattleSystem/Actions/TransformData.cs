@@ -57,8 +57,8 @@ public class TransformData
                     return false;
                 }
 
-                position = Utility.Get2DPosition(entity.Target.transform.position);
-                forward = Utility.Get2DPosition(entity.Target.transform.forward);
+                position = Utility.Get2DPosition(target.transform.position);
+                forward = Utility.Get2DPosition(target.transform.forward);
                 break;
             }
             case ePositionOrigin.TaggedEntityPosition:

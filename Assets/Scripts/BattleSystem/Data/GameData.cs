@@ -484,6 +484,193 @@ public static class GameData
                 }
             },
             {
+                "rectangleAttack",
+                new SkillData()
+                {
+                    SkillID = "rectangleAttack",
+                    SkillTimeline = new ActionTimeline()
+                    {
+                        new ActionCooldownApplication()
+                        {
+                            ActionID = "cd",
+                            SkillID = "rectangleAttack",
+                            ActionType = Action.eActionType.ApplyCooldown,
+                            Timestamp = 0.0f,
+                            Cooldown = 1.0f,
+                            CooldownTarget = ActionCooldownApplication.eCooldownTarget.Skill,
+                            CooldownTargetName = "rectangleAttack"
+                        },
+                        new ActionPayloadArea()
+                        {
+                            ActionID = "rectangleAction",
+                            SkillID = "rectangleAttack",
+                            ActionType = Action.eActionType.PayloadArea,
+                            Timestamp = 0.1f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            TargetLimit = 50,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            AreasAffected = new List<ActionPayloadArea.Area>()
+                            {
+                                new ActionPayloadArea.Area()
+                                {
+                                    Shape = ActionPayloadArea.Area.eShape.Rectangle,
+                                    Dimensions = new Vector2(1.0f, 1.0f),
+                                    InnerDimensions = new Vector2(0.0f, 0.0f),
+                                    AreaTransform = new TransformData()
+                                    {
+                                        PositionOrigin = TransformData.ePositionOrigin.SelectedTargetPosition
+                                    }
+                                }
+                            },
+                            PayloadData = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", false },
+                                    { "canCrit", true }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 70)
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "physical"
+                                },
+                                SuccessChance = 1.0f,
+                                DepletableAffected = "hp"
+                            }
+                        },
+                        new ActionPayloadArea()
+                        {
+                            ActionID = "rectangleAction2",
+                            SkillID = "rectangleAttack",
+                            ActionType = Action.eActionType.PayloadArea,
+                            Timestamp = 0.8f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            TargetLimit = 50,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            AreasAffected = new List<ActionPayloadArea.Area>()
+                            {
+                                new ActionPayloadArea.Area()
+                                {
+                                    Shape = ActionPayloadArea.Area.eShape.Rectangle,
+                                    Dimensions = new Vector2(4.0f, 3.0f),
+                                    InnerDimensions = new Vector2(3.5f, 2.5f),
+                                    AreaTransform = new TransformData()
+                                    {
+                                        PositionOrigin = TransformData.ePositionOrigin.SelectedTargetPosition
+                                    }
+                                }
+                            },
+                            PayloadData = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", false },
+                                    { "canCrit", true }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 50)
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "physical"
+                                },
+                                SuccessChance = 0.9f,
+                                DepletableAffected = "hp"
+                            }
+                        },
+                        new ActionPayloadArea()
+                        {
+                            ActionID = "rectangleAction3",
+                            SkillID = "rectangleAttack",
+                            ActionType = Action.eActionType.PayloadArea,
+                            Timestamp = 1.6f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            TargetLimit = 50,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            AreasAffected = new List<ActionPayloadArea.Area>()
+                            {
+                                new ActionPayloadArea.Area()
+                                {
+                                    Shape = ActionPayloadArea.Area.eShape.Rectangle,
+                                    Dimensions = new Vector2(6.0f, 4.5f),
+                                    InnerDimensions = new Vector2(5.0f, 3.5f),
+                                    AreaTransform = new TransformData()
+                                    {
+                                        PositionOrigin = TransformData.ePositionOrigin.SelectedTargetPosition
+                                    }
+                                }
+                            },
+                            PayloadData = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", false },
+                                    { "canCrit", true }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 50)
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "physical"
+                                },
+                                SuccessChance = 0.7f,
+                                DepletableAffected = "hp"
+                            }
+                        },
+                        new ActionPayloadArea()
+                        {
+                            ActionID = "rectangleAction4",
+                            SkillID = "rectangleAttack",
+                            ActionType = Action.eActionType.PayloadArea,
+                            Timestamp = 2.0f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            TargetLimit = 50,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            AreasAffected = new List<ActionPayloadArea.Area>()
+                            {
+                                new ActionPayloadArea.Area()
+                                {
+                                    Shape = ActionPayloadArea.Area.eShape.Rectangle,
+                                    Dimensions = new Vector2(7.5f, 5.5f),
+                                    InnerDimensions = new Vector2(7.5f, 5.0f),
+                                    AreaTransform = new TransformData()
+                                    {
+                                        PositionOrigin = TransformData.ePositionOrigin.SelectedTargetPosition
+                                    }
+                                }
+                            },
+                            PayloadData = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", false },
+                                    { "canCrit", true }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 50)
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "physical"
+                                },
+                                SuccessChance = 0.6f,
+                                DepletableAffected = "hp"
+                            }
+                        }
+                    },
+                    NeedsTarget = true,
+                    PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
+                    Range = 15.0f
+                }
+            },
+            {
                 "chargedAttack",
                 new SkillData()
                 {

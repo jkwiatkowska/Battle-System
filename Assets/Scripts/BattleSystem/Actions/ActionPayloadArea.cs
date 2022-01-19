@@ -106,7 +106,46 @@ public class ActionPayloadArea : ActionPayload
                 {
                     for (int i = potentialTargets.Count - 1; i >= 0; i--)
                     {
+                        var t = potentialTargets[i];
+                        var tPos = Utility.RotateAroundPosition(Utility.Get2DPosition(t.transform.position), Utility.Angle(areaForward), areaPos);
 
+                        // Outer bounds
+                        var halfWidth = area.Dimensions.x / 2 + t.EntityData.Radius;
+                        var maxX = halfWidth + areaPos.x;
+                        var minX = -halfWidth + areaPos.x;
+
+                        var halfHeight = area.Dimensions.y / 2 + t.EntityData.Radius;
+                        var maxY = halfHeight + areaPos.y;
+                        var minY = -halfHeight + areaPos.y;
+
+                        if (tPos.x < minX || tPos.x > maxX || tPos.y < minY || tPos.y > maxY)
+                        {
+                            continue;
+                        }
+
+                        // Inner bounds
+                        halfWidth = area.InnerDimensions.x / 2 - t.EntityData.Radius;
+                        halfHeight = area.InnerDimensions.y / 2 - t.EntityData.Radius;
+
+                        if (halfWidth > 0.0f && halfHeight > 0.0f)
+                        {
+                            maxX = halfWidth + areaPos.x;
+                            minX = -halfWidth + areaPos.x;
+
+                            maxY = halfHeight + areaPos.y;
+                            minY = -halfHeight + areaPos.y;
+
+                            if (tPos.x > minX && tPos.x < maxX && tPos.y > minY && tPos.y < maxY)
+                            {
+                                continue;
+                            }
+                        }
+
+                        // Target is inside area.
+                        targets.Add(t);
+
+                        // Each target can only be hit once, so remove it from the list of potential targets. 
+                        potentialTargets.Remove(t);
                     }
                     break;
                 }
