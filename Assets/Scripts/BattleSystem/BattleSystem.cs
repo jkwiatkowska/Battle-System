@@ -11,7 +11,8 @@ public class BattleSystem : MonoBehaviour
     public Dictionary<string, Entity> Entities  { get; private set; }
     public List<Entity> TargetableEntities      { get; private set; }
 
-    public static float Time { get; private set; }
+    public static float Time                    { get; private set; }
+    static float TimeMultiplier;
 
     void Awake()
     {
@@ -21,13 +22,14 @@ public class BattleSystem : MonoBehaviour
         Entities = new Dictionary<string, Entity>();
         TargetableEntities = new List<Entity>();
         Time = 0.0f;
+        TimeMultiplier = 1.0f;
 
         PlayerTargeting = FindObjectOfType<TargetingSystemPlayer>();
     }
     
     void Update()
     {
-        Time += UnityEngine.Time.deltaTime;
+        Time += UnityEngine.Time.deltaTime * TimeMultiplier;
     }
 
     public void AddEntity(Entity entity)
