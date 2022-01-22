@@ -195,6 +195,7 @@ public class Entity : MonoBehaviour
                 // Return if target is out of range.
                 if (!Utility.IsInRange(this, Target, skillData.Range))
                 {
+                    OnTargetOutOfRange();
                     return false;
                 }
             }
@@ -324,18 +325,34 @@ public class Entity : MonoBehaviour
         {
             case TriggerData.eTrigger.OnDeath:
             {
-                EntityState = eEntityState.Dead;
+                OnDeath();
                 break;
             }
             case TriggerData.eTrigger.OnKill:
             {
-                if (payloadResult != null && Target == payloadResult.Target)
-                {
-                    TargetingSystem.ClearSelection();
-                }
+                OnKill(payloadResult);
                 break;
             }
         }
+    }
+
+    protected virtual void OnDeath()
+    {
+        EntityState = eEntityState.Dead;
+        
+    }
+
+    protected virtual void OnKill(PayloadResult payloadResult)
+    {
+        if (payloadResult != null && Target == payloadResult.Target)
+        {
+            TargetingSystem.ClearSelection();
+        }
+    }
+
+    protected virtual void OnTargetOutOfRange()
+    {
+
     }
     #endregion
 

@@ -19,4 +19,12 @@ public class EntityPlayer : Entity
             { KeyCode.Alpha0, "healAll" },
         };
     }
+
+    protected override void OnTargetOutOfRange()
+    {
+        base.OnTargetOutOfRange();
+
+        var text = NamesAndText.OutOfRangeMessage(out var color);
+        MessageHUD.Instance.DisplayMessage(text, color);
+    }
 }

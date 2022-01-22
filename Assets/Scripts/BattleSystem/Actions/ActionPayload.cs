@@ -91,7 +91,7 @@ public abstract class ActionPayload : Action
             var chance = Formulae.PayloadSuccessChance(PayloadData, entity, t);
             if (Random.value > chance)
             {
-                HUDPopupTextDisplay.Instance.DisplayMiss(t);
+                HUDPopupTextHUD.Instance.DisplayMiss(t);
                 entity.OnTrigger(TriggerData.eTrigger.OnHitMissed, result);
                 continue;
             }
@@ -107,7 +107,7 @@ public abstract class ActionPayload : Action
             // Show damage number on HUD
             if (Mathf.RoundToInt(result.Change) != 0)
             {
-                HUDPopupTextDisplay.Instance.DisplayDamage(t, this, -result.Change, result.Flags);
+                HUDPopupTextHUD.Instance.DisplayDamage(t, this, -result.Change, result.Flags);
             }
         }
 

@@ -78,4 +78,12 @@ public static class NamesAndText
 
         return text;
     }
+
+    public static string OutOfRangeMessage(out Color color)
+    {
+        color = Color.white;
+        var message = "Target is out of range.";
+
+        return message;
+    }
 }
