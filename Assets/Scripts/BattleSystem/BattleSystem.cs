@@ -5,13 +5,12 @@ using UnityEngine;
 public class BattleSystem : MonoBehaviour
 {
     [SerializeField] string DataPath;
-    public static BattleSystem Instance { get; private set; }
-    TargetingSystemPlayer PlayerTargeting;
+    public static BattleSystem Instance                 { get; private set; }
 
-    public Dictionary<string, Entity> Entities  { get; private set; }
-    public List<Entity> TargetableEntities      { get; private set; }
+    public static Dictionary<string, Entity> Entities   { get; private set; }
+    public static List<Entity> TargetableEntities       { get; private set; }
 
-    public static float Time                    { get; private set; }
+    public static float Time                            { get; private set; }
     static float TimeMultiplier;
 
     void Awake()
@@ -23,8 +22,6 @@ public class BattleSystem : MonoBehaviour
         TargetableEntities = new List<Entity>();
         Time = 0.0f;
         TimeMultiplier = 1.0f;
-
-        PlayerTargeting = FindObjectOfType<TargetingSystemPlayer>();
     }
     
     void Update()
@@ -56,10 +53,10 @@ public class BattleSystem : MonoBehaviour
             return true;
         }
 
-        var entity = Instance.Entities[entityUID];
+        var entity = Entities[entityUID];
         var entityFaction = entity.FactionData.FactionID;
 
-        var targetEntity = Instance.Entities[targetUID];
+        var targetEntity = Entities[targetUID];
         var targetFaction = targetEntity.FactionData.FactionID;
 
         if (entityFaction == targetFaction)
@@ -81,10 +78,10 @@ public class BattleSystem : MonoBehaviour
             return false;
         }
 
-        var entity = Instance.Entities[entityUID];
+        var entity = Entities[entityUID];
         var entityFaction = entity.FactionData.FactionID;
 
-        var targetEntity = Instance.Entities[targetUID];
+        var targetEntity = Entities[targetUID];
         var targetFaction = targetEntity.FactionData.FactionID;
 
         if (entityFaction == targetFaction)

@@ -130,9 +130,9 @@ public class Payload
         // Only perform other actions if the target is still alive
         if (target.Alive)
         {
-            if (!string.IsNullOrEmpty(Action.PayloadData.Tag))
+            if (Action.PayloadData.Tag != null)
             {
-
+                caster.TagEntity(Action.PayloadData.Tag, target.EntityUID);
             }
         }
     }

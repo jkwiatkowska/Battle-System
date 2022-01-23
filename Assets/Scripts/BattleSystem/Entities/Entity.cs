@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Entity : MonoBehaviour
@@ -16,38 +17,39 @@ public class Entity : MonoBehaviour
     [SerializeField] string EntityID;
     [SerializeField] int EntityLevel = 1;
 
-    public string EntityUID                                 { get; private set; }
+    public string EntityUID                                                 { get; private set; }
     static int EntityCount = 0;
 
     // Attributes
-    public Dictionary<string, float> BaseAttributes         { get; private set; }
-    public Dictionary<string, float> DepletablesCurrent     { get; private set; }
-    public Dictionary<string, float> DepletablesMax         { get; private set; }
+    public Dictionary<string, float> BaseAttributes                         { get; private set; }
+    public Dictionary<string, float> DepletablesCurrent                     { get; private set; }
+    public Dictionary<string, float> DepletablesMax                         { get; private set; }
 
     // Skills
     protected Dictionary<string, float> SkillAvailableTime;
-    public Dictionary<string, ActionResult> ActionResults   { get; protected set; }
-    public string CurrentSkill                              { get; protected set; }
+    public Dictionary<string, ActionResult> ActionResults                   { get; protected set; }
+    public string CurrentSkill                                              { get; protected set; }
     protected Coroutine SkillCoroutine;
     protected Coroutine SkillChargeCoroutine;
-    public SkillChargeData SkillCharge                      { get; protected set; }
-    public float SkillChargeStartTime                       { get; protected set; }
-    public float SkillChargeRatio                           { get; protected set; }
+    public SkillChargeData SkillCharge                                      { get; protected set; }
+    public float SkillChargeStartTime                                       { get; protected set; }
+    public float SkillChargeRatio                                           { get; protected set; }
 
     // Triggers
     protected Dictionary<TriggerData.eTrigger, List<Trigger>> Triggers;
 
     // Other objects that make up an entity
-    public EntityCanvas EntityCanvas                        { get; protected set; }
-    public TargetingSystem TargetingSystem                  { get; protected set; }
-    public Targetable Targetable                            { get; protected set; }
-    public EntityMovement EntityMovement                    { get; protected set; }
-    public Dictionary<string, List<Entity>> TaggedEntities  { get; private set; }
+    public EntityCanvas EntityCanvas                                        { get; protected set; }
+    public TargetingSystem TargetingSystem                                  { get; protected set; }
+    public Targetable Targetable                                            { get; protected set; }
+    public EntityMovement EntityMovement                                    { get; protected set; }
 
     // State
-    public eEntityState EntityState                         { get; private set; }
-    public bool IsTargetable                                { get; private set; }
-    public string FactionOverride                           { get; private set; }
+    public eEntityState EntityState                                         { get; private set; }
+    public bool IsTargetable                                                { get; private set; }
+    public string FactionOverride                                           { get; private set; }
+    public Dictionary<string, Dictionary<string, float>> TaggedEntities     { get; protected set; }
+    protected Dictionary<string, List<string>> TagsApplied;
 
     public virtual void Setup(string entityID, int entityLevel)
     {
@@ -58,7 +60,7 @@ public class Entity : MonoBehaviour
         EntityState = eEntityState.Idle;
         name = EntityUID;
 
-        // Attributes, skills and triggers
+        // Attributes, skills, triggers and tags
         BaseAttributes = new Dictionary<string, float>();
         foreach (var attribute in GameData.EntityAttributes)
         {
@@ -81,6 +83,9 @@ public class Entity : MonoBehaviour
             AddTrigger(new Trigger(trigger));
         }
         IsTargetable = EntityData.IsTargetable;
+
+        TaggedEntities = new Dictionary<string, Dictionary<string, float>>();
+        TagsApplied = new Dictionary<string, List<string>>();
 
         // Dependencies 
         BattleSystem.Instance.AddEntity(this);
@@ -343,6 +348,9 @@ public class Entity : MonoBehaviour
     protected virtual void OnDeath()
     {
         EntityState = eEntityState.Dead;
+
+        RemoveAllTagsOnSelf();
+        RemoveAllTagsOnEntities();
     }
 
     protected virtual void OnKill(PayloadResult payloadResult)
@@ -356,6 +364,109 @@ public class Entity : MonoBehaviour
     protected virtual void OnTargetOutOfRange()
     {
 
+    }
+    #endregion
+
+    #region Tagging
+    protected void UpdateTags()
+    {
+        foreach(var tag in TaggedEntities)
+        {
+            foreach (var entity in tag.Value)
+            {
+                if (entity.Value < BattleSystem.Time)
+                {
+                    RemoveTagOnEntity(tag.Key, BattleSystem.Entities[entity.Key]);
+                }
+            }
+        }
+    }
+
+    public List<Entity> GetEntitiesWithTag(string tag)
+    {
+        var entities = new List<Entity>();
+        if (TaggedEntities.ContainsKey(tag))
+        {
+            foreach (var entity in TaggedEntities[tag])
+            {
+                entities.Add(BattleSystem.Entities[entity.Key]);
+            }
+        }
+
+        return entities;
+    }
+
+    public void TagEntity(TagData tagData, string entityUID)
+    {
+        if (!TaggedEntities.ContainsKey(tagData.TagID))
+        {
+            TaggedEntities.Add(tagData.TagID, new Dictionary<string, float>());
+        }
+
+        if (TaggedEntities[tagData.TagID].ContainsKey(entityUID))
+        {
+            TaggedEntities[tagData.TagID][entityUID] = BattleSystem.Time + tagData.TagDuration;
+        }
+        else
+        {
+            TaggedEntities[tagData.TagID].Add(entityUID, BattleSystem.Time + tagData.TagDuration);
+
+            if (TaggedEntities[tagData.TagID].Count > tagData.TagLimit)
+            {
+                var entityToUntag = BattleSystem.Entities[TaggedEntities[tagData.TagID].Aggregate((l, r) => l.Value < r.Value ? l : r).Key];
+                RemoveTagOnEntity(tagData.TagID, entityToUntag);
+            }
+        }
+    }
+
+    public void RemoveTagOnEntity(string tag, Entity entity)
+    {
+        TaggedEntities[tag].Remove(entity.EntityUID);
+        entity.RemoveTagOnSelf(tag, EntityUID);
+    }
+
+    protected void RemoveAllTagsOnEntities()
+    {
+        foreach (var tag in TaggedEntities)
+        {
+            foreach (var entity in tag.Value)
+            {
+                RemoveTagOnEntity(tag.Key, BattleSystem.Entities[entity.Key]);
+            }
+        }
+    }
+
+    public void ApplyTag(string tag, string sourceUID)
+    {
+        if (!TagsApplied.ContainsKey(sourceUID))
+        {
+            TagsApplied.Add(sourceUID, new List<string>());
+        }
+
+        if (!TagsApplied[sourceUID].Contains(tag))
+        {
+            TagsApplied[sourceUID].Add(tag);
+        }
+    }
+
+    public void RemoveTagOnSelf(string tag, string sourceUID)
+    {
+        if (TagsApplied.ContainsKey(sourceUID))
+        {
+            TagsApplied[sourceUID].Remove(tag);
+        }
+    }
+
+    protected void RemoveAllTagsOnSelf()
+    {
+        foreach (var source in TagsApplied)
+        {
+            var entity = BattleSystem.Entities[source.Key];
+            foreach (var tag in source.Value)
+            {
+                entity.RemoveTagOnEntity(tag, this);
+            }
+        }
     }
     #endregion
 

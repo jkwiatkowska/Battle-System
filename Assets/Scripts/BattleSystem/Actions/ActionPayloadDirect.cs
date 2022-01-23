@@ -89,13 +89,11 @@ public class ActionPayloadDirect : ActionPayload
             }
             case eDirectActionTargets.TaggedEntity:
             {
-                if (entity.TaggedEntities.ContainsKey(EntityTag) && entity.TaggedEntities[EntityTag] != null)
+                var taggedEntities = entity.GetEntitiesWithTag(EntityTag);
+
+                for (int i = 0; i < taggedEntities.Count; i++)
                 {
-                    var taggedEntities = entity.TaggedEntities[EntityTag];
-                    for (int i = 0; i < taggedEntities.Count; i++)
-                    {
-                        targets.Add(taggedEntities[i]);
-                    }
+                    targets.Add(taggedEntities[i]);
                 }
                 break;
             }

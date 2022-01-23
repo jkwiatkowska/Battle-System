@@ -306,7 +306,13 @@ public static class GameData
                                     "physical"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                DepletableAffected = "hp",
+                                Tag = new TagData()
+                                {
+                                    TagID = "tag",
+                                    TagDuration = 100000.0f,
+                                    TagLimit = 3
+                                }
                             },
                             ActionConditions = new List<ActionCondition>()
                         }
@@ -426,6 +432,37 @@ public static class GameData
                                     ConditionTarget = "singleTargetAttackActionSmallHP"
                                 }
                             }
+                        },
+                        new ActionPayloadDirect()
+                        {
+                            ActionID = "attackTaggedAction",
+                            SkillID = "singleTargetAttackWithDrain",
+                            ActionType = Action.eActionType.PayloadDirect,
+                            Timestamp = 0.5f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.TaggedEntity,
+                            EntityTag = "tag",
+                            TargetLimit = 30,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            PayloadData = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", true },
+                                    { "canCrit", false }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 22)
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "physical"
+                                },
+                                SuccessChance = 1.0f,
+                                DepletableAffected = "hp"
+                            },
+                            ActionConditions = new List<ActionCondition>()
                         }
                     },
                     NeedsTarget = true,

@@ -13,7 +13,7 @@ public class TargetingSystem : MonoBehaviour
     {
         get
         {
-            return BattleSystem.Instance.TargetableEntities;
+            return BattleSystem.TargetableEntities;
         }    
     }
 

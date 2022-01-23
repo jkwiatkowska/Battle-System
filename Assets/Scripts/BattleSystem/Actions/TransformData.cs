@@ -63,24 +63,25 @@ public class TransformData
             }
             case ePositionOrigin.TaggedEntityPosition:
             {
-                if (entity.TaggedEntities.ContainsKey(EntityTag) && entity.TaggedEntities[EntityTag] != null && entity.TaggedEntities[EntityTag].Count > 0)
+                var taggedEntities = entity.GetEntitiesWithTag(EntityTag);
+                if (taggedEntities.Count > 0)
                 {
-                    var taggedEntity = entity.TaggedEntities[EntityTag][0];
-                    var tagCount = entity.TaggedEntities[EntityTag].Count;
+                    var taggedEntity = taggedEntities[0];
+                    var tagCount = taggedEntities.Count;
                     if (tagCount > 1)
                     {
                         switch (TaggedTargetPriority)
                         {
                             case eTaggedTargetPriority.Random:
                             {
-                                taggedEntity = entity.TaggedEntities[EntityTag][Random.Range(0, tagCount)];
+                                taggedEntity = taggedEntities[Random.Range(0, tagCount)];
                                 break;
                             }
                             case eTaggedTargetPriority.Nearest:
                             {
                                 for (int i = 1; i < tagCount; i++)
                                 {
-                                    var taggedEntity2 = entity.TaggedEntities[EntityTag][i];
+                                    var taggedEntity2 = taggedEntities[i];
                                     if ((entity.transform.position - taggedEntity2.transform.position).sqrMagnitude < 
                                         (entity.transform.position - taggedEntity.transform.position).sqrMagnitude)
                                     {
@@ -93,7 +94,7 @@ public class TransformData
                             {
                                 for (int i = 1; i < tagCount; i++)
                                 {
-                                    var taggedEntity2 = entity.TaggedEntities[EntityTag][i];
+                                    var taggedEntity2 = taggedEntities[i];
                                     if ((entity.transform.position - taggedEntity2.transform.position).sqrMagnitude >
                                         (entity.transform.position - taggedEntity.transform.position).sqrMagnitude)
                                     {
