@@ -5,7 +5,8 @@ using UnityEngine;
 public class EntityData
 {
     public List<string> Affinities;                         // This doesn't do anything, but can be used in damage calculations.
-    public Dictionary<string, float> BaseAttributes;        // Attributes such as atk, def, hp, crit chance, speed, damage resistance, etc. Used to calculate damage.
+    public Dictionary<string, Vector2> BaseAttributes;      // Attributes such as atk, def, hp, crit chance, speed, damage resistance, etc.
+                                                            // Used to calculate damage. Minimum and maximum values can be stored.
 
     public List<string> LifeDepletables;                    // If any of these depletables reaches 0, the entity dies.
     public List<TriggerData> Triggers;                      // Occurences such as death or receiving damage and the actions they cause. 

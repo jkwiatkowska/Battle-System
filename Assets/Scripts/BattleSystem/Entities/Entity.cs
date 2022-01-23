@@ -343,7 +343,6 @@ public class Entity : MonoBehaviour
     protected virtual void OnDeath()
     {
         EntityState = eEntityState.Dead;
-        
     }
 
     protected virtual void OnKill(PayloadResult payloadResult)

@@ -31,8 +31,8 @@ public static class Formulae
 
     public static float EntityBaseAttribute(Entity entity, string attribute)
     {
-        var min = entity.EntityData.BaseAttributes[attribute];
-        var max = min * 10.0f;
+        var min = entity.EntityData.BaseAttributes[attribute].x;
+        var max = entity.EntityData.BaseAttributes[attribute].y;
         var baseAttribute = Mathf.Lerp(min, max, (entity.Level) / 100.0f);
 
         return baseAttribute;

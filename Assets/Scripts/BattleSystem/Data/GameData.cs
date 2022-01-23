@@ -98,14 +98,14 @@ public static class GameData
                 "Player",
                 new EntityData()
                 {
-                    BaseAttributes = new Dictionary<string, float>()
+                    BaseAttributes = new Dictionary<string, Vector2>()
                     {
-                        { "hp", 600.0f },
-                        { "mp", 500.0f },
-                        { "atk", 100.0f },
-                        { "def", 100.0f },
-                        { "critChance", 0.1f },
-                        { "critDamage", 0.5f },
+                        { "hp", new Vector2(600.0f, 5000.0f) },
+                        { "mp", new Vector2(500.0f, 700.0f) },
+                        { "atk", new Vector2(100.0f, 2000.0f) },
+                        { "def", new Vector2(100.0f, 900.0f) },
+                        { "critChance", new Vector2(0.2f, 0.35f) },
+                        { "critDamage", new Vector2(0.5f, 1.5f) },
                     },
                     IsTargetable = true,
                     Faction = "Player",
@@ -118,25 +118,7 @@ public static class GameData
                     },
                     Triggers = new List<TriggerData>()
                     {
-                        new TriggerData()
-                        {
-                            Trigger = TriggerData.eTrigger.OnDeath,
-                            Cooldown = 0,
-                            Limit = 0,
-                            Actions = new ActionTimeline()
-                            {
-                                new ActionDestroySelf()
-                                {
-                                    ActionID = "deathAction",
-                                    SkillID = "",
-                                    ActionType = Action.eActionType.DestroySelf,
-                                    Timestamp = 2.0f,
-                                }
-                            },
-                            SkillIDs = new List<string>(),
-                            DepletablesAffected = new List<string>(),
-                            Flags = new List<string>()
-                        }
+
                     },
                     MovementSpeed = 4.0f,
                     RotateSpeed = 5.0f,
@@ -147,14 +129,14 @@ public static class GameData
                 "Dummy",
                 new EntityData()
                 {
-                    BaseAttributes = new Dictionary<string, float>()
+                    BaseAttributes = new Dictionary<string, Vector2>()
                     {
-                        { "hp", 500.0f },
-                        { "mp", 500.0f },
-                        { "atk", 100.0f },
-                        { "def", 100.0f },
-                        { "critChance", 0.1f },
-                        { "critDamage", 0.5f },
+                        { "hp", new Vector2(600.0f, 5000.0f) },
+                        { "mp", new Vector2(500.0f, 700.0f) },
+                        { "atk", new Vector2(100.0f, 2000.0f) },
+                        { "def", new Vector2(100.0f, 900.0f) },
+                        { "critChance", new Vector2(0.1f, 0.3f) },
+                        { "critDamage", new Vector2(0.5f, 1.5f) },
                     },
                     IsTargetable = true,
                     Faction = "Dummy",
@@ -193,14 +175,14 @@ public static class GameData
                 "Bomb",
                 new EntityData()
                 {
-                    BaseAttributes = new Dictionary<string, float>()
+                    BaseAttributes = new Dictionary<string, Vector2>()
                     {
-                        { "hp", 1.0f },
-                        { "mp", 0.0f },
-                        { "atk", 100.0f },
-                        { "def", 100.0f },
-                        { "critChance", 0.5f },
-                        { "critDamage", 1.5f },
+                        { "hp", new Vector2(1.0f, 1.0f) },
+                        { "mp", new Vector2(1.0f, 1.0f) },
+                        { "atk", new Vector2(100.0f, 200.0f) },
+                        { "def", new Vector2(0.0f, 0.0f) },
+                        { "critChance", new Vector2(0.3f, 0.3f) },
+                        { "critDamage", new Vector2(1.5f, 1.5f) },
                     },
                     IsTargetable = true,
                     Faction = "Object",
@@ -251,7 +233,7 @@ public static class GameData
                                         },
                                         PayloadComponents = new List<PayloadData.PayloadComponent>()
                                         {
-                                            new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterAttribute, 1.0f, "atk")
+                                            new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterAttribute, 3.0f, "atk")
                                         },
                                         Affinities = new List<string>()
                                         {
@@ -317,7 +299,7 @@ public static class GameData
                                 PayloadComponents = new List<PayloadData.PayloadComponent>()
                                 {
                                     new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 15),
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterAttribute, 0.75f, "atk")
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterAttribute, 0.8f, "atk")
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -349,7 +331,7 @@ public static class GameData
                             Timestamp = 0.0f,
                             Cooldown = 1.0f,
                             CooldownTarget = ActionCooldownApplication.eCooldownTarget.Skill,
-                            CooldownTargetName = "singleTargetAttack"
+                            CooldownTargetName = "singleTargetAttackWithDrain"
                         },
                         new ActionPayloadDirect()
                         {
@@ -370,7 +352,7 @@ public static class GameData
                                 },
                                 PayloadComponents = new List<PayloadData.PayloadComponent>()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 200)
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 150)
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -633,7 +615,7 @@ public static class GameData
                             }
                         }
                     },
-                    NeedsTarget = true,
+                    NeedsTarget = false,
                     PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
                     Range = 3.0f
                 }
