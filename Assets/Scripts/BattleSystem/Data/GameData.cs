@@ -541,7 +541,8 @@ public static class GameData
                                     InnerDimensions = new Vector2(0.0f, 0.0f),
                                     AreaTransform = new TransformData()
                                     {
-                                        PositionOrigin = TransformData.ePositionOrigin.CasterPosition
+                                        PositionOrigin = TransformData.ePositionOrigin.CasterPosition,
+                                        ForwardSource = TransformData.eForwardSource.CasterForward
                                     }
                                 }
                             },
@@ -582,7 +583,8 @@ public static class GameData
                                     InnerDimensions = new Vector2(0.0f, 90.0f),
                                     AreaTransform = new TransformData()
                                     {
-                                        PositionOrigin = TransformData.ePositionOrigin.CasterPosition
+                                        PositionOrigin = TransformData.ePositionOrigin.CasterPosition,
+                                        ForwardSource = TransformData.eForwardSource.CasterForward
                                     }
                                 }
                             },
@@ -623,7 +625,8 @@ public static class GameData
                                     InnerDimensions = new Vector2(0.0f, 180.0f),
                                     AreaTransform = new TransformData()
                                     {
-                                        PositionOrigin = TransformData.ePositionOrigin.CasterPosition
+                                        PositionOrigin = TransformData.ePositionOrigin.CasterPosition,
+                                        ForwardSource = TransformData.eForwardSource.CasterForward
                                     }
                                 }
                             },
@@ -664,7 +667,8 @@ public static class GameData
                                     InnerDimensions = new Vector2(0.0f, 270.0f),
                                     AreaTransform = new TransformData()
                                     {
-                                        PositionOrigin = TransformData.ePositionOrigin.CasterPosition
+                                        PositionOrigin = TransformData.ePositionOrigin.CasterPosition,
+                                        ForwardSource = TransformData.eForwardSource.CasterForward
                                     }
                                 }
                             },
@@ -728,7 +732,8 @@ public static class GameData
                                     InnerDimensions = new Vector2(0.0f, 0.0f),
                                     AreaTransform = new TransformData()
                                     {
-                                        PositionOrigin = TransformData.ePositionOrigin.SelectedTargetPosition
+                                        PositionOrigin = TransformData.ePositionOrigin.TargetPosition,
+                                        ForwardSource = TransformData.eForwardSource.TargetForward
                                     }
                                 }
                             },
@@ -769,7 +774,8 @@ public static class GameData
                                     InnerDimensions = new Vector2(3.5f, 2.5f),
                                     AreaTransform = new TransformData()
                                     {
-                                        PositionOrigin = TransformData.ePositionOrigin.SelectedTargetPosition
+                                        PositionOrigin = TransformData.ePositionOrigin.TargetPosition,
+                                        ForwardSource = TransformData.eForwardSource.TargetForward
                                     }
                                 }
                             },
@@ -810,7 +816,8 @@ public static class GameData
                                     InnerDimensions = new Vector2(5.0f, 3.5f),
                                     AreaTransform = new TransformData()
                                     {
-                                        PositionOrigin = TransformData.ePositionOrigin.SelectedTargetPosition
+                                        PositionOrigin = TransformData.ePositionOrigin.TargetPosition,
+                                        ForwardSource = TransformData.eForwardSource.TargetForward
                                     }
                                 }
                             },
@@ -851,7 +858,8 @@ public static class GameData
                                     InnerDimensions = new Vector2(7.5f, 5.0f),
                                     AreaTransform = new TransformData()
                                     {
-                                        PositionOrigin = TransformData.ePositionOrigin.SelectedTargetPosition
+                                        PositionOrigin = TransformData.ePositionOrigin.TargetPosition,
+                                        ForwardSource = TransformData.eForwardSource.TargetForward
                                     }
                                 }
                             },

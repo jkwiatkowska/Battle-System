@@ -8,9 +8,18 @@ public class TransformData
     {
         WorldPosition,          // A position in the world
         CasterPosition,         // The entity casting the skill
-        SelectedTargetPosition, // Selected targetable
+        TargetPosition,         // Selected entity
         TaggedEntityPosition,   // Entity referenced with a string tag
         //PositionFromInput     
+    }
+
+    public enum eForwardSource
+    {
+        CasterForward,          // The entity casting the skill
+        TargetForward,          // Forward of the target
+        TaggedEntityForward,    // Forward of a tagged entity
+        CasterToPosition,       // Direction vector between caster and position origin
+        NorthDirection          // North direction in the world
     }
 
     public enum eTaggedTargetPriority
@@ -21,6 +30,7 @@ public class TransformData
     }
 
     public ePositionOrigin PositionOrigin;              // Where a skill is positioned
+    public eForwardSource ForwardSource;                // How the direction is determined
     public string EntityTag;                            // If using tagged entity position
     public eTaggedTargetPriority TaggedTargetPriority;  // If there is more than one entity with a given tag, this is used.
 
@@ -30,7 +40,7 @@ public class TransformData
     public float ForwardRotationOffset;     // The forward vector can be rotated.
     public float RandomForwardOffset;       // Randomness can be applied to this as well. 
 
-    public bool TryGetTransformFromData(Entity entity, Entity target, out Vector2 position, out Vector2 forward)
+    public bool TryGetTransformFromData(Entity caster, Entity target, out Vector2 position, out Vector2 forward)
     {
         position = new Vector2();
         forward = new Vector2();
@@ -40,16 +50,14 @@ public class TransformData
             case ePositionOrigin.WorldPosition:
             {
                 position = Vector2.zero;
-                forward = Vector2.zero;
                 break;
             }
             case ePositionOrigin.CasterPosition:
             {
-                position = Utility.Get2DPosition(entity.transform.position);
-                forward = Utility.Get2DPosition(entity.transform.forward);
+                position = Utility.Get2DPosition(caster.transform.position);
                 break;
             }
-            case ePositionOrigin.SelectedTargetPosition:
+            case ePositionOrigin.TargetPosition:
             {
                 // No position if target was lost. 
                 if (target == null)
@@ -58,60 +66,14 @@ public class TransformData
                 }
 
                 position = Utility.Get2DPosition(target.transform.position);
-                forward = Utility.Get2DPosition(target.transform.forward);
                 break;
             }
             case ePositionOrigin.TaggedEntityPosition:
             {
-                var taggedEntities = entity.GetEntitiesWithTag(EntityTag);
-                if (taggedEntities.Count > 0)
-                {
-                    var taggedEntity = taggedEntities[0];
-                    var tagCount = taggedEntities.Count;
-                    if (tagCount > 1)
-                    {
-                        switch (TaggedTargetPriority)
-                        {
-                            case eTaggedTargetPriority.Random:
-                            {
-                                taggedEntity = taggedEntities[Random.Range(0, tagCount)];
-                                break;
-                            }
-                            case eTaggedTargetPriority.Nearest:
-                            {
-                                for (int i = 1; i < tagCount; i++)
-                                {
-                                    var taggedEntity2 = taggedEntities[i];
-                                    if ((entity.transform.position - taggedEntity2.transform.position).sqrMagnitude < 
-                                        (entity.transform.position - taggedEntity.transform.position).sqrMagnitude)
-                                    {
-                                        taggedEntity = taggedEntity2;
-                                    }
-                                }
-                                break;
-                            }
-                            case eTaggedTargetPriority.Furthest:
-                            {
-                                for (int i = 1; i < tagCount; i++)
-                                {
-                                    var taggedEntity2 = taggedEntities[i];
-                                    if ((entity.transform.position - taggedEntity2.transform.position).sqrMagnitude >
-                                        (entity.transform.position - taggedEntity.transform.position).sqrMagnitude)
-                                    {
-                                        taggedEntity = taggedEntity2;
-                                    }
-                                }
-                                break;
-                            }
-                            default:
-                            {
-                                Debug.LogError($"Unsupported tagged target priority: {TaggedTargetPriority}");
-                                break;
-                            }
-                        }
-                    }
+                var taggedEntity = ChooseTaggedEntity(caster);
+                if (taggedEntity != null)
+                { 
                     position = Utility.Get2DPosition(taggedEntity.transform.position);
-                    forward = Utility.Get2DPosition(taggedEntity.transform.forward);
                 }
                 else
                 {
@@ -124,6 +86,49 @@ public class TransformData
             {
                 Debug.LogError($"Unsupported position origin type: {PositionOrigin}");
                 break;
+            }
+        }
+
+        switch (ForwardSource)
+        {
+            case eForwardSource.CasterForward:
+            {
+                forward = Utility.Get2DPosition(caster.transform.forward);
+                break;
+            }
+            case eForwardSource.TargetForward:
+            {
+                forward = Utility.Get2DPosition(target.transform.forward);
+                break;
+            }
+            case eForwardSource.TaggedEntityForward:
+            {
+                var taggedEntity = ChooseTaggedEntity(caster);
+                if (taggedEntity != null)
+                {
+                    forward = Utility.Get2DPosition(taggedEntity.transform.forward);
+                }
+                else
+                {
+                    // No tagged entity
+                    return false;
+                }
+                break;
+            }
+            case eForwardSource.CasterToPosition:
+            {
+                forward = (position - Utility.Get2DPosition(caster.transform.position)).normalized;
+                break;
+            }
+            case eForwardSource.NorthDirection:
+            {
+                forward = Vector2.up;
+                break;
+            }
+            default:
+            {
+                Debug.LogError($"Unsupported forward source: {ForwardSource}");
+                return false;
             }
         }
 
@@ -146,5 +151,59 @@ public class TransformData
         position += positionOffset;
 
         return true;
+    }
+
+    Entity ChooseTaggedEntity(Entity caster)
+    {
+        var taggedEntities = caster.GetEntitiesWithTag(EntityTag);
+        if (taggedEntities.Count > 0)
+        {
+            var taggedEntity = taggedEntities[0];
+            var tagCount = taggedEntities.Count;
+            if (tagCount > 1)
+            {
+                switch (TaggedTargetPriority)
+                {
+                    case eTaggedTargetPriority.Random:
+                    {
+                        taggedEntity = taggedEntities[Random.Range(0, tagCount)];
+                        break;
+                    }
+                    case eTaggedTargetPriority.Nearest:
+                    {
+                        for (int i = 1; i < tagCount; i++)
+                        {
+                            var taggedEntity2 = taggedEntities[i];
+                            if ((caster.transform.position - taggedEntity2.transform.position).sqrMagnitude <
+                                (caster.transform.position - taggedEntity.transform.position).sqrMagnitude)
+                            {
+                                taggedEntity = taggedEntity2;
+                            }
+                        }
+                        break;
+                    }
+                    case eTaggedTargetPriority.Furthest:
+                    {
+                        for (int i = 1; i < tagCount; i++)
+                        {
+                            var taggedEntity2 = taggedEntities[i];
+                            if ((caster.transform.position - taggedEntity2.transform.position).sqrMagnitude >
+                                (caster.transform.position - taggedEntity.transform.position).sqrMagnitude)
+                            {
+                                taggedEntity = taggedEntity2;
+                            }
+                        }
+                        break;
+                    }
+                    default:
+                    {
+                        Debug.LogError($"Unsupported tagged target priority: {TaggedTargetPriority}");
+                        break;
+                    }
+                }
+            }
+            return taggedEntity;
+        }
+        else return null;
     }
 }
