@@ -8,6 +8,7 @@ public abstract class Action
         ApplyCooldown,              // If a skill has a cooldown, this action is used to put it on cooldown at the desired time.
         CollectCost,                // If a skill has a cost to be used, this action is used to collect it at the desired time.
         DestroySelf,                // Typically used after an entity dies or expires.
+        Message,                    // Displays a message on screen. Can be used to show warnings, explain mechanics, etc.
         PayloadArea,                // Applies a defined payload to all entities in a given area.
         PayloadDirect,              // Applies a payload to specified entities. 
         SpawnProjectile,            // Spawns an entity that moves in a specific way and can execute skills on contact or timeout. 

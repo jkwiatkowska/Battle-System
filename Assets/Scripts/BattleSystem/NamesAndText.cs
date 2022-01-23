@@ -86,4 +86,11 @@ public static class NamesAndText
 
         return message;
     }
+
+    public static string MessageFromString(string messageString)
+    {
+        var message = messageString;
+
+        return message;
+    }
 }

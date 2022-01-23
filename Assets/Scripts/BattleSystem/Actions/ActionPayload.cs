@@ -111,7 +111,7 @@ public abstract class ActionPayload : Action
             }
         }
 
-        actionResult.Success = actionResult.Count > 0;
+        actionResult.Success = true;
     }
 
     public abstract List<Entity> GetTargetsForAction(Entity entity, Entity target);

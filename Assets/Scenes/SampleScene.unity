@@ -1885,7 +1885,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ObjectToPool: {fileID: 7881352075453274342, guid: ccadb29d887861c448c4234d582b41f8, type: 3}
-  NumberToPool: 5
+  NumberToPool: 1
   ParentTransform: {fileID: 287556539}
 --- !u!114 &287556544
 MonoBehaviour:
@@ -1900,7 +1900,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MessagePool: {fileID: 287556543}
-  MessageDisplayTime: 1.2
+  MessageDisplayTime: 2
 --- !u!1 &293130128
 GameObject:
   m_ObjectHideFlags: 0

@@ -202,12 +202,48 @@ public static class GameData
                             Limit = 0,
                             Actions = new ActionTimeline()
                             {
+                                new ActionMessage()
+                                {
+                                    ActionID = "message",
+                                    SkillID = "",
+                                    ActionType = Action.eActionType.Message,
+                                    Timestamp = 0.0f,
+                                    MessageString = "Bomb explosion in 3.",
+                                    MessageColor = Color.red
+                                },
+                                new ActionMessage()
+                                {
+                                    ActionID = "message",
+                                    SkillID = "",
+                                    ActionType = Action.eActionType.Message,
+                                    Timestamp = 1.0f,
+                                    MessageString = "Bomb explosion in 2.",
+                                    MessageColor = Color.red
+                                },
+                                new ActionMessage()
+                                {
+                                    ActionID = "message",
+                                    SkillID = "",
+                                    ActionType = Action.eActionType.Message,
+                                    Timestamp = 2.0f,
+                                    MessageString = "Bomb explosion in 1.",
+                                    MessageColor = Color.red
+                                },
+                                new ActionMessage()
+                                {
+                                    ActionID = "message",
+                                    SkillID = "",
+                                    ActionType = Action.eActionType.Message,
+                                    Timestamp = 3.0f,
+                                    MessageString = "Boom.",
+                                    MessageColor = Color.red
+                                },
                                 new ActionPayloadArea()
                                 {
                                     ActionID = "explode",
                                     SkillID = "",
                                     ActionType = Action.eActionType.PayloadArea,
-                                    Timestamp = 1.5f,
+                                    Timestamp = 3.0f,
                                     TargetPriority = ActionPayload.eTargetPriority.Random,
                                     TargetLimit = 50,
                                     Target = ActionPayload.eTarget.AllEntities,
@@ -467,7 +503,7 @@ public static class GameData
                     },
                     NeedsTarget = true,
                     PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
-                    Range = 15.0f
+                    Range = 9.0f
                 }
             },
             {
@@ -854,7 +890,18 @@ public static class GameData
                         RequiredChargeTime = 0.5f,
                         FullChargeTime = 2.0f,
                         MovementCancelsCharge = true,
-                        PreChargeTimeline = new ActionTimeline(),
+                        PreChargeTimeline = new ActionTimeline()
+                        {
+                            new ActionMessage()
+                            {
+                                ActionID = "message",
+                                SkillID = "chargedAttack",
+                                ActionType = Action.eActionType.Message,
+                                Timestamp = 0.0f,
+                                MessageString = "Charging a skill.",
+                                MessageColor = Color.blue
+                            },
+                        },
                         ShowUI = true
                     },
                     SkillTimeline = new ActionTimeline()
@@ -868,6 +915,24 @@ public static class GameData
                             DepletableName = "mp",
                             Value = 0.5f,
                             Optional = false
+                        },
+                        new ActionMessage()
+                        {
+                            ActionID = "message",
+                            SkillID = "chargedAttack",
+                            ActionType = Action.eActionType.Message,
+                            Timestamp = 0.0f,
+                            MessageString = "Skill charged fully.",
+                            MessageColor = Color.white,
+                            ActionConditions = new List<ActionCondition>()
+                            {
+                                new ActionCondition()
+                                {
+                                    Condition = ActionCondition.eActionCondition.OnValueAbove,
+                                    ConditionValueType = ActionCondition.eConditionValueType.ChargeRatio,
+                                    ConditionValueBoundary = 1.0f
+                                }
+                            },
                         },
                         new ActionPayloadDirect()
                         {
@@ -943,9 +1008,26 @@ public static class GameData
                                 }
                             }
                         },
+                        new ActionMessage()
+                        {
+                            ActionID = "message",
+                            SkillID = "chargedAttack",
+                            ActionType = Action.eActionType.Message,
+                            Timestamp = 0.0f,
+                            MessageString = "Skill not charged fully.",
+                            MessageColor = Color.white,
+                            ActionConditions = new List<ActionCondition>()
+                            {
+                                new ActionCondition()
+                                {
+                                    Condition = ActionCondition.eActionCondition.OnActionFail,
+                                    ConditionTarget = "randomTargetAttackAction"
+                                }
+                            },
+                        },
                         new ActionPayloadDirect()
                         {
-                            ActionID = "singleTargetAttackAction",
+                            ActionID = "nearTargetAttackAction",
                             SkillID = "chargedAttack",
                             ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
                             TargetPriority = ActionPayload.eTargetPriority.Nearest,
@@ -989,6 +1071,15 @@ public static class GameData
                     SkillID = "healAll",
                     SkillTimeline = new ActionTimeline()
                     {
+                        new ActionMessage()
+                        {
+                            ActionID = "message",
+                            SkillID = "healAll",
+                            ActionType = Action.eActionType.Message,
+                            Timestamp = 0.0f,
+                            MessageString = "Healing all entities.",
+                            MessageColor = Color.green
+                        },
                         new ActionPayloadDirect()
                         {
                             ActionID = "healAllAction",

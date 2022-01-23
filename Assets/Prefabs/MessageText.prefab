@@ -92,8 +92,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b567a2da58668647af207814cb7c347, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PositionOffsetPerSecond: {x: 0, y: 0.03}
+  PositionOffsetPerSecond: {x: 0, y: 0}
   FadePerSecond: 0.1
   ScaleChangePerSecond: 0
-  SelfDestruct: 0
-  Duration: 1
