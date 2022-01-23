@@ -5,12 +5,12 @@ using UnityEngine;
 public class BattleSystem : MonoBehaviour
 {
     [SerializeField] string DataPath;
-    public static BattleSystem Instance                 { get; private set; }
+    public static BattleSystem Instance                         { get; private set; }
 
-    public static Dictionary<string, Entity> Entities   { get; private set; }
-    public static List<Entity> TargetableEntities       { get; private set; }
+    public static Dictionary<string, Entity> Entities           { get; private set; }
+    public static List<Entity> TargetableEntities               { get; private set; }
 
-    public static float Time                            { get; private set; }
+    public static float Time                                    { get; private set; }
     static float TimeMultiplier;
 
     void Awake()
@@ -27,6 +27,27 @@ public class BattleSystem : MonoBehaviour
     void Update()
     {
         Time += UnityEngine.Time.deltaTime * TimeMultiplier;
+    }
+
+    public Entity SpawnEntity(string entityID, int entityLevel)
+    {
+        var path = $"Entities/{entityID}";
+        var prefab = Resources.Load<GameObject>(path);
+
+        if (prefab == null)
+        {
+            Debug.LogError($"A prefab for entity {entityID} could not be found in Assets/Resources/Entities/");
+        }
+
+        var entity = prefab.GetComponentInChildren<Entity>();
+        if (entity == null)
+        {
+            Debug.LogError($"A prefab for entity {entityID} does not have an Entity component.");
+        }
+
+        entity.Setup(entityID, entityLevel);
+
+        return entity;
     }
 
     public void AddEntity(Entity entity)
