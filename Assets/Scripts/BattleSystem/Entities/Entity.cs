@@ -88,7 +88,7 @@ public class Entity : MonoBehaviour
         TargetingSystem = GetComponentInChildren<TargetingSystem>();
         if (TargetingSystem == null)
         {
-            Debug.LogError("TargetingSystem could not be found");
+            Debug.LogError($"TargetingSystem could not be found for {EntityUID}");
         }
         TargetingSystem.Setup(this);
 
@@ -129,7 +129,7 @@ public class Entity : MonoBehaviour
 
     protected virtual void Update()
     {
-        if (DepletablesCurrent != null)
+        if (Alive && DepletablesCurrent != null)
         {
             foreach (var depletable in GameData.EntityDepletables)
             {
@@ -277,19 +277,23 @@ public class Entity : MonoBehaviour
 
     public virtual void CancelSkill()
     {
-        if (SkillCoroutine == null)
+        if (EntityState == eEntityState.ChargingSkill)
         {
-            return;
+            EntityCanvas.StopSkillCharge();
+
+            if (SkillChargeCoroutine != null)
+            {
+                StopCoroutine(SkillChargeCoroutine);
+            }
         }
 
-        if (SkillChargeCoroutine != null)
+        if (SkillCoroutine != null)
         {
-            StopCoroutine(SkillChargeCoroutine);
+            StopCoroutine(SkillCoroutine);
         }
-
-        StopCoroutine(SkillCoroutine);
 
         CurrentSkill = null;
+        EntityState = eEntityState.Idle;
     }
 
     #endregion

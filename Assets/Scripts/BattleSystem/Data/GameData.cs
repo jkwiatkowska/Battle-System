@@ -61,7 +61,8 @@ public static class GameData
                     FriendlyFactions = new List<string>(),
                     EnemyFactions = new List<string>()
                     {
-                        "Dummy"
+                        "Dummy",
+                        "Object"
                     }
                 }
             },
@@ -72,6 +73,19 @@ public static class GameData
                     FactionID = "Dummy",
                     FriendlyFactions = new List<string>(),
                     EnemyFactions = new List<string>()
+                }
+            },
+            {
+                "Object",
+                new FactionData()
+                {
+                    FactionID = "Object",
+                    FriendlyFactions = new List<string>(),
+                    EnemyFactions = new List<string>()
+                    {
+                        "Dummy",
+                        "Player"
+                    }
                 }
             }
         };
@@ -174,6 +188,93 @@ public static class GameData
                         }
                     }
                 }
+            },
+            {
+                "Bomb",
+                new EntityData()
+                {
+                    BaseAttributes = new Dictionary<string, float>()
+                    {
+                        { "hp", 1.0f },
+                        { "mp", 0.0f },
+                        { "atk", 100.0f },
+                        { "def", 100.0f },
+                        { "critChance", 0.5f },
+                        { "critDamage", 1.5f },
+                    },
+                    IsTargetable = true,
+                    Faction = "Object",
+                    IsAI = false,
+                    Radius = 0.35f,
+                    Height = 0.7f,
+                    LifeDepletables = new List<string>()
+                    {
+                        "hp"
+                    },
+                    Triggers = new List<TriggerData>()
+                    {
+                        new TriggerData()
+                        {
+                            Trigger = TriggerData.eTrigger.OnDeath,
+                            Cooldown = 0,
+                            Limit = 0,
+                            Actions = new ActionTimeline()
+                            {
+                                new ActionPayloadArea()
+                                {
+                                    ActionID = "explode",
+                                    SkillID = "",
+                                    ActionType = Action.eActionType.PayloadArea,
+                                    Timestamp = 1.5f,
+                                    TargetPriority = ActionPayload.eTargetPriority.Random,
+                                    TargetLimit = 50,
+                                    Target = ActionPayload.eTarget.AllEntities,
+                                    AreasAffected = new List<ActionPayloadArea.Area>()
+                                    {
+                                        new ActionPayloadArea.Area()
+                                        {
+                                            Shape = ActionPayloadArea.Area.eShape.Circle,
+                                            Dimensions = new Vector2(2.5f, 360.0f),
+                                            InnerDimensions = new Vector2(0.0f, 0.0f),
+                                            AreaTransform = new TransformData()
+                                            {
+                                                PositionOrigin = TransformData.ePositionOrigin.CasterPosition
+                                            }
+                                        }
+                                    },
+                                    PayloadData = new PayloadData()
+                                    {
+                                        Flags = new Dictionary<string, bool>()
+                                        {
+                                            { "ignoreDef", false },
+                                            { "canCrit", true }
+                                        },
+                                        PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                        {
+                                            new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterAttribute, 1.0f, "atk")
+                                        },
+                                        Affinities = new List<string>()
+                                        {
+                                            "physical"
+                                        },
+                                        SuccessChance = 1.0f,
+                                        DepletableAffected = "hp"
+                                    }
+                                },
+                                new ActionDestroySelf()
+                                {
+                                    ActionID = "deathAction",
+                                    SkillID = "",
+                                    ActionType = Action.eActionType.DestroySelf,
+                                    Timestamp = 2.0f,
+                                }
+                            },
+                            SkillIDs = new List<string>(),
+                            DepletablesAffected = new List<string>(),
+                            Flags = new List<string>()
+                        }
+                    }
+                }
             }
         };
 
@@ -192,6 +293,60 @@ public static class GameData
                             SkillID = "singleTargetAttack",
                             ActionType = Action.eActionType.ApplyCooldown,
                             Timestamp = 0.0f,
+                            Cooldown = 0.8f,
+                            CooldownTarget = ActionCooldownApplication.eCooldownTarget.Skill,
+                            CooldownTargetName = "singleTargetAttack"
+                        },
+                        new ActionPayloadDirect()
+                        {
+                            ActionID = "singleTargetAttackAction",
+                            SkillID = "singleTargetAttack",
+                            ActionType = Action.eActionType.PayloadDirect,
+                            Timestamp = 0.1f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.SelectedEntity,
+                            TargetLimit = 1,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            PayloadData = new PayloadData()
+                            {
+                                Flags = new Dictionary<string, bool>()
+                                {
+                                    { "ignoreDef", false },
+                                    { "canCrit", true }
+                                },
+                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                {
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 15),
+                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterAttribute, 0.75f, "atk")
+                                },
+                                Affinities = new List<string>()
+                                {
+                                    "physical"
+                                },
+                                SuccessChance = 1.0f,
+                                DepletableAffected = "hp"
+                            },
+                            ActionConditions = new List<ActionCondition>()
+                        }
+                    },
+                    NeedsTarget = true,
+                    PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
+                    Range = 9.0f
+                }
+            },
+            {
+                "singleTargetAttackWithDrain",
+                new SkillData()
+                {
+                    SkillID = "singleTargetAttackWithDrain",
+                    SkillTimeline = new ActionTimeline()
+                    {
+                        new ActionCooldownApplication()
+                        {
+                            ActionID = "cd",
+                            SkillID = "singleTargetAttackWithDrain",
+                            ActionType = Action.eActionType.ApplyCooldown,
+                            Timestamp = 0.0f,
                             Cooldown = 1.0f,
                             CooldownTarget = ActionCooldownApplication.eCooldownTarget.Skill,
                             CooldownTargetName = "singleTargetAttack"
@@ -199,7 +354,7 @@ public static class GameData
                         new ActionPayloadDirect()
                         {
                             ActionID = "singleTargetAttackActionSmallHP",
-                            SkillID = "singleTargetAttack",
+                            SkillID = "singleTargetAttackWithDrain",
                             ActionType = Action.eActionType.PayloadDirect,
                             Timestamp = 0.0f,
                             TargetPriority = ActionPayload.eTargetPriority.Random,
@@ -255,7 +410,7 @@ public static class GameData
                         new ActionPayloadDirect()
                         {
                             ActionID = "singleTargetAttackAction",
-                            SkillID = "singleTargetAttack",
+                            SkillID = "singleTargetAttackWithDrain",
                             ActionType = Action.eActionType.PayloadDirect,
                             Timestamp = 0.0f,
                             TargetPriority = ActionPayload.eTargetPriority.Random,
@@ -477,7 +632,7 @@ public static class GameData
                                 DepletableAffected = "hp"
                             }
                         }
-                    }, 
+                    },
                     NeedsTarget = true,
                     PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
                     Range = 3.0f
@@ -628,7 +783,7 @@ public static class GameData
                             ActionID = "rectangleAction4",
                             SkillID = "rectangleAttack",
                             ActionType = Action.eActionType.PayloadArea,
-                            Timestamp = 2.0f,
+                            Timestamp = 2.1f,
                             TargetPriority = ActionPayload.eTargetPriority.Random,
                             TargetLimit = 50,
                             Target = ActionPayload.eTarget.EnemyEntities,
@@ -667,7 +822,7 @@ public static class GameData
                     },
                     NeedsTarget = true,
                     PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
-                    Range = 15.0f
+                    Range = 20.0f
                 }
             },
             {
@@ -823,8 +978,8 @@ public static class GameData
                             Timestamp = 0.0f,
                             TargetPriority = ActionPayload.eTargetPriority.Random,
                             ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
-                            TargetLimit = 50,
-                            Target = ActionPayload.eTarget.EnemyEntities,
+                            TargetLimit = 10000,
+                            Target = ActionPayload.eTarget.AllEntities,
                             PayloadData = new PayloadData()
                             {
                                 Flags = new Dictionary<string, bool>()
@@ -843,7 +998,7 @@ public static class GameData
                                 SuccessChance = 1.0f,
                                 DepletableAffected = "hp"
                             },
-                            ActionConditions = new List<ActionCondition>() 
+                            ActionConditions = new List<ActionCondition>()
                         },
                         new ActionPayloadDirect()
                         {
@@ -854,7 +1009,7 @@ public static class GameData
                             TargetPriority = ActionPayload.eTargetPriority.Random,
                             ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
                             TargetLimit = 50,
-                            Target = ActionPayload.eTarget.EnemyEntities,
+                            Target = ActionPayload.eTarget.AllEntities,
                             PayloadData = new PayloadData()
                             {
                                 Flags = new Dictionary<string, bool>()
@@ -884,7 +1039,7 @@ public static class GameData
                             TargetPriority = ActionPayload.eTargetPriority.Random,
                             ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
                             TargetLimit = 50,
-                            Target = ActionPayload.eTarget.EnemyEntities,
+                            Target = ActionPayload.eTarget.AllEntities,
                             PayloadData = new PayloadData()
                             {
                                 Flags = new Dictionary<string, bool>()
@@ -914,7 +1069,7 @@ public static class GameData
                             TargetPriority = ActionPayload.eTargetPriority.Random,
                             ActionTargets = ActionPayloadDirect.eDirectActionTargets.AllEntities,
                             TargetLimit = 50,
-                            Target = ActionPayload.eTarget.EnemyEntities,
+                            Target = ActionPayload.eTarget.AllEntities,
                             PayloadData = new PayloadData()
                             {
                                 Flags = new Dictionary<string, bool>()

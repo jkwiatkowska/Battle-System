@@ -13,9 +13,10 @@ public class EntityPlayer : Entity
         PlayerSkills = new Dictionary<KeyCode, string>()
         {
             { KeyCode.Alpha1, "singleTargetAttack"},
-            { KeyCode.Alpha2, "chargedAttack" },
-            { KeyCode.Alpha3, "coneAttack" },
-            { KeyCode.Alpha4, "rectangleAttack" },
+            { KeyCode.Alpha2, "singleTargetAttackWithDrain"},
+            { KeyCode.Alpha3, "chargedAttack" },
+            { KeyCode.Alpha4, "coneAttack" },
+            { KeyCode.Alpha5, "rectangleAttack" },
             { KeyCode.Alpha0, "healAll" },
         };
     }
