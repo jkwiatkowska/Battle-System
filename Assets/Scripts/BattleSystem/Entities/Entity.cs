@@ -376,7 +376,7 @@ public class Entity : MonoBehaviour
             {
                 if (entity.Value < BattleSystem.Time)
                 {
-                    RemoveTagOnEntity(tag.Key, BattleSystem.Entities[entity.Key]);
+                    RemoveTagOnEntity(tag.Key, BattleSystem.Entities[entity.Key], false);
                 }
             }
         }
@@ -396,33 +396,44 @@ public class Entity : MonoBehaviour
         return entities;
     }
 
-    public void TagEntity(TagData tagData, string entityUID)
+    public void TagEntity(TagData tagData, Entity entity)
     {
         if (!TaggedEntities.ContainsKey(tagData.TagID))
         {
             TaggedEntities.Add(tagData.TagID, new Dictionary<string, float>());
         }
 
-        if (TaggedEntities[tagData.TagID].ContainsKey(entityUID))
+        if (TaggedEntities[tagData.TagID].ContainsKey(entity.EntityUID))
         {
-            TaggedEntities[tagData.TagID][entityUID] = BattleSystem.Time + tagData.TagDuration;
+            TaggedEntities[tagData.TagID][entity.EntityUID] = BattleSystem.Time + tagData.TagDuration;
         }
         else
         {
-            TaggedEntities[tagData.TagID].Add(entityUID, BattleSystem.Time + tagData.TagDuration);
+            TaggedEntities[tagData.TagID].Add(entity.EntityUID, BattleSystem.Time + tagData.TagDuration);
+            entity.ApplyTag(tagData.TagID, EntityUID);
 
             if (TaggedEntities[tagData.TagID].Count > tagData.TagLimit)
             {
                 var entityToUntag = BattleSystem.Entities[TaggedEntities[tagData.TagID].Aggregate((l, r) => l.Value < r.Value ? l : r).Key];
-                RemoveTagOnEntity(tagData.TagID, entityToUntag);
+                RemoveTagOnEntity(tagData.TagID, entityToUntag, false);
             }
         }
     }
 
-    public void RemoveTagOnEntity(string tag, Entity entity)
+    public void RemoveTagOnEntity(string tag, Entity entity, bool selfOnly)
     {
-        TaggedEntities[tag].Remove(entity.EntityUID);
-        entity.RemoveTagOnSelf(tag, EntityUID);
+        if (entity != null)
+        {
+            TaggedEntities[tag].Remove(entity.EntityUID);
+            if (!selfOnly)
+            {
+                entity.RemoveTagOnSelf(tag, EntityUID);
+            }
+        }
+        else
+        {
+            Debug.LogError($"Trying to remove tag from entity, but it's null.");
+        }
     }
 
     protected void RemoveAllTagsOnEntities()
@@ -431,9 +442,11 @@ public class Entity : MonoBehaviour
         {
             foreach (var entity in tag.Value)
             {
-                RemoveTagOnEntity(tag.Key, BattleSystem.Entities[entity.Key]);
+                BattleSystem.Entities[entity.Key].RemoveTagOnSelf(tag.Key, EntityUID);
             }
+            tag.Value.Clear();
         }
+        TaggedEntities.Clear();
     }
 
     public void ApplyTag(string tag, string sourceUID)
@@ -464,9 +477,11 @@ public class Entity : MonoBehaviour
             var entity = BattleSystem.Entities[source.Key];
             foreach (var tag in source.Value)
             {
-                entity.RemoveTagOnEntity(tag, this);
+                entity.RemoveTagOnEntity(tag, this, true);
             }
+            source.Value.Clear();
         }
+        TagsApplied.Clear();
     }
     #endregion
 

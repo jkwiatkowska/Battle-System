@@ -132,7 +132,7 @@ public class Payload
         {
             if (Action.PayloadData.Tag != null)
             {
-                caster.TagEntity(Action.PayloadData.Tag, target.EntityUID);
+                caster.TagEntity(Action.PayloadData.Tag, target);
             }
         }
     }
