@@ -92,7 +92,7 @@ public class ActionPayloadArea : ActionPayload
                         }
 
                         // Check if the target is inside circle
-                        var distance = Utility.Distance3D(areaPos, t);
+                        var distance = Utility.Distance2D(areaPos2D, t);
                         if (distance < minDistance || distance > maxDistance)
                         {
                             continue;
@@ -132,7 +132,7 @@ public class ActionPayloadArea : ActionPayload
                         var tPos = t.transform.position;
 
                         // Check if the target is inside sphere
-                        var distance = Vector3.SqrMagnitude(tPos - areaPos) - t.EntityData.Radius;
+                        var distance = Utility.Distance3D(areaPos, t);
                         if (distance < minDistance || distance > maxDistance)
                         {
                             continue;
