@@ -27,8 +27,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2045683188067523887}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.32, y: 0, z: -11.11}
+  m_LocalRotation: {x: 0.2922018, y: 0.6439085, z: -0.2922018, w: 0.6439085}
+  m_LocalPosition: {x: -8.696394, y: -0.7533222, z: -8.510952}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 8497379034768385341}
@@ -112,7 +112,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1061687083225793196
 Transform:
   m_ObjectHideFlags: 0
@@ -381,6 +381,10 @@ PrefabInstance:
     - target: {fileID: 5256719702630343125, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_Name
       value: EntityCanvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 5968998175909932700, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}

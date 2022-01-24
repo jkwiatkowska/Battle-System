@@ -18,6 +18,7 @@ public class EntityPlayer : Entity
             { KeyCode.Alpha4, "rectangleAttack" },
             { KeyCode.Alpha5, "chargedAttack" },
             { KeyCode.Alpha0, "healAll" },
+            { KeyCode.Alpha9, "summonSkill" }
         };
     }
 

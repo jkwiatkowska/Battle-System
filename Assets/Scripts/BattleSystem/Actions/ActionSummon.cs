@@ -9,11 +9,13 @@ public class ActionSummon : Action
     public TransformData SummonAtPosition;
 
     public float SummonDuration;                        // 0 if infinite
+    public int SummonLimit;                             // The number of summoned entities can be limited
     public Dictionary<string, float> SharedAttributes;  // Summoned entity can inherit the caster's attributes
                                                         // The float value is a multiplier
                                                         // (for example an entry of {atk, 0.5} means the entity has half of the caster's atk attribute)
 
     public bool LifeLink;                               // If true, the entity will disappear when the caster dies
+    public bool InheritFaction;                         // The summoned entity will have its faction overriden with summoner's if true.
 
     public override void Execute(Entity entity, out ActionResult actionResult, Entity target)
     {
@@ -23,5 +25,25 @@ public class ActionSummon : Action
         {
             return;
         }
+
+        // Find position and transform
+        var foundPosition = SummonAtPosition.TryGetTransformFromData(entity, target, out var position, out var forward);
+
+        if (!foundPosition)
+        {
+            return;
+        }
+
+        // Setup
+        var summon = BattleSystem.SpawnEntity(EntityID);
+        summon.Setup(EntityID, entity.Level, entity, this);
+
+        // Set position and transform
+        summon.transform.position = position;
+
+        summon.transform.forward = new Vector3(forward.x, 0.0f, forward.y);
+
+        // To do: add duration and summon limit
+
     }
 }

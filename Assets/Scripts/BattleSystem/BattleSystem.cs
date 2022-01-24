@@ -9,6 +9,7 @@ public class BattleSystem : MonoBehaviour
 
     public static Dictionary<string, Entity> Entities           { get; private set; }
     public static List<Entity> TargetableEntities               { get; private set; }
+    public static Dictionary<string, GameObject> EntityPrefabs  { get; private set; }
 
     public static float Time                                    { get; private set; }
     static float TimeMultiplier;
@@ -22,6 +23,8 @@ public class BattleSystem : MonoBehaviour
         TargetableEntities = new List<Entity>();
         Time = 0.0f;
         TimeMultiplier = 1.0f;
+
+        LoadEntityPrefabs();
     }
     
     void Update()
@@ -29,38 +32,48 @@ public class BattleSystem : MonoBehaviour
         Time += UnityEngine.Time.deltaTime * TimeMultiplier;
     }
 
-    public Entity SpawnEntity(string entityID, int entityLevel)
+    public static void LoadEntityPrefabs()
     {
-        var path = $"Entities/{entityID}";
-        var prefab = Resources.Load<GameObject>(path);
+        EntityPrefabs = new Dictionary<string, GameObject>();
 
-        if (prefab == null)
+        foreach (var entity in GameData.EntityData)
         {
-            Debug.LogError($"A prefab for entity {entityID} could not be found in Assets/Resources/Entities/");
-        }
+            var path = $"Entities/{entity.Key}";
+            var prefab = Resources.Load<GameObject>(path);
 
-        var entity = prefab.GetComponentInChildren<Entity>();
+            EntityPrefabs.Add(entity.Key, prefab);
+        }
+    }
+
+    public static Entity SpawnEntity(string entityID)
+    {
+        // To do: add pooling
+
+        var summon = Instantiate(EntityPrefabs[entityID]);
+
+        var entity = summon.GetComponentInChildren<Entity>();
         if (entity == null)
         {
             Debug.LogError($"A prefab for entity {entityID} does not have an Entity component.");
         }
 
-        entity.Setup(entityID, entityLevel);
-
         return entity;
     }
 
-    public void AddEntity(Entity entity)
+    public static void AddEntity(Entity entity)
     {
-        Entities.Add(entity.EntityUID, entity);
-
-        if (entity.EntityData.IsTargetable)
+        if (!Entities.ContainsKey(entity.EntityUID))
         {
-            TargetableEntities.Add(entity);
+            Entities.Add(entity.EntityUID, entity);
+
+            if (entity.EntityData.IsTargetable)
+            {
+                TargetableEntities.Add(entity);
+            }
         }
     }
 
-    public void RemoveEntity(Entity entity)
+    public static void RemoveEntity(Entity entity)
     {
         Entities.Remove(entity.EntityUID);
 
@@ -75,10 +88,10 @@ public class BattleSystem : MonoBehaviour
         }
 
         var entity = Entities[entityUID];
-        var entityFaction = entity.FactionData.FactionID;
+        var entityFaction = entity.Faction;
 
         var targetEntity = Entities[targetUID];
-        var targetFaction = targetEntity.FactionData.FactionID;
+        var targetFaction = targetEntity.Faction;
 
         if (entityFaction == targetFaction)
         {
@@ -100,10 +113,10 @@ public class BattleSystem : MonoBehaviour
         }
 
         var entity = Entities[entityUID];
-        var entityFaction = entity.FactionData.FactionID;
+        var entityFaction = entity.Faction;
 
         var targetEntity = Entities[targetUID];
-        var targetFaction = targetEntity.FactionData.FactionID;
+        var targetFaction = targetEntity.Faction;
 
         if (entityFaction == targetFaction)
         {

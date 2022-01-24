@@ -48,11 +48,21 @@ public class Entity : MonoBehaviour
     public eEntityState EntityState                                         { get; private set; }
     public bool IsTargetable                                                { get; private set; }
     public string FactionOverride                                           { get; private set; }
+    protected bool SetupComplete;
+
+    // Connections with other entities
     public Dictionary<string, Dictionary<string, float>> TaggedEntities     { get; protected set; }
-    protected Dictionary<string, List<string>> TagsApplied;
+    protected Dictionary<string, List<string>> TagsAppliedBy;
+    public Dictionary<string, Entity> LinkedEntities                        { get; protected set; }
+    public Entity LinkedTo                                                  { get; protected set; }
 
     public virtual void Setup(string entityID, int entityLevel)
     {
+        if (SetupComplete)
+        {
+            return;
+        }
+
         EntityID = entityID;
         EntityUID = entityID + EntityCount.ToString();
         EntityCount++;
@@ -85,10 +95,12 @@ public class Entity : MonoBehaviour
         IsTargetable = EntityData.IsTargetable;
 
         TaggedEntities = new Dictionary<string, Dictionary<string, float>>();
-        TagsApplied = new Dictionary<string, List<string>>();
+        TagsAppliedBy = new Dictionary<string, List<string>>();
+
+        LinkedEntities = new Dictionary<string, Entity>();
 
         // Dependencies 
-        BattleSystem.Instance.AddEntity(this);
+        BattleSystem.AddEntity(this);
 
         TargetingSystem = GetComponentInChildren<TargetingSystem>();
         if (TargetingSystem == null)
@@ -124,6 +136,28 @@ public class Entity : MonoBehaviour
             {
                 Debug.LogError($"Entity {EntityID} marked as targetable, but it does not have a Targetable component.");
             }
+        }
+
+        SetupComplete = true;
+    }
+
+    public virtual void Setup(string entityID, int entityLevel, Entity summoner, ActionSummon summonData)
+    {
+        Setup(entityID, entityLevel);
+
+        if (summonData.LifeLink)
+        {
+            CreateLink(summoner);
+        }
+
+        foreach (var attribute in summonData.SharedAttributes)
+        {
+            BaseAttributes[attribute.Key] = attribute.Value * summoner.BaseAttributes[attribute.Key];
+        }
+
+        if (summonData.InheritFaction)
+        {
+            FactionOverride = summoner.Faction;
         }
     }
 
@@ -370,6 +404,7 @@ public class Entity : MonoBehaviour
         RemoveAllTagsOnSelf();
         RemoveAllTagsOnEntities();
         Targetable.RemoveTargeting();
+        KillLinkedEntities();
     }
 
     protected virtual void OnKill(PayloadResult payloadResult)
@@ -467,28 +502,28 @@ public class Entity : MonoBehaviour
 
     public void ApplyTag(string tag, string sourceUID)
     {
-        if (!TagsApplied.ContainsKey(sourceUID))
+        if (!TagsAppliedBy.ContainsKey(sourceUID))
         {
-            TagsApplied.Add(sourceUID, new List<string>());
+            TagsAppliedBy.Add(sourceUID, new List<string>());
         }
 
-        if (!TagsApplied[sourceUID].Contains(tag))
+        if (!TagsAppliedBy[sourceUID].Contains(tag))
         {
-            TagsApplied[sourceUID].Add(tag);
+            TagsAppliedBy[sourceUID].Add(tag);
         }
     }
 
     public void RemoveTagOnSelf(string tag, string sourceUID)
     {
-        if (TagsApplied.ContainsKey(sourceUID))
+        if (TagsAppliedBy.ContainsKey(sourceUID))
         {
-            TagsApplied[sourceUID].Remove(tag);
+            TagsAppliedBy[sourceUID].Remove(tag);
         }
     }
 
     protected void RemoveAllTagsOnSelf()
     {
-        foreach (var source in TagsApplied)
+        foreach (var source in TagsAppliedBy)
         {
             var entity = BattleSystem.Entities[source.Key];
             foreach (var tag in source.Value)
@@ -497,7 +532,39 @@ public class Entity : MonoBehaviour
             }
             source.Value.Clear();
         }
-        TagsApplied.Clear();
+        TagsAppliedBy.Clear();
+    }
+    #endregion
+
+    #region Life Link
+    public void CreateLink(Entity entity)
+    {
+        LinkedTo = entity;
+    }
+
+    public void RemoveLink()
+    {
+        LinkedTo.RemoveLink(this);
+        LinkedTo = null;
+    }
+
+    public void AddLink(Entity entity)
+    {
+        LinkedEntities.Add(entity.EntityUID, entity);
+        entity.CreateLink(this);
+    }
+
+    public void RemoveLink(Entity entity)
+    {
+        LinkedEntities.Remove(entity.EntityUID);
+    }
+
+    private void KillLinkedEntities()
+    {
+        foreach (var entity in LinkedEntities)
+        {
+            entity.Value.OnTrigger(TriggerData.eTrigger.OnDeath, null);
+        }
     }
     #endregion
 
@@ -567,7 +634,7 @@ public class Entity : MonoBehaviour
 
     public virtual void DestroyEntity()
     {
-        BattleSystem.Instance.RemoveEntity(this);
+        BattleSystem.RemoveEntity(this);
         Destroy(gameObject);
     }
     #endregion
@@ -597,18 +664,25 @@ public class Entity : MonoBehaviour
         }
     }
 
-    public FactionData FactionData
+    public string Faction
     {
         get
         {
             if (FactionOverride != null)
             {
-                return GameData.GetFactionData(FactionOverride);
+                return FactionOverride;
             }
             else
             {
-                return GameData.GetFactionData(EntityData.Faction);
+                return EntityData.Faction;
             }
+        }
+    }
+    public FactionData FactionData
+    {
+        get
+        {
+            return GameData.GetFactionData(Faction);
         }
     }
 

@@ -1258,7 +1258,55 @@ public static class GameData
                     CasterState = global::SkillData.eCasterState.Any,
                     MovementCancelsSkill = false
                 }
-            }
+            },
+            {
+                "summonSkill",
+                new SkillData()
+                {
+                    SkillID = "summonSkill",
+                    SkillTimeline = new ActionTimeline()
+                    {
+                        new ActionMessage()
+                        {
+                            ActionID = "message",
+                            SkillID = "summonSkill",
+                            ActionType = Action.eActionType.Message,
+                            Timestamp = 0.0f,
+                            MessageString = "Summoning bomb.",
+                            MessageColor = Color.white
+                        },
+                        new ActionCooldownApplication()
+                        {
+                            ActionID = "cd",
+                            SkillID = "summonSkill",
+                            ActionType = Action.eActionType.ApplyCooldown,
+                            Timestamp = 0.0f,
+                            Cooldown = 0.8f,
+                            CooldownTarget = ActionCooldownApplication.eCooldownTarget.Skill,
+                            CooldownTargetName = "summonSkill"
+                        },
+                        new ActionSummon()
+                        {
+                            ActionID = "summonAction",
+                            SkillID = "summonSkill",
+                            ActionType = Action.eActionType.SpawnEntity,
+                            Timestamp = 0.4f,
+                            EntityID = "Bomb",
+                            SharedAttributes = new Dictionary<string, float>(),
+                            SummonAtPosition = new TransformData()
+                            {
+                                PositionOrigin = TransformData.ePositionOrigin.CasterPosition,
+                                ForwardSource = TransformData.eForwardSource.CasterForward,
+                                PositionOffset = new Vector3(0.0f, 0.0f, 1.0f)
+                            }
+                        }
+                    },
+                    NeedsTarget = true,
+                    PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
+                    Range = 9.0f,
+                    CasterState = global::SkillData.eCasterState.Any
+                }
+            },
         };
     }
 
