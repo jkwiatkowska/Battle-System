@@ -55,11 +55,12 @@ public class ActionPayloadArea : ActionPayload
 
         foreach (var area in AreasAffected)
         {
-            var foundPosition = area.AreaTransform.TryGetTransformFromData(entity, target, out Vector2 areaPos, out Vector2 areaForward);
+            var foundPosition = area.AreaTransform.TryGetTransformFromData(entity, target, out var areaPos, out var areaForward);
             if (!foundPosition)
             {
                 continue;
             }
+            var areaPos2D = Utility.Get2DVector(areaPos);
 
             switch (area.Shape)
             {
@@ -74,20 +75,21 @@ public class ActionPayloadArea : ActionPayload
                     for (int i = potentialTargets.Count - 1; i >= 0; i--)
                     {
                         var t = potentialTargets[i];
-                        var tPos = Utility.Get2DPosition(t.transform.position);
+                        var tPos = t.transform.position;
 
                         // Check if the target is inside circle
-                        var distance = Utility.Distance(areaPos, t);
+                        var distance = Utility.Distance(areaPos2D, t);
                         if (distance < minDistance || distance > maxDistance)
                         {
                             continue;
                         }
 
                         // Check if the target is inside cone
-                        if (maxAngle < 180.0f || minAngle > 0) // If not a circle.  
+                        if (maxAngle < 180.0f || minAngle > 0) // If not a circle.
                         {
                             var direction = (tPos - areaPos).normalized;
-                            var angle = Utility.Angle(areaForward, direction);
+
+                            var angle = Utility.Angle(areaForward, Utility.Get2DVector(direction));
                             if (angle > maxAngle || angle < minAngle)
                             {
                                 continue;
@@ -107,7 +109,7 @@ public class ActionPayloadArea : ActionPayload
                     for (int i = potentialTargets.Count - 1; i >= 0; i--)
                     {
                         var t = potentialTargets[i];
-                        var tPos = Utility.RotateAroundPosition(Utility.Get2DPosition(t.transform.position), Utility.Angle(areaForward), areaPos);
+                        var tPos = Utility.RotateAroundPosition(Utility.Get2DVector(t.transform.position), Utility.Angle(areaForward), areaPos2D);
 
                         // Outer bounds
                         var halfWidth = area.Dimensions.x / 2 + t.EntityData.Radius;
@@ -115,8 +117,8 @@ public class ActionPayloadArea : ActionPayload
                         var minX = -halfWidth + areaPos.x;
 
                         var halfHeight = area.Dimensions.y / 2 + t.EntityData.Radius;
-                        var maxY = halfHeight + areaPos.y;
-                        var minY = -halfHeight + areaPos.y;
+                        var maxY = halfHeight + areaPos.z;
+                        var minY = -halfHeight + areaPos.z;
 
                         if (tPos.x < minX || tPos.x > maxX || tPos.y < minY || tPos.y > maxY)
                         {
@@ -132,8 +134,8 @@ public class ActionPayloadArea : ActionPayload
                             maxX = halfWidth + areaPos.x;
                             minX = -halfWidth + areaPos.x;
 
-                            maxY = halfHeight + areaPos.y;
-                            minY = -halfHeight + areaPos.y;
+                            maxY = halfHeight + areaPos.z;
+                            minY = -halfHeight + areaPos.z;
 
                             if (tPos.x > minX && tPos.x < maxX && tPos.y > minY && tPos.y < maxY)
                             {

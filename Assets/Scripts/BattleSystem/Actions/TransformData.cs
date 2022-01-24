@@ -36,27 +36,27 @@ public class TransformData
     public string EntityTag;                            // If using tagged entity position
     public eTaggedTargetPriority TaggedTargetPriority;  // If there is more than one entity with a given tag, this is used.
 
-    public Vector2 PositionOffset;          // Position offset from position origin
-    public Vector2 RandomPositionOffset;    // Range of a random offset from the summon position, for each x and y axis
+    public Vector3 PositionOffset;          // Position offset from position origin
+    public Vector3 RandomPositionOffset;    // Range of a random offset from the summon position, for each x and y axis
 
     public float ForwardRotationOffset;     // The forward vector can be rotated.
     public float RandomForwardOffset;       // Randomness can be applied to this as well. 
 
-    public bool TryGetTransformFromData(Entity caster, Entity target, out Vector2 position, out Vector2 forward)
+    public bool TryGetTransformFromData(Entity caster, Entity target, out Vector3 position, out Vector2 forward)
     {
-        position = new Vector2();
-        forward = new Vector2();
+        position = new Vector3();
+        forward = new Vector3();
 
         switch (PositionOrigin)
         {
             case ePositionOrigin.WorldPosition:
             {
-                position = Vector2.zero;
+                position = Vector3.zero;
                 break;
             }
             case ePositionOrigin.CasterPosition:
             {
-                position = Utility.Get2DPosition(caster.transform.position);
+                position = caster.transform.position;
                 break;
             }
             case ePositionOrigin.TargetPosition:
@@ -67,7 +67,7 @@ public class TransformData
                     return false;
                 }
 
-                position = Utility.Get2DPosition(target.transform.position);
+                position = target.transform.position;
                 break;
             }
             case ePositionOrigin.TaggedEntityPosition:
@@ -75,7 +75,7 @@ public class TransformData
                 var taggedEntity = ChooseTaggedEntity(caster);
                 if (taggedEntity != null)
                 { 
-                    position = Utility.Get2DPosition(taggedEntity.transform.position);
+                    position = taggedEntity.transform.position;
                 }
                 else
                 {
@@ -95,14 +95,14 @@ public class TransformData
         {
             case eForwardSource.CasterForward:
             {
-                forward = Utility.Get2DPosition(caster.transform.forward);
+                forward = Utility.Get2DVector(caster.transform.forward);
                 break;
             }
             case eForwardSource.TargetForward:
             {
                 if (target != null)
                 {
-                    forward = Utility.Get2DPosition(target.transform.forward);
+                    forward = Utility.Get2DVector(target.transform.forward);
                 }
                 else
                 {
@@ -115,7 +115,7 @@ public class TransformData
             {
                 if (target != null)
                 {
-                    forward = Utility.Get2DPosition(target.transform.position - caster.transform.position).normalized;
+                    forward = Utility.Get2DVector(target.transform.position - caster.transform.position).normalized;
                 }
                 else
                 {
@@ -129,7 +129,7 @@ public class TransformData
                 var taggedEntity = ChooseTaggedEntity(caster);
                 if (taggedEntity != null)
                 {
-                    forward = Utility.Get2DPosition(taggedEntity.transform.forward);
+                    forward = Utility.Get2DVector(taggedEntity.transform.forward);
                 }
                 else
                 {
@@ -143,7 +143,7 @@ public class TransformData
                 var taggedEntity = ChooseTaggedEntity(caster);
                 if (taggedEntity != null)
                 {
-                    forward = Utility.Get2DPosition(taggedEntity.transform.forward - caster.transform.position).normalized;
+                    forward = Utility.Get2DVector(taggedEntity.transform.forward - caster.transform.position).normalized;
                 }
                 else
                 {
@@ -154,7 +154,7 @@ public class TransformData
             }
             case eForwardSource.CasterToPositionOrigin:
             {
-                forward = (position - Utility.Get2DPosition(caster.transform.position)).normalized;
+                forward = Utility.Get2DVector(position - caster.transform.position).normalized;
                 break;
             }
             case eForwardSource.NorthDirection:
@@ -182,6 +182,10 @@ public class TransformData
         if (RandomPositionOffset.y != 0.0f)
         {
             positionOffset.y += Random.Range(0.0f, RandomPositionOffset.y);
+        }
+        if (RandomPositionOffset.z != 0.0f)
+        {
+            positionOffset.z += Random.Range(0.0f, RandomPositionOffset.z);
         }
         positionOffset *= forward;
 

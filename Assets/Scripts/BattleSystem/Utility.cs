@@ -4,7 +4,7 @@ using UnityEngine;
 
 public static class Utility
 {
-    public static Vector2 Get2DPosition(Vector3 position)
+    public static Vector2 Get2DVector(Vector3 position)
     {
         return new Vector2(position.x, position.z);
     }
@@ -49,7 +49,7 @@ public static class Utility
     public static float Distance(Vector2 pos, Entity entity)
     {
         var radius = entity.EntityData.Radius;
-        var entityPos = Get2DPosition(entity.transform.position);
+        var entityPos = Get2DVector(entity.transform.position);
         var distance = Vector2.SqrMagnitude(pos - entityPos) - radius * radius;
 
         return distance;
