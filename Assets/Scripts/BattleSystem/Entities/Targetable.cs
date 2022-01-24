@@ -8,6 +8,8 @@ public class Targetable : MonoBehaviour
     [SerializeField] List<GameObject> ShowWhenSelected;
     [SerializeField] List<GameObject> ShowWhenNotSelected;
     public bool Selected { get; private set; }
+
+    Dictionary<string, Entity> TargetedBy;
     public Entity Entity
     {
         get
@@ -23,7 +25,20 @@ public class Targetable : MonoBehaviour
     public void Setup(Entity parentEntity)
     {
         ParentEntity = parentEntity;
+        TargetedBy = new Dictionary<string, Entity>();
         ToggleSelect(false);
+    }
+
+    public void Target(bool targetted, Entity entity)
+    {
+        if (TargetedBy.ContainsKey(entity.EntityUID) && !targetted)
+        {
+            TargetedBy.Remove(entity.EntityUID);
+        }
+        else if (!TargetedBy.ContainsKey(entity.EntityUID) && targetted)
+        {
+            TargetedBy.Add(entity.EntityUID, entity);
+        }
     }
 
     public void ToggleSelect(bool select)
@@ -38,6 +53,17 @@ public class Targetable : MonoBehaviour
         foreach (var item in ShowWhenNotSelected)
         {
             item.SetActive(!select);
+        }
+    }
+
+    public void RemoveTargeting()
+    {
+        foreach (var entity in TargetedBy)
+        {
+            if (entity.Value != null)
+            {
+                entity.Value.TargetingSystem.ClearSelection(true);
+            }
         }
     }
 }

@@ -7,24 +7,23 @@ public class EntityMovement : MonoBehaviour
     [SerializeField] LayerMask TerrainLayers;
     [SerializeField] float GroundCheckSphereRadius;
     Entity Parent;
-    CapsuleCollider Collider;
     PlayerCamera Camera;
 
     Vector3 Velocity;
     Vector3 GroundCheckSphereOffset;
 
     float GravitationalForce;
-    bool IsGrounded;
+    public bool IsGrounded { get; protected set; }
 
     float MovementLock;
 
-    public float LastMoved { get; private set; }
+    public float LastMoved      { get; private set; }
+    public float LastJumped     { get; private set; }
 
     public void Setup(Entity parent)
     {
         Parent = parent;
         Camera = FindObjectOfType<PlayerCamera>();
-        Collider = GetComponentInChildren<CapsuleCollider>();
         GravitationalForce = Constants.Gravity;
         Velocity = new Vector3();
         GroundCheckSphereOffset = new Vector3(0.0f, GroundCheckSphereRadius, 0.0f);
@@ -75,6 +74,8 @@ public class EntityMovement : MonoBehaviour
         {
             Velocity.y += Mathf.Sqrt(Formulae.EntityJumpHeight(Parent) * -2.0f * GravitationalForce);
         }
+
+        LastJumped = BattleSystem.Time;
     }
 
     public IEnumerator RotateTowardCoroutine(Vector3 targetPosition)

@@ -28,11 +28,11 @@ public class Entity : MonoBehaviour
     // Skills
     protected Dictionary<string, float> SkillAvailableTime;
     public Dictionary<string, ActionResult> ActionResults                   { get; protected set; }
-    public string CurrentSkill                                              { get; protected set; }
+    public SkillData CurrentSkill                                           { get; protected set; }
     protected Coroutine SkillCoroutine;
     protected Coroutine SkillChargeCoroutine;
     public SkillChargeData SkillCharge                                      { get; protected set; }
-    public float SkillChargeStartTime                                       { get; protected set; }
+    public float SkillStartTime                                             { get; protected set; }
     public float SkillChargeRatio                                           { get; protected set; }
 
     // Triggers
@@ -42,7 +42,7 @@ public class Entity : MonoBehaviour
     public EntityCanvas EntityCanvas                                        { get; protected set; }
     public TargetingSystem TargetingSystem                                  { get; protected set; }
     public Targetable Targetable                                            { get; protected set; }
-    public EntityMovement EntityMovement                                    { get; protected set; }
+    public EntityMovement Movement                                          { get; protected set; }
 
     // State
     public eEntityState EntityState                                         { get; private set; }
@@ -97,10 +97,10 @@ public class Entity : MonoBehaviour
         }
         TargetingSystem.Setup(this);
 
-        EntityMovement = GetComponentInChildren<EntityMovement>();
-        if (EntityMovement != null)
+        Movement = GetComponentInChildren<EntityMovement>();
+        if (Movement != null)
         {
-            EntityMovement.Setup(this);
+            Movement.Setup(this);
         }
 
         EntityCanvas = GetComponentInChildren<EntityCanvas>();
@@ -134,16 +134,32 @@ public class Entity : MonoBehaviour
 
     protected virtual void Update()
     {
-        if (Alive && DepletablesCurrent != null)
+        if (Alive)
         {
-            foreach (var depletable in GameData.EntityDepletables)
+            if (DepletablesCurrent != null)
             {
-                if (DepletablesCurrent.ContainsKey(depletable))
+                foreach (var depletable in GameData.EntityDepletables)
                 {
-                    var recovery = Formulae.DepletableRecoveryRate(this, depletable) * Time.deltaTime;
-                    if (recovery != 0.0f)
+                    if (DepletablesCurrent.ContainsKey(depletable))
                     {
-                        ApplyChangeToDepletable(depletable, recovery);
+                        var recovery = Formulae.DepletableRecoveryRate(this, depletable) * Time.deltaTime;
+                        if (recovery != 0.0f)
+                        {
+                            ApplyChangeToDepletable(depletable, recovery);
+                        }
+                    }
+                }
+            }
+
+            if (EntityState == eEntityState.CastingSkill)
+            {
+                if (CurrentSkill.MovementCancelsSkill)
+                {
+                    var skillCancelled = SkillStartTime < Movement.LastJumped || SkillStartTime < Movement.LastMoved ||
+                                         CurrentSkill.CasterState == SkillData.eCasterState.Grounded && !Movement.IsGrounded;
+                    if (skillCancelled)
+                    {
+                        CancelSkill();
                     }
                 }
             }
@@ -154,21 +170,21 @@ public class Entity : MonoBehaviour
     public virtual bool TryUseSkill(string skillID)
     {
         // Return if already using this skill
-        if (CurrentSkill == skillID)
+        if (CurrentSkill != null && CurrentSkill.SkillID == skillID)
         {
             return false;
         }
 
+        var skillData = GameData.GetSkillData(skillID);
+
         // Make sure the skill isn't on cooldown and any mandatory costs can be afforded. 
-        if (!CanUseSkill(skillID))
+        if (!CanUseSkill(skillData))
         {
             return false;
         }
 
         // If already casting another skill, interrupt it. 
         CancelSkill();
-
-        var skillData = GameData.GetSkillData(skillID);
 
         // Ensure target if one is required.
         TargetingSystem.UpdateEntityLists();
@@ -206,18 +222,18 @@ public class Entity : MonoBehaviour
             }
         }
 
-        CurrentSkill = skillID;
-
         SkillCoroutine = StartCoroutine(UseSkillCoroutine(skillData));
         return true;
     }
 
     public virtual IEnumerator UseSkillCoroutine(SkillData skillData)
     {
+        CurrentSkill = skillData;
+
         // Rotate toward target
-        if (Target != null)
+        if (Target != null && skillData.PreferredTarget != SkillData.eTargetPreferrence.None)
         {
-            yield return EntityMovement.RotateTowardCoroutine(Target.transform.position);
+            yield return Movement.RotateTowardCoroutine(Target.transform.position);
         }
 
         // Charge skill
@@ -227,6 +243,7 @@ public class Entity : MonoBehaviour
         }
 
         EntityState = eEntityState.CastingSkill;
+        SkillStartTime = BattleSystem.Time;
 
         yield return skillData.SkillTimeline.ExecuteActions(this, Target);
 
@@ -238,9 +255,9 @@ public class Entity : MonoBehaviour
     {
         EntityState = eEntityState.ChargingSkill;
         SkillCharge = skillData.SkillChargeData;
-        SkillChargeStartTime = BattleSystem.Time;
+        SkillStartTime = BattleSystem.Time;
 
-        EntityCanvas.StartSkillCharge(SkillCharge, CurrentSkill);
+        EntityCanvas.StartSkillCharge(SkillCharge, skillData.SkillID);
 
         SkillChargeCoroutine = StartCoroutine(SkillCharge.PreChargeTimeline.ExecuteActions(this, Target));
 
@@ -249,15 +266,16 @@ public class Entity : MonoBehaviour
         var fullChargeTime = SkillCharge.FullChargeTimeForEntity(this);
         do
         {
-            chargeComplete = BattleSystem.Time > (SkillChargeStartTime + fullChargeTime);
-            chargeCancelled = SkillCharge.MovementCancelsCharge && EntityMovement != null && EntityMovement.LastMoved > SkillChargeStartTime;
+            chargeComplete = BattleSystem.Time > (SkillStartTime + fullChargeTime);
+            chargeCancelled = SkillCharge.MovementCancelsCharge && Movement != null && 
+                             (Movement.LastMoved > SkillStartTime || Movement.LastJumped > SkillStartTime);
             yield return null;
         }
         while (!chargeComplete && !chargeCancelled);
 
         EntityCanvas.StopSkillCharge();
 
-        var timeElapsed = BattleSystem.Time - SkillChargeStartTime;
+        var timeElapsed = BattleSystem.Time - SkillStartTime;
         var minCharge = SkillCharge.RequiredChargeTimeForEntity(this);
         if (timeElapsed >= minCharge)
         {
@@ -351,14 +369,12 @@ public class Entity : MonoBehaviour
 
         RemoveAllTagsOnSelf();
         RemoveAllTagsOnEntities();
+        Targetable.RemoveTargeting();
     }
 
     protected virtual void OnKill(PayloadResult payloadResult)
     {
-        if (payloadResult != null && Target == payloadResult.Target)
-        {
-            TargetingSystem.ClearSelection();
-        }
+
     }
 
     protected virtual void OnTargetOutOfRange()
@@ -653,6 +669,30 @@ public class Entity : MonoBehaviour
         return SkillAvailableTime[skillID] > BattleSystem.Time;
     }
 
+    protected virtual bool CanUseSkillInCurrentState(SkillData skillData)
+    {
+        if (EntityState == eEntityState.Dead)
+        {
+            return false;
+        }
+
+        switch (skillData.CasterState)
+        {
+            case SkillData.eCasterState.Grounded:
+            {
+                return Movement.IsGrounded;
+            }
+            case SkillData.eCasterState.Jumping:
+            {
+                return !Movement.IsGrounded;
+            }
+            default:
+            {
+                return true;
+            }
+        }
+    }
+
     protected virtual bool CanAffordCost(List<ActionCostCollection> costActions)
     {
         var costs = new Dictionary<string, float>();
@@ -677,14 +717,16 @@ public class Entity : MonoBehaviour
         return true;
     }
 
-    public virtual bool CanUseSkill(string skillID)
+    public virtual bool CanUseSkill(SkillData skillData)
     {
-        if (IsSkillOnCooldown(skillID))
+        if (IsSkillOnCooldown(skillData.SkillID))
         {
             return false;
         }
 
-        if (!CanAffordCost(GameData.GetSkillData(skillID).SkillCost))
+        if (!CanUseSkillInCurrentState(skillData))
+
+        if (!CanAffordCost(GameData.GetSkillData(skillData.SkillID).SkillCost))
         {
             return false;
         }

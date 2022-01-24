@@ -16,6 +16,7 @@ public class SkillData
         Any,                                    // Skills that affect the player and don't concern a particular target.
         Enemy,                                  // Skills that affect an enemy entity.
         Friendly,                               // Skills that affect a friendly entity.
+        None                                    // Skills where it doesn't matter whether there is a target or not. 
     }
 
     public bool NeedsTarget;                    // If a skill requires a target, it can only be executed if a preferred target is selected. 
@@ -24,6 +25,16 @@ public class SkillData
 
     public eTargetPreferrence PreferredTarget;  // If a correct target is selected, the skill will only execute when it's in range. 
     public float Range;                         // Minimum range from target required for the skill to be effective.
+
+    public enum eCasterState
+    {
+        Grounded,
+        Jumping,
+        Any
+    }
+
+    public eCasterState CasterState;            // Skill can only be executed in the state specified and is cancelled when state changes.
+    public bool MovementCancelsSkill;           // Skill is cancelled if the entity moves while casting.
 
     public float Cooldown
     {

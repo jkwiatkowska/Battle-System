@@ -141,7 +141,7 @@ public static class GameData
                     IsTargetable = true,
                     Faction = "Dummy",
                     IsAI = false,
-                    Radius = 0.5f,
+                    Radius = 0.25f,
                     Height = 1.0f,
                     LifeDepletables = new List<string>()
                     {
@@ -216,7 +216,7 @@ public static class GameData
                                     ActionID = "message",
                                     SkillID = "",
                                     ActionType = Action.eActionType.Message,
-                                    Timestamp = 1.0f,
+                                    Timestamp = 0.5f,
                                     MessageString = "Bomb explosion in 2.",
                                     MessageColor = Color.red
                                 },
@@ -225,7 +225,7 @@ public static class GameData
                                     ActionID = "message",
                                     SkillID = "",
                                     ActionType = Action.eActionType.Message,
-                                    Timestamp = 2.0f,
+                                    Timestamp = 1.0f,
                                     MessageString = "Bomb explosion in 1.",
                                     MessageColor = Color.red
                                 },
@@ -234,7 +234,7 @@ public static class GameData
                                     ActionID = "message",
                                     SkillID = "",
                                     ActionType = Action.eActionType.Message,
-                                    Timestamp = 3.0f,
+                                    Timestamp = 1.5f,
                                     MessageString = "Boom.",
                                     MessageColor = Color.red
                                 },
@@ -243,7 +243,7 @@ public static class GameData
                                     ActionID = "explode",
                                     SkillID = "",
                                     ActionType = Action.eActionType.PayloadArea,
-                                    Timestamp = 3.0f,
+                                    Timestamp = 1.5f,
                                     TargetPriority = ActionPayload.eTargetPriority.Random,
                                     TargetLimit = 50,
                                     Target = ActionPayload.eTarget.AllEntities,
@@ -251,8 +251,8 @@ public static class GameData
                                     {
                                         new ActionPayloadArea.Area()
                                         {
-                                            Shape = ActionPayloadArea.Area.eShape.Circle,
-                                            Dimensions = new Vector2(2.5f, 360.0f),
+                                            Shape = ActionPayloadArea.Area.eShape.Sphere,
+                                            Dimensions = new Vector3(2.5f, 360.0f, 1.0f),
                                             InnerDimensions = new Vector2(0.0f, 0.0f),
                                             AreaTransform = new TransformData()
                                             {
@@ -305,6 +305,15 @@ public static class GameData
                     SkillID = "singleTargetAttack",
                     SkillTimeline = new ActionTimeline()
                     {
+                        new ActionMessage()
+                        {
+                            ActionID = "message",
+                            SkillID = "singleTargetAttack",
+                            ActionType = Action.eActionType.Message,
+                            Timestamp = 0.0f,
+                            MessageString = "Attacking selected and tagging.",
+                            MessageColor = Color.white
+                        },
                         new ActionCooldownApplication()
                         {
                             ActionID = "cd",
@@ -355,7 +364,8 @@ public static class GameData
                     },
                     NeedsTarget = true,
                     PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
-                    Range = 9.0f
+                    Range = 9.0f,
+                    CasterState = global::SkillData.eCasterState.Any
                 }
             },
             {
@@ -365,6 +375,15 @@ public static class GameData
                     SkillID = "singleTargetAttackWithDrain",
                     SkillTimeline = new ActionTimeline()
                     {
+                        new ActionMessage()
+                        {
+                            ActionID = "message",
+                            SkillID = "singleTargetAttackWithDrain",
+                            ActionType = Action.eActionType.Message,
+                            Timestamp = 0.0f,
+                            MessageString = "Attacking selected + tagged.",
+                            MessageColor = Color.white
+                        },
                         new ActionCooldownApplication()
                         {
                             ActionID = "cd",
@@ -503,7 +522,9 @@ public static class GameData
                     },
                     NeedsTarget = true,
                     PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
-                    Range = 9.0f
+                    Range = 9.0f,
+                    CasterState = global::SkillData.eCasterState.Any,
+                    MovementCancelsSkill = false
                 }
             },
             {
@@ -513,6 +534,15 @@ public static class GameData
                     SkillID = "coneAttack",
                     SkillTimeline = new ActionTimeline()
                     {
+                        new ActionMessage()
+                        {
+                            ActionID = "message",
+                            SkillID = "singleTargetAttack",
+                            ActionType = Action.eActionType.Message,
+                            Timestamp = 0.0f,
+                            MessageString = "Cylinder/cone attack.",
+                            MessageColor = Color.white
+                        },
                         new ActionCooldownApplication()
                         {
                             ActionID = "cd",
@@ -536,8 +566,8 @@ public static class GameData
                             {
                                 new ActionPayloadArea.Area()
                                 {
-                                    Shape = ActionPayloadArea.Area.eShape.Circle,
-                                    Dimensions = new Vector2(2.0f, 90.0f),
+                                    Shape = ActionPayloadArea.Area.eShape.Cylinder,
+                                    Dimensions = new Vector3(2.0f, 90.0f, 5.0f),
                                     InnerDimensions = new Vector2(0.0f, 0.0f),
                                     AreaTransform = new TransformData()
                                     {
@@ -578,8 +608,8 @@ public static class GameData
                             {
                                 new ActionPayloadArea.Area()
                                 {
-                                    Shape = ActionPayloadArea.Area.eShape.Circle,
-                                    Dimensions = new Vector2(2.0f, 180.0f),
+                                    Shape = ActionPayloadArea.Area.eShape.Cylinder,
+                                    Dimensions = new Vector3(2.0f, 180.0f, 7.0f),
                                     InnerDimensions = new Vector2(0.0f, 90.0f),
                                     AreaTransform = new TransformData()
                                     {
@@ -620,8 +650,8 @@ public static class GameData
                             {
                                 new ActionPayloadArea.Area()
                                 {
-                                    Shape = ActionPayloadArea.Area.eShape.Circle,
-                                    Dimensions = new Vector2(2.0f, 270.0f),
+                                    Shape = ActionPayloadArea.Area.eShape.Cylinder,
+                                    Dimensions = new Vector3(2.0f, 270.0f, 6.0f),
                                     InnerDimensions = new Vector2(0.0f, 180.0f),
                                     AreaTransform = new TransformData()
                                     {
@@ -662,8 +692,8 @@ public static class GameData
                             {
                                 new ActionPayloadArea.Area()
                                 {
-                                    Shape = ActionPayloadArea.Area.eShape.Circle,
-                                    Dimensions = new Vector2(3.0f, 360.0f),
+                                    Shape = ActionPayloadArea.Area.eShape.Cylinder,
+                                    Dimensions = new Vector3(3.0f, 360.0f, 6.0f),
                                     InnerDimensions = new Vector2(0.0f, 270.0f),
                                     AreaTransform = new TransformData()
                                     {
@@ -694,7 +724,9 @@ public static class GameData
                     },
                     NeedsTarget = false,
                     PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
-                    Range = 3.0f
+                    Range = 3.0f,
+                    CasterState = global::SkillData.eCasterState.Grounded,
+                    MovementCancelsSkill = true
                 }
             },
             {
@@ -704,6 +736,15 @@ public static class GameData
                     SkillID = "rectangleAttack",
                     SkillTimeline = new ActionTimeline()
                     {
+                        new ActionMessage()
+                        {
+                            ActionID = "message",
+                            SkillID = "rectangleAttack",
+                            ActionType = Action.eActionType.Message,
+                            Timestamp = 0.0f,
+                            MessageString = "Box/frame attack.",
+                            MessageColor = Color.white
+                        },
                         new ActionCooldownApplication()
                         {
                             ActionID = "cd",
@@ -727,8 +768,8 @@ public static class GameData
                             {
                                 new ActionPayloadArea.Area()
                                 {
-                                    Shape = ActionPayloadArea.Area.eShape.Rectangle,
-                                    Dimensions = new Vector2(1.0f, 1.0f),
+                                    Shape = ActionPayloadArea.Area.eShape.Cube,
+                                    Dimensions = new Vector3(1.0f, 1.0f, 2.0f),
                                     InnerDimensions = new Vector2(0.0f, 0.0f),
                                     AreaTransform = new TransformData()
                                     {
@@ -769,9 +810,9 @@ public static class GameData
                             {
                                 new ActionPayloadArea.Area()
                                 {
-                                    Shape = ActionPayloadArea.Area.eShape.Rectangle,
-                                    Dimensions = new Vector2(4.0f, 3.0f),
-                                    InnerDimensions = new Vector2(3.5f, 2.5f),
+                                    Shape = ActionPayloadArea.Area.eShape.Cube,
+                                    Dimensions = new Vector3(3.0f, 3.0f, 3.0f),
+                                    InnerDimensions = new Vector2(1.8f, 2.5f),
                                     AreaTransform = new TransformData()
                                     {
                                         PositionOrigin = TransformData.ePositionOrigin.TargetPosition,
@@ -811,9 +852,9 @@ public static class GameData
                             {
                                 new ActionPayloadArea.Area()
                                 {
-                                    Shape = ActionPayloadArea.Area.eShape.Rectangle,
-                                    Dimensions = new Vector2(6.0f, 4.5f),
-                                    InnerDimensions = new Vector2(5.0f, 3.5f),
+                                    Shape = ActionPayloadArea.Area.eShape.Cube,
+                                    Dimensions = new Vector3(5.0f, 4.5f, 3.0f),
+                                    InnerDimensions = new Vector2(3.5f, 3.5f),
                                     AreaTransform = new TransformData()
                                     {
                                         PositionOrigin = TransformData.ePositionOrigin.TargetPosition,
@@ -853,9 +894,9 @@ public static class GameData
                             {
                                 new ActionPayloadArea.Area()
                                 {
-                                    Shape = ActionPayloadArea.Area.eShape.Rectangle,
-                                    Dimensions = new Vector2(7.5f, 5.5f),
-                                    InnerDimensions = new Vector2(7.5f, 5.0f),
+                                    Shape = ActionPayloadArea.Area.eShape.Cube,
+                                    Dimensions = new Vector3(7.0f, 5.5f, 3.0f),
+                                    InnerDimensions = new Vector2(5.5f, 5.0f),
                                     AreaTransform = new TransformData()
                                     {
                                         PositionOrigin = TransformData.ePositionOrigin.TargetPosition,
@@ -885,7 +926,9 @@ public static class GameData
                     },
                     NeedsTarget = true,
                     PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
-                    Range = 20.0f
+                    Range = 20.0f,
+                    CasterState = global::SkillData.eCasterState.Any,
+                    MovementCancelsSkill = false
                 }
             },
             {
@@ -1069,7 +1112,10 @@ public static class GameData
                                 }
                             }
                         }
-                    }
+                    },
+                    PreferredTarget = global::SkillData.eTargetPreferrence.None,
+                    CasterState = global::SkillData.eCasterState.Grounded,
+                    MovementCancelsSkill = false
                 }
             },
             {
@@ -1208,7 +1254,9 @@ public static class GameData
                             },
                             ActionConditions = new List<ActionCondition>()
                         }
-                    }
+                    },
+                    CasterState = global::SkillData.eCasterState.Any,
+                    MovementCancelsSkill = false
                 }
             }
         };

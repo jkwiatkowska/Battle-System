@@ -38,7 +38,7 @@ public static class Utility
         return Mathf.Acos(Vector2.Dot(direction, forward)) * 57.2958f;
     }
 
-    public static float Distance(Entity entity1, Entity entity2)
+    public static float Distance2D(Entity entity1, Entity entity2)
     {
         var radii = entity1.EntityData.Radius + entity2.EntityData.Radius;
         var distance = Vector3.SqrMagnitude(entity1.transform.position - entity2.transform.position) - radii * radii;
@@ -46,7 +46,7 @@ public static class Utility
         return distance;
     }
 
-    public static float Distance(Vector2 pos, Entity entity)
+    public static float Distance2D(Vector2 pos, Entity entity)
     {
         var radius = entity.EntityData.Radius;
         var entityPos = Get2DVector(entity.transform.position);
@@ -55,9 +55,18 @@ public static class Utility
         return distance;
     }
 
+    public static float Distance3D(Vector3 pos, Entity entity)
+    {
+        var radius = entity.EntityData.Radius;
+        var entityPos = entity.transform.position;
+        var distance = Vector3.SqrMagnitude(pos - entityPos) - radius * radius;
+
+        return distance;
+    }
+
     public static bool IsInRange(Entity entity1, Entity entity2, float range)
     {
-        var distance = Distance(entity1, entity2);
+        var distance = Distance2D(entity1, entity2);
 
         return distance <= range * range;
     }

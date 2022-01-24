@@ -72,7 +72,7 @@ public class TargetingSystemPlayer : TargetingSystem
         }
     }
 
-    public override void ClearSelection()
+    public override void ClearSelection(bool selfOnly = false)
     {
         var entity = SelectedTarget;
 
@@ -81,7 +81,7 @@ public class TargetingSystemPlayer : TargetingSystem
             SelectedTarget.Targetable.ToggleSelect(false);
         }
 
-        base.ClearSelection();
+        base.ClearSelection(selfOnly);
 
         if (entity != null)
         {

@@ -17,31 +17,6 @@ public class TargetingSystem : MonoBehaviour
         }    
     }
 
-    public bool FriendlySelected
-    {
-        get
-        {
-            if (SelectedTarget == null)
-            {
-                return false;
-            }
-
-            return BattleSystem.IsFriendly(Parent.EntityUID, SelectedTarget.EntityUID);
-        }
-    }
-    public bool EnemySelected
-    {
-        get
-        {
-            if (SelectedTarget == null)
-            {
-                return false;
-            }
-
-            return BattleSystem.IsEnemy(Parent.EntityUID, SelectedTarget.EntityUID);
-        }
-    }
-
     public virtual void Setup(Entity parent)
     {
         Parent = parent;
@@ -49,19 +24,21 @@ public class TargetingSystem : MonoBehaviour
         FriendlyEntities = new List<Entity>();
     }
 
-    protected virtual void Update()
-    {
-
-    }
-
     public virtual void SelectTarget(Entity entity)
     {
         ClearSelection();
         SelectedTarget = entity;
+        var targetable = entity.GetComponentInChildren<Targetable>();
+        targetable.Target(true, Parent);
     }
 
-    public virtual void ClearSelection()
+    public virtual void ClearSelection(bool selfOnly = false)
     {
+        if (!selfOnly && SelectedTarget != null)
+        {
+            var targetable = SelectedTarget.GetComponentInChildren<Targetable>();
+            targetable.Target(false, Parent);
+        }
         SelectedTarget = null;
     }
 
@@ -179,5 +156,30 @@ public class TargetingSystem : MonoBehaviour
     protected virtual void ProcessFriendlyEntityList()
     {
 
+    }
+
+    public bool FriendlySelected
+    {
+        get
+        {
+            if (SelectedTarget == null)
+            {
+                return false;
+            }
+
+            return BattleSystem.IsFriendly(Parent.EntityUID, SelectedTarget.EntityUID);
+        }
+    }
+    public bool EnemySelected
+    {
+        get
+        {
+            if (SelectedTarget == null)
+            {
+                return false;
+            }
+
+            return BattleSystem.IsEnemy(Parent.EntityUID, SelectedTarget.EntityUID);
+        }
     }
 }

@@ -14,9 +14,9 @@ public class EntityPlayer : Entity
         {
             { KeyCode.Alpha1, "singleTargetAttack"},
             { KeyCode.Alpha2, "singleTargetAttackWithDrain"},
-            { KeyCode.Alpha3, "chargedAttack" },
-            { KeyCode.Alpha4, "coneAttack" },
-            { KeyCode.Alpha5, "rectangleAttack" },
+            { KeyCode.Alpha3, "coneAttack" },
+            { KeyCode.Alpha4, "rectangleAttack" },
+            { KeyCode.Alpha5, "chargedAttack" },
             { KeyCode.Alpha0, "healAll" },
         };
     }

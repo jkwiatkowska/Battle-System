@@ -62,7 +62,7 @@ public class EntityCanvas : MonoBehaviour
         if (Entity.EntityState == Entity.eEntityState.ChargingSkill)
         {
             var data = Entity.SkillCharge;
-            display.StartCharge(data.RequiredChargeTime, data.FullChargeTime, Entity.CurrentSkill, Entity.SkillChargeStartTime);
+            display.StartCharge(data.RequiredChargeTime, data.FullChargeTime, Entity.CurrentSkill.SkillID, Entity.SkillStartTime);
             display.gameObject.SetActive(true);
         }
         SkillChargeDisplay.Add(display);
