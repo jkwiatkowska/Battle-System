@@ -17,8 +17,10 @@ public class TransformData
     {
         CasterForward,          // The entity casting the skill
         TargetForward,          // Forward of the target
+        CasterToTarget,         // Direction vector between caster and target
         TaggedEntityForward,    // Forward of a tagged entity
-        CasterToPosition,       // Direction vector between caster and position origin
+        CasterToTaggedEntity,   // Direction vector between caster and tagged entity
+        CasterToPositionOrigin, // Direction vector between caster and position origin
         NorthDirection          // North direction in the world
     }
 
@@ -98,7 +100,28 @@ public class TransformData
             }
             case eForwardSource.TargetForward:
             {
-                forward = Utility.Get2DPosition(target.transform.forward);
+                if (target != null)
+                {
+                    forward = Utility.Get2DPosition(target.transform.forward);
+                }
+                else
+                {
+                    // No target
+                    return false;
+                }
+                break;
+            }
+            case eForwardSource.CasterToTarget:
+            {
+                if (target != null)
+                {
+                    forward = Utility.Get2DPosition(target.transform.position - caster.transform.position).normalized;
+                }
+                else
+                {
+                    // No target
+                    return false;
+                }
                 break;
             }
             case eForwardSource.TaggedEntityForward:
@@ -115,7 +138,21 @@ public class TransformData
                 }
                 break;
             }
-            case eForwardSource.CasterToPosition:
+            case eForwardSource.CasterToTaggedEntity:
+            {
+                var taggedEntity = ChooseTaggedEntity(caster);
+                if (taggedEntity != null)
+                {
+                    forward = Utility.Get2DPosition(taggedEntity.transform.forward - caster.transform.position).normalized;
+                }
+                else
+                {
+                    // No tagged entity
+                    return false;
+                }
+                break;
+            }
+            case eForwardSource.CasterToPositionOrigin:
             {
                 forward = (position - Utility.Get2DPosition(caster.transform.position)).normalized;
                 break;
