@@ -47,34 +47,46 @@ public class Entity : MonoBehaviour
     // State
     public eEntityState EntityState                                         { get; private set; }
     public bool IsTargetable                                                { get; private set; }
-    public string FactionOverride                                           { get; private set; }
+    public string Faction;
+    public string FactionOverride;
     protected bool SetupComplete;
 
     // Connections with other entities
     public Dictionary<string, Dictionary<string, float>> TaggedEntities     { get; protected set; }
     protected Dictionary<string, List<string>> TagsAppliedBy;
-    public Dictionary<string, Entity> LinkedEntities                        { get; protected set; }
-    public Entity LinkedTo                                                  { get; protected set; }
 
-    public virtual void Setup(string entityID, int entityLevel)
+    public EntitySummonDetails SummonDetails;
+    public Dictionary<string, List<Entity>> SummonedEntities                { get; protected set; }
+
+    public virtual void Setup(string entityID, int entityLevel, EntitySummonDetails summonDetails = null)
     {
-        if (SetupComplete)
-        {
-            return;
-        }
-
         EntityID = entityID;
         EntityUID = entityID + EntityCount.ToString();
         EntityCount++;
         EntityLevel = entityLevel;
         EntityState = eEntityState.Idle;
         name = EntityUID;
+        SummonDetails = summonDetails;
+        Faction = EntityData.Faction;
 
-        // Attributes, skills, triggers and tags
+        if (SummonDetails != null && SummonDetails.SummonAction.InheritFaction)
+        {
+            Faction = SummonDetails.Summoner.Faction;
+        }
+
+        // Attributes
         BaseAttributes = new Dictionary<string, float>();
         foreach (var attribute in GameData.EntityAttributes)
         {
-            BaseAttributes.Add(attribute, Formulae.EntityBaseAttribute(this, attribute));
+            if (SummonDetails != null && SummonDetails.SummonAction.SharedAttributes.ContainsKey(attribute))
+            {
+                BaseAttributes[attribute] = SummonDetails.SummonAction.SharedAttributes[attribute] * 
+                                            SummonDetails.Summoner.BaseAttributes[attribute];
+            }
+            else
+            {
+                BaseAttributes.Add(attribute, Formulae.EntityBaseAttribute(this, attribute));
+            }
         }
         DepletablesMax = new Dictionary<string, float>();
         DepletablesCurrent = new Dictionary<string, float>();
@@ -84,9 +96,11 @@ public class Entity : MonoBehaviour
             DepletablesCurrent.Add(depletable, Formulae.DepletableStartValue(this, depletable));
         }
 
+        // Skills
         SkillAvailableTime = new Dictionary<string, float>();
         ActionResults = new Dictionary<string, ActionResult>();
 
+        // Triggers
         Triggers = new Dictionary<TriggerData.eTrigger, List<Trigger>>();
         foreach (var trigger in EntityData.Triggers)
         {
@@ -94,12 +108,12 @@ public class Entity : MonoBehaviour
         }
         IsTargetable = EntityData.IsTargetable;
 
+        // Connections
         TaggedEntities = new Dictionary<string, Dictionary<string, float>>();
         TagsAppliedBy = new Dictionary<string, List<string>>();
+        SummonedEntities = new Dictionary<string, List<Entity>>();
 
-        LinkedEntities = new Dictionary<string, Entity>();
-
-        // Dependencies 
+        // Dependencies and components
         BattleSystem.AddEntity(this);
 
         TargetingSystem = GetComponentInChildren<TargetingSystem>();
@@ -141,29 +155,12 @@ public class Entity : MonoBehaviour
         SetupComplete = true;
     }
 
-    public virtual void Setup(string entityID, int entityLevel, Entity summoner, ActionSummon summonData)
-    {
-        Setup(entityID, entityLevel);
-
-        if (summonData.LifeLink)
-        {
-            CreateLink(summoner);
-        }
-
-        foreach (var attribute in summonData.SharedAttributes)
-        {
-            BaseAttributes[attribute.Key] = attribute.Value * summoner.BaseAttributes[attribute.Key];
-        }
-
-        if (summonData.InheritFaction)
-        {
-            FactionOverride = summoner.Faction;
-        }
-    }
-
     protected virtual void Start()
     {
-        Setup(EntityID, EntityLevel);
+        if (!SetupComplete)
+        {
+            Setup(EntityID, EntityLevel);
+        }
     }
 
     protected virtual void Update()
@@ -196,6 +193,11 @@ public class Entity : MonoBehaviour
                         CancelSkill();
                     }
                 }
+            }
+
+            if (SummonDetails != null)
+            {
+                SummonDetails.Update();
             }
         }
     }
@@ -366,7 +368,7 @@ public class Entity : MonoBehaviour
         Triggers[trigger.TriggerData.Trigger].Add(trigger);
     }
 
-    public virtual void OnTrigger(TriggerData.eTrigger trigger, PayloadResult payloadResult)
+    public virtual void OnTrigger(TriggerData.eTrigger trigger, PayloadResult payloadResult = null)
     {
         // Variable triggers
         if (Triggers.ContainsKey(trigger))
@@ -404,7 +406,11 @@ public class Entity : MonoBehaviour
         RemoveAllTagsOnSelf();
         RemoveAllTagsOnEntities();
         Targetable.RemoveTargeting();
-        KillLinkedEntities();
+        KillLinkedSummons();
+        if (SummonDetails != null)
+        {
+            SummonDetails.Summoner.RemoveSummonedEntity(this);
+        }
     }
 
     protected virtual void OnKill(PayloadResult payloadResult)
@@ -536,34 +542,48 @@ public class Entity : MonoBehaviour
     }
     #endregion
 
-    #region Life Link
-    public void CreateLink(Entity entity)
+    #region Summon/Life Link
+    public void AddSummonnedEntity(Entity entity, ActionSummon summonAction)
     {
-        LinkedTo = entity;
-    }
-
-    public void RemoveLink()
-    {
-        LinkedTo.RemoveLink(this);
-        LinkedTo = null;
-    }
-
-    public void AddLink(Entity entity)
-    {
-        LinkedEntities.Add(entity.EntityUID, entity);
-        entity.CreateLink(this);
-    }
-
-    public void RemoveLink(Entity entity)
-    {
-        LinkedEntities.Remove(entity.EntityUID);
-    }
-
-    private void KillLinkedEntities()
-    {
-        foreach (var entity in LinkedEntities)
+        if (!SummonedEntities.ContainsKey(summonAction.EntityID))
         {
-            entity.Value.OnTrigger(TriggerData.eTrigger.OnDeath, null);
+            SummonedEntities.Add(summonAction.EntityID, new List<Entity>());
+        }
+
+        while (SummonedEntities[summonAction.EntityID].Count >= summonAction.SummonLimit)
+        {
+            var entityToRemove = SummonedEntities[summonAction.EntityID][0];
+            entityToRemove.OnTrigger(TriggerData.eTrigger.OnDeath);
+        }
+
+        SummonedEntities[summonAction.EntityID].Add(entity);
+    }
+
+    public void RemoveSummonedEntity(Entity entity)
+    {
+        if (SummonedEntities.ContainsKey(entity.EntityID))
+        {
+            SummonedEntities[entity.EntityID].Remove(entity);
+        }
+    }
+
+    void KillLinkedSummons()
+    {
+        var linkedSummons = new List<Entity>();
+        foreach (var group in SummonedEntities)
+        {
+            foreach (var entity in group.Value)
+            {
+                if (entity.SummonDetails.IsLinked)
+                {
+                    linkedSummons.Add(entity);
+                }
+            }
+        }
+
+        foreach (var entity in linkedSummons)
+        {
+            entity.OnTrigger(TriggerData.eTrigger.OnDeath);
         }
     }
     #endregion
@@ -664,7 +684,7 @@ public class Entity : MonoBehaviour
         }
     }
 
-    public string Faction
+    public string EntityFaction
     {
         get
         {
@@ -674,7 +694,7 @@ public class Entity : MonoBehaviour
             }
             else
             {
-                return EntityData.Faction;
+                return Faction;
             }
         }
     }
@@ -682,7 +702,7 @@ public class Entity : MonoBehaviour
     {
         get
         {
-            return GameData.GetFactionData(Faction);
+            return GameData.GetFactionData(EntityFaction);
         }
     }
 

@@ -88,10 +88,10 @@ public class BattleSystem : MonoBehaviour
         }
 
         var entity = Entities[entityUID];
-        var entityFaction = entity.Faction;
+        var entityFaction = entity.EntityFaction;
 
         var targetEntity = Entities[targetUID];
-        var targetFaction = targetEntity.Faction;
+        var targetFaction = targetEntity.EntityFaction;
 
         if (entityFaction == targetFaction)
         {
@@ -113,10 +113,10 @@ public class BattleSystem : MonoBehaviour
         }
 
         var entity = Entities[entityUID];
-        var entityFaction = entity.Faction;
+        var entityFaction = entity.EntityFaction;
 
         var targetEntity = Entities[targetUID];
-        var targetFaction = targetEntity.Faction;
+        var targetFaction = targetEntity.EntityFaction;
 
         if (entityFaction == targetFaction)
         {

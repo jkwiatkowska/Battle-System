@@ -1298,7 +1298,9 @@ public static class GameData
                                 PositionOrigin = TransformData.ePositionOrigin.CasterPosition,
                                 ForwardSource = TransformData.eForwardSource.CasterForward,
                                 PositionOffset = new Vector3(0.0f, 0.0f, 1.0f)
-                            }
+                            },
+                            SummonDuration = 20.0f,
+                            SummonLimit = 3
                         }
                     },
                     NeedsTarget = true,

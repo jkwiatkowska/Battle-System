@@ -36,14 +36,12 @@ public class ActionSummon : Action
 
         // Setup
         var summon = BattleSystem.SpawnEntity(EntityID);
-        summon.Setup(EntityID, entity.Level, entity, this);
+        summon.Setup(EntityID, entity.Level, new EntitySummonDetails(this, entity, summon));
+        entity.AddSummonnedEntity(summon, this);
 
         // Set position and transform
         summon.transform.position = position;
 
         summon.transform.forward = new Vector3(forward.x, 0.0f, forward.y);
-
-        // To do: add duration and summon limit
-
     }
 }
