@@ -7,11 +7,11 @@ public class ActionMessage : Action
     public string MessageString;
     public Color MessageColor;
 
-    public override void Execute(Entity entity, out ActionResult actionResult, Entity target)
+    public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
     {
-        actionResult = new ActionResult();
+        actionResults[ActionID] = new ActionResult();
 
-        if (!ConditionsMet(entity))
+        if (!ConditionsMet(entity, actionResults))
         {
             return;
         }
@@ -19,7 +19,7 @@ public class ActionMessage : Action
         var message = NamesAndText.MessageFromString(MessageString);
         MessageHUD.Instance.DisplayMessage(message, MessageColor);
 
-        actionResult.Success = true;
+        actionResults[ActionID].Success = true;
         return;
     }
 }

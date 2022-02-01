@@ -46,11 +46,11 @@ public class ActionCostCollection : Action
         return (GetValue(entity) <= entity.DepletablesCurrent[DepletableName]);
     }
 
-    public override void Execute(Entity entity, out ActionResult actionResult, Entity target)
+    public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
     {
-        actionResult = new ActionResult();
+        actionResults[ActionID] = new ActionResult();
 
-        if (!ConditionsMet(entity) || !CanCollectCost(entity))
+        if (!ConditionsMet(entity, actionResults) || !CanCollectCost(entity))
         {
             return;
         }
@@ -59,7 +59,7 @@ public class ActionCostCollection : Action
 
         entity.ApplyChangeToDepletable(DepletableName, value);
 
-        actionResult.Success = true;
-        actionResult.Value = value;
+        actionResults[ActionID].Success = true;
+        actionResults[ActionID].Value = value;
     }
 }

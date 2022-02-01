@@ -95,7 +95,7 @@ public class Projectile : Entity
             var direction = transform.forward;
             var speedMultiplier = 1.0f;
 
-            if (ProjectileTimeline.Count > 0)
+            if (ProjectileTimeline != null && ProjectileTimeline.Count > 0)
             {
                 var currentAction = ProjectileTimeline[ActionIndex];
 

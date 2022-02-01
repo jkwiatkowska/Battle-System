@@ -12,11 +12,11 @@ public class ActionTrigger : Action
     }
     public eTriggerTarget TriggerTarget;
 
-    public override void Execute(Entity entity, out ActionResult actionResult, Entity target)
+    public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
     {
-        actionResult = new ActionResult();
+        actionResults[ActionID] = new ActionResult();
 
-        if (!ConditionsMet(entity))
+        if (!ConditionsMet(entity, actionResults))
         {
             return;
         }
@@ -39,5 +39,7 @@ public class ActionTrigger : Action
                 break;
             }
         }
+
+        actionResults[ActionID].Success = true;
     }
 }

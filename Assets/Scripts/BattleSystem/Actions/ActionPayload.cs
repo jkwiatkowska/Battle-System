@@ -32,11 +32,11 @@ public abstract class ActionPayload : Action
     public int TargetLimit;                 // Targets can be limited for actions that affect multiple targets
     public eTargetPriority TargetPriority;  // If there's a target limit, targets can be prioritised based on specified criteria
 
-    public override void Execute(Entity entity, out ActionResult actionResult, Entity target)
+    public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
     {
-        actionResult = new ActionResult();
+        actionResults[ActionID] = new ActionResult();
 
-        if (!ConditionsMet(entity))
+        if (!ConditionsMet(entity, actionResults))
         {
             return;
         }
@@ -82,7 +82,7 @@ public abstract class ActionPayload : Action
             }
         }
 
-        var payload = new Payload(entity, this);
+        var payload = new Payload(entity, this, actionResults);
         foreach (var t in targets)
         {
             var result = new PayloadResult(PayloadData, entity, t, SkillID, ActionID, 0.0f, new List<string>());
@@ -98,8 +98,8 @@ public abstract class ActionPayload : Action
 
             // Apply payload and update result.
             payload.ApplyPayload(entity, t, result);
-            actionResult.Value += result.Change;
-            actionResult.Count += 1;
+            actionResults[ActionID].Value += result.Change;
+            actionResults[ActionID].Count += 1;
 
             entity.OnTrigger(TriggerData.eTrigger.OnHitOutgoing, entity, result);
             t.OnTrigger(TriggerData.eTrigger.OnHitIncoming, entity, result);
@@ -111,7 +111,7 @@ public abstract class ActionPayload : Action
             }
         }
 
-        actionResult.Success = true;
+        actionResults[ActionID].Success = true;
     }
 
     public abstract List<Entity> GetTargetsForAction(Entity entity, Entity target);

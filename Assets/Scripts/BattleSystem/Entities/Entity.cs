@@ -27,7 +27,6 @@ public class Entity : MonoBehaviour
 
     // Skills
     protected Dictionary<string, float> SkillAvailableTime;
-    public Dictionary<string, ActionResult> ActionResults                   { get; protected set; }
     public SkillData CurrentSkill                                           { get; protected set; }
     protected Coroutine SkillCoroutine;
     protected Coroutine SkillChargeCoroutine;
@@ -98,7 +97,6 @@ public class Entity : MonoBehaviour
 
         // Skills
         SkillAvailableTime = new Dictionary<string, float>();
-        ActionResults = new Dictionary<string, ActionResult>();
 
         // Triggers
         Triggers = new Dictionary<TriggerData.eTrigger, List<Trigger>>();

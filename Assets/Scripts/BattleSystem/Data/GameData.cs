@@ -158,7 +158,7 @@ public static class GameData
                                     ActionID = "deathAction",
                                     SkillID = "",
                                     ActionType = Action.eActionType.DestroySelf,
-                                    Timestamp = 0.5f,
+                                    Timestamp = 0.01f,
                                 }
                             },
                             SkillIDs = new List<string>(),
@@ -1397,7 +1397,7 @@ public static class GameData
                             {
                                 new ActionProjectile.ProjectileAction()
                                 {
-                                    SpeedMultiplier = new Vector2(0.0f, 0.1f),
+                                    SpeedMultiplier = new Vector2(0.7f, 0.8f),
                                     Direction = (Vector3.forward, Vector3.forward),
                                     Timestamp = 0.0f
                                 },
@@ -1405,8 +1405,26 @@ public static class GameData
                                 {
                                     SpeedMultiplier = new Vector2(0.8f, 1.0f),
                                     Direction = (Vector3.forward, Vector3.forward),
-                                    Timestamp = 4.0f
-                                }
+                                    Timestamp = 2.0f
+                                },
+                                new ActionProjectile.ProjectileAction()
+                                {
+                                    SpeedMultiplier = new Vector2(0.1f, 0.2f),
+                                    Direction = (Vector3.forward, Vector3.forward),
+                                    Timestamp = 2.1f
+                                },
+                                new ActionProjectile.ProjectileAction()
+                                {
+                                    SpeedMultiplier = new Vector2(0.0f, 0.1f),
+                                    Direction = (Vector3.forward, Vector3.forward),
+                                    Timestamp = 3.5f
+                                },
+                                new ActionProjectile.ProjectileAction()
+                                {
+                                    SpeedMultiplier = new Vector2(1.0f, 1.1f),
+                                    Direction = (Vector3.forward, Vector3.forward),
+                                    Timestamp = 6.0f
+                                },
                             },
                             Target = ActionProjectile.eTarget.Target,
                             Gravity = 0.0f,
@@ -1451,7 +1469,7 @@ public static class GameData
                                             ActionID = "deathAction",
                                             SkillID = "projectileAttack",
                                             ActionType = Action.eActionType.Trigger,
-                                            Timestamp = 0.1f,
+                                            Timestamp = 0.015f,
                                             TriggerType = TriggerData.eTrigger.OnDeath,
                                             TriggerTarget = ActionTrigger.eTriggerTarget.Caster
                                         }
@@ -1476,7 +1494,7 @@ public static class GameData
                     },
                     NeedsTarget = true,
                     PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
-                    Range = 9.0f,
+                    Range = 19.0f,
                     CasterState = global::SkillData.eCasterState.Any
                 }
             },

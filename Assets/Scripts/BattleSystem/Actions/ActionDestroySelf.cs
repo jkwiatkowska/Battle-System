@@ -4,10 +4,16 @@ using UnityEngine;
 
 public class ActionDestroySelf : Action
 {
-    public override void Execute(Entity entity, out ActionResult actionResult, Entity target)
+    public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
     {
-        actionResult = new ActionResult();
+        actionResults[ActionID] = new ActionResult();
+
+        if (!ConditionsMet(entity, actionResults))
+        {
+            return;
+        }
+
         entity.DestroyEntity();
-        actionResult.Success = true;
+        actionResults[ActionID].Success = true;
     }
 }

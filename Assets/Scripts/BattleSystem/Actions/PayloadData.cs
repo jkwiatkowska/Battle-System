@@ -38,6 +38,8 @@ public class PayloadData
 
     public TagData Tag;                                 // An entity can be "tagged". This makes it possible for skills to affect this entity specifically without selecting it
 
+    public List<TriggerData.eTrigger> Triggers;         // Can be used to force trigger reactions in target, such as death without taking damage.
+
     public float SuccessChance;
 
     // TO DO:

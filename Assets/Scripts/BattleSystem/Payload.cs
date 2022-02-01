@@ -10,7 +10,7 @@ public class Payload
 
     // To do: status effects
 
-    public Payload(Entity caster, ActionPayload action)
+    public Payload(Entity caster, ActionPayload action, Dictionary<string, ActionResult> actionResults)
     {
         Source = caster;
         Action = action;
@@ -68,9 +68,9 @@ public class Payload
                 }
                 case PayloadData.PayloadComponent.ePayloadComponentType.ActionResultValue:
                 {
-                    if (caster.ActionResults.ContainsKey(component.Attribute))
+                    if (actionResults.ContainsKey(component.Attribute))
                     {
-                        change -= caster.ActionResults[component.Attribute].Value;
+                        change -= actionResults[component.Attribute].Value;
                     }
                     else
                     {

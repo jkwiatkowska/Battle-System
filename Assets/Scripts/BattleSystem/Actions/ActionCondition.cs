@@ -26,15 +26,15 @@ public class ActionCondition
     public float ConditionValueBoundary;            // Minimum or maximum value to compare against
     public string ConditionTarget;                  // Name of depletable if using depletable ratio, or action if onActionSuccess/Fail
 
-    public virtual bool ConditionMet(Entity entity, string actionID)
+    public virtual bool ConditionMet(Entity entity, string actionID, Dictionary<string, ActionResult> actionResults)
     {
         switch (Condition)
         {
             case eActionCondition.OnActionSuccess:
             {
-                if (entity.ActionResults.ContainsKey(ConditionTarget))
+                if (actionResults.ContainsKey(ConditionTarget))
                 {
-                    return entity.ActionResults[ConditionTarget].Success;
+                    return actionResults[ConditionTarget].Success;
                 }
                 else
                 {
@@ -44,9 +44,9 @@ public class ActionCondition
             }
             case eActionCondition.OnActionFail:
             {
-                if (entity.ActionResults.ContainsKey(ConditionTarget))
+                if (actionResults.ContainsKey(ConditionTarget))
                 {
-                    return !entity.ActionResults[ConditionTarget].Success;
+                    return !actionResults[ConditionTarget].Success;
                 }
                 else
                 {

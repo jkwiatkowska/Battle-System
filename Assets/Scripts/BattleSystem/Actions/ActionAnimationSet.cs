@@ -17,11 +17,11 @@ public class ActionAnimationSet<T> : Action
     public string Name;
     public bool ValueBool;
     public string ValueOther;
-    public override void Execute(Entity entity, out ActionResult actionResult, Entity target)
+    public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
     {
-        actionResult = new ActionResult();
+        actionResults[ActionID] = new ActionResult();
 
-        if (!ConditionsMet(entity))
+        if (!ConditionsMet(entity, actionResults))
         {
             return;
         }
@@ -38,13 +38,13 @@ public class ActionAnimationSet<T> : Action
             case eAnimationAction.SetTrigger:
             {
                 animator.SetTrigger(Name);
-                actionResult.Success = true;
+                actionResults[ActionID].Success = true;
                 return;
             }
             case eAnimationAction.SetBool:
             {
                 animator.SetBool(Name, ValueBool);
-                actionResult.Success = true;
+                actionResults[ActionID].Success = true;
                 return;
             }
             case eAnimationAction.SetFloat:
@@ -52,7 +52,7 @@ public class ActionAnimationSet<T> : Action
                 if (float.TryParse(ValueOther, out var floatValue))
                 {
                     animator.SetFloat(Name, floatValue);
-                    actionResult.Success = true;
+                    actionResults[ActionID].Success = true;
                 }
                 else
                 {
@@ -63,7 +63,7 @@ public class ActionAnimationSet<T> : Action
             case eAnimationAction.SetFloatChargeRatio:
             {
                 animator.SetFloat(Name, entity.SkillChargeRatio);
-                actionResult.Success = true;
+                actionResults[ActionID].Success = true;
                 return;
             }
             case eAnimationAction.SetInt:
@@ -71,7 +71,7 @@ public class ActionAnimationSet<T> : Action
                 if (int.TryParse(ValueOther, out var intValue))
                 {
                     animator.SetFloat(Name, intValue);
-                    actionResult.Success = true;
+                    actionResults[ActionID].Success = true;
                 }
                 else
                 {

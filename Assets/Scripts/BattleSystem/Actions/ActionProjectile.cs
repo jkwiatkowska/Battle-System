@@ -58,9 +58,14 @@ public class ActionProjectile : ActionSummon
     public List<OnCollisionReaction> OnFriendHit;
     public List<OnCollisionReaction> OnTerrainHit;
 
-    public override void Execute(Entity entity, out ActionResult actionResult, Entity target)
+    public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
     {
-        base.Execute(entity, out actionResult, target);
+        base.Execute(entity, target, ref actionResults);
+
+        if (!actionResults[ActionID].Success)
+        {
+            return;
+        }
 
         var projectile = SummonnedEntity as Projectile;
         if (projectile != null)

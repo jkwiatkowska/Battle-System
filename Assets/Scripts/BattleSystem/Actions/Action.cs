@@ -24,14 +24,14 @@ public abstract class Action
 
     public List<ActionCondition> ActionConditions;
 
-    public abstract void Execute(Entity entity, out ActionResult actionResult, Entity target);
+    public abstract void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults);
 
     public float TimestampForEntity(Entity entity)
     {
         return Formulae.ActionTime(entity, this);
     }
 
-    public bool ConditionsMet(Entity entity)
+    public bool ConditionsMet(Entity entity, Dictionary<string, ActionResult> actionResults)
     {
         if (ActionConditions == null)
         {
@@ -40,7 +40,7 @@ public abstract class Action
 
         foreach (var condition in ActionConditions)
         {
-            if (!condition.ConditionMet(entity, ActionID))
+            if (!condition.ConditionMet(entity, ActionID, actionResults))
             {
                 return false;
             }

@@ -19,11 +19,11 @@ public class ActionSummon : Action
 
     protected Entity SummonnedEntity;                   // Used by inheriting classes
 
-    public override void Execute(Entity entity, out ActionResult actionResult, Entity target)
+    public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
     {
-        actionResult = new ActionResult();
+        actionResults[ActionID] = new ActionResult();
 
-        if (!ConditionsMet(entity))
+        if (!ConditionsMet(entity, actionResults))
         {
             return;
         }
@@ -45,5 +45,7 @@ public class ActionSummon : Action
         SummonnedEntity.transform.position = position;
 
         SummonnedEntity.transform.forward = new Vector3(forward.x, 0.0f, forward.y);
+
+        actionResults[ActionID].Success = true;
     }
 }

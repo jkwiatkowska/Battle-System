@@ -14,12 +14,11 @@ public class ActionCooldownApplication : Action
     public eCooldownTarget CooldownTarget;      // A cooldown can be applied to a singular skill or a group of skills.
     public string CooldownTargetName;           // Name of a skill or skill group.
     
-
-    public override void Execute(Entity entity, out ActionResult actionResult, Entity target)
+    public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
     {
-        actionResult = new ActionResult();
+        actionResults[ActionID] = new ActionResult();
 
-        if (!ConditionsMet(entity))
+        if (!ConditionsMet(entity, actionResults))
         {
             return;
         }
@@ -49,6 +48,6 @@ public class ActionCooldownApplication : Action
             }
         }
 
-        actionResult.Success = true;
+        actionResults[ActionID].Success = true;
     }
 }

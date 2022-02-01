@@ -7,7 +7,7 @@ public class ActionTimeline : List<Action>
     public IEnumerator ExecuteActions(Entity entity, Entity target)
     {
         var startTime = BattleSystem.Time;
-        entity.ActionResults.Clear();
+        var actionResults = new Dictionary<string, ActionResult>();
 
         foreach (var action in this)
         {
@@ -17,8 +17,7 @@ public class ActionTimeline : List<Action>
                 yield return null;
             }
 
-            action.Execute(entity, out var actionResult, target);
-            entity.ActionResults[action.ActionID] = actionResult;
+            action.Execute(entity, target, ref actionResults);
         }
         yield return null;
     }

@@ -23,7 +23,10 @@ public class ActionPayloadDirect : ActionPayload
         {
             case eDirectActionTargets.Self:
             {
-                targets.Add(entity);
+                if (CheckTargetableState(entity))
+                {
+                    targets.Add(entity);
+                }
                 break;
             }
             case eDirectActionTargets.SelectedEntity:
@@ -38,18 +41,27 @@ public class ActionPayloadDirect : ActionPayload
                 {
                     if (BattleSystem.IsFriendly(entity.EntityUID, target.EntityUID))
                     {
-                        targets.Add(target);
+                        if (CheckTargetableState(target))
+                        {
+                            targets.Add(target);
+                        }
                     }
                     else
                     {
-                        targets.Add(entity);
+                        if (CheckTargetableState(entity))
+                        {
+                            targets.Add(entity);
+                        }
                     }
                 }
                 else if (Target == eTarget.EnemyEntities)
                 {
                     if (BattleSystem.IsEnemy(entity.EntityUID, target.EntityUID))
                     {
-                        targets.Add(target);
+                        if (CheckTargetableState(target))
+                        {
+                            targets.Add(target);
+                        }
                     }
                     else
                     {
