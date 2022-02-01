@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class BattleSystem : MonoBehaviour
 {
-    [SerializeField] string DataPath;
+    [SerializeField] static string DataPath;
+    [SerializeField] static LayerMask TerrainLayers;            // For projectile collision
     public static BattleSystem Instance                         { get; private set; }
 
     public static Dictionary<string, Entity> Entities           { get; private set; }
@@ -88,16 +89,13 @@ public class BattleSystem : MonoBehaviour
         }
 
         var entity = Entities[entityUID];
-        var entityFaction = entity.EntityFaction;
-
         var targetEntity = Entities[targetUID];
-        var targetFaction = targetEntity.EntityFaction;
 
-        if (entityFaction == targetFaction)
+        if (entity.Faction == targetEntity.Faction)
         {
             return true;
         }
-        if (GameData.GetFactionData(entityFaction).FriendlyFactions.Contains(targetFaction))
+        if (GameData.GetFactionData(entity.Faction).FriendlyFactions.Contains(targetEntity.Faction))
         {
             return true;
         }
@@ -113,16 +111,13 @@ public class BattleSystem : MonoBehaviour
         }
 
         var entity = Entities[entityUID];
-        var entityFaction = entity.EntityFaction;
-
         var targetEntity = Entities[targetUID];
-        var targetFaction = targetEntity.EntityFaction;
 
-        if (entityFaction == targetFaction)
+        if (entity.Faction == targetEntity.Faction)
         {
             return false;
         }
-        if (GameData.GetFactionData(entityFaction).EnemyFactions.Contains(targetFaction))
+        if (GameData.GetFactionData(entity.Faction).EnemyFactions.Contains(targetEntity.Faction))
         {
             return true;
         }
@@ -143,5 +138,10 @@ public class BattleSystem : MonoBehaviour
         }
 
         return false;
+    }
+
+    public static bool IsOnTerrainLayer(GameObject gameObject)
+    {
+        return TerrainLayers == (TerrainLayers | (1 << gameObject.layer));
     }
 }

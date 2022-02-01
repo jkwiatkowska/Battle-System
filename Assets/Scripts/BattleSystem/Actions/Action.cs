@@ -12,8 +12,9 @@ public abstract class Action
         PayloadArea,                // Applies a defined payload to all entities in a given area.
         PayloadDirect,              // Applies a payload to specified entities. 
         SpawnProjectile,            // Spawns an entity that moves in a specific way and can execute skills on contact or timeout. 
-        SpawnEntity,                // Spawns an entity that can execute skills. Can be used to implement area of effect skills. 
-        TriggerAnimation            // Can be used to set animation triggers in the entity. 
+        SpawnEntity,                // Spawns an entity that can execute skills. Can be used to implement area of effect skills.
+        Trigger,                    // Can be used to force reactions to specific triggers.
+        TriggerAnimation,           // Can be used to set animation triggers in the entity. 
     }
 
     public string ActionID;         // Used to identify actions and their results.

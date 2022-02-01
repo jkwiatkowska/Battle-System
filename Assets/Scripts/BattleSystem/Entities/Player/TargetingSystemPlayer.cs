@@ -9,7 +9,7 @@ public class TargetingSystemPlayer : TargetingSystem
     [SerializeField] float AngleWeight = 0.5f;
     [SerializeField] float MaxDistance = 100.0f;
 
-    EntityMovement Player;
+    MovementEntity Player;
     float PlayerLastMoved;
 
     public override void Setup(Entity parent)
@@ -22,7 +22,7 @@ public class TargetingSystemPlayer : TargetingSystem
 
         base.Setup(parent);
 
-        Player = Parent.GetComponentInChildren<EntityMovement>();
+        Player = Parent.GetComponentInChildren<MovementEntity>();
         if (Player == null)
         {
             Debug.LogError("Player entity does not have a player controller component.");
@@ -83,16 +83,9 @@ public class TargetingSystemPlayer : TargetingSystem
 
         base.ClearSelection(selfOnly);
 
-        if (entity != null)
+        if (entity != null && entity.EntityCanvas != null)
         {
-            if (entity.EntityCanvas != null)
-            {
                 TargetHUD.ClearSelection(entity.EntityCanvas);
-            }
-            else
-            {
-                Debug.LogError($"Entity {entity.EntityUID} is missing EntityCanvas.");
-            }
         }
     }
 

@@ -7,7 +7,7 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] EntityPlayer Player;
     [SerializeField] float InputCooldown = 0.25f;
     PlayerCamera PlayerCamera;
-    EntityMovement PlayerMovement;
+    MovementPlayer PlayerMovement;
     TargetingSystemPlayer PlayerTargetingSystem;
 
     float LastInput;
@@ -15,7 +15,7 @@ public class PlayerInput : MonoBehaviour
     void Awake()
     {
         PlayerCamera = FindObjectOfType<PlayerCamera>();
-        PlayerMovement = Player.GetComponentInChildren<EntityMovement>();
+        PlayerMovement = Player.GetComponentInChildren<MovementPlayer>();
         PlayerTargetingSystem = Player.GetComponentInChildren<TargetingSystemPlayer>();
     }
 
@@ -72,7 +72,7 @@ public class PlayerInput : MonoBehaviour
     {
         if (Input.GetAxis("Horizontal") != 0.0f || Input.GetAxis("Vertical") != 0.0f)
         {
-            PlayerMovement.Move(new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")));
+            PlayerMovement.MovePlayer(new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")));
         }
 
         if (Input.GetButton("Jump"))

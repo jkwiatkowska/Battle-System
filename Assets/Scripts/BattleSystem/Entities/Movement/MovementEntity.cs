@@ -2,17 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EntityMovement : MonoBehaviour
+public class MovementEntity : MonoBehaviour
 {
     [SerializeField] LayerMask TerrainLayers;
     [SerializeField] float GroundCheckSphereRadius;
     Entity Parent;
-    PlayerCamera Camera;
 
     Vector3 Velocity;
     Vector3 GroundCheckSphereOffset;
 
-    float GravitationalForce;
+    public float GravitationalForce;
     public bool IsGrounded { get; protected set; }
 
     float MovementLock;
@@ -20,16 +19,15 @@ public class EntityMovement : MonoBehaviour
     public float LastMoved      { get; private set; }
     public float LastJumped     { get; private set; }
 
-    public void Setup(Entity parent)
+    public virtual void Setup(Entity parent)
     {
         Parent = parent;
-        Camera = FindObjectOfType<PlayerCamera>();
         GravitationalForce = Constants.Gravity;
         Velocity = new Vector3();
         GroundCheckSphereOffset = new Vector3(0.0f, GroundCheckSphereRadius, 0.0f);
     }
 
-    void FixedUpdate()
+    protected virtual void FixedUpdate()
     {
         UpdateVelocity();
     }
@@ -47,18 +45,17 @@ public class EntityMovement : MonoBehaviour
         }
     }
 
-    public void Move(Vector2 input)
+    public virtual void Move(Vector3 direction, float speedMultiplier = 1.0f)
     {
         if (IsMovementLocked)
         {
             return;
         }
 
-        var movementVector = input.x * Camera.GetPlayerXVector() + -input.y * Camera.GetPlayerZVector();
+        direction.Normalize();
 
-        movementVector.Normalize();
-        transform.position += movementVector * Formulae.EntityMovementSpeed(Parent) * Time.fixedDeltaTime;
-        transform.rotation = Quaternion.LookRotation(movementVector, Vector3.up);
+        transform.position += direction * Formulae.EntityMovementSpeed(Parent) * Time.fixedDeltaTime;
+        transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
 
         LastMoved = BattleSystem.Time;
     }

@@ -30,7 +30,7 @@ public class EntitySummonDetails
     {
         if (SummonAction.SummonDuration > 0 && SummonTime + SummonAction.SummonDuration < BattleSystem.Time)
         {
-            Entity.OnTrigger(TriggerData.eTrigger.OnDeath);
+            Entity.OnTrigger(TriggerData.eTrigger.OnDeath, Entity);
         }
     }
 }

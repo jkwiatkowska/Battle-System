@@ -92,7 +92,7 @@ public abstract class ActionPayload : Action
             if (Random.value > chance)
             {
                 HUDPopupTextHUD.Instance.DisplayMiss(t);
-                entity.OnTrigger(TriggerData.eTrigger.OnHitMissed, result);
+                entity.OnTrigger(TriggerData.eTrigger.OnHitMissed, entity, result);
                 continue;
             }
 
@@ -101,8 +101,8 @@ public abstract class ActionPayload : Action
             actionResult.Value += result.Change;
             actionResult.Count += 1;
 
-            entity.OnTrigger(TriggerData.eTrigger.OnHitOutgoing, result);
-            t.OnTrigger(TriggerData.eTrigger.OnHitIncoming, result);
+            entity.OnTrigger(TriggerData.eTrigger.OnHitOutgoing, entity, result);
+            t.OnTrigger(TriggerData.eTrigger.OnHitIncoming, entity, result);
 
             // Show damage number on HUD
             if (Mathf.RoundToInt(result.Change) != 0)

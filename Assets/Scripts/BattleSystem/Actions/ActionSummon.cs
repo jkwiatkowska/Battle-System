@@ -17,6 +17,8 @@ public class ActionSummon : Action
     public bool LifeLink;                               // If true, the entity will disappear when the caster dies
     public bool InheritFaction;                         // The summoned entity will have its faction overriden with summoner's if true.
 
+    protected Entity SummonnedEntity;                   // Used by inheriting classes
+
     public override void Execute(Entity entity, out ActionResult actionResult, Entity target)
     {
         actionResult = new ActionResult();
@@ -35,13 +37,13 @@ public class ActionSummon : Action
         }
 
         // Setup
-        var summon = BattleSystem.SpawnEntity(EntityID);
-        summon.Setup(EntityID, entity.Level, new EntitySummonDetails(this, entity, summon));
-        entity.AddSummonnedEntity(summon, this);
+        SummonnedEntity = BattleSystem.SpawnEntity(EntityID);
+        SummonnedEntity.Setup(EntityID, entity.Level, new EntitySummonDetails(this, entity, SummonnedEntity));
+        entity.AddSummonnedEntity(SummonnedEntity, this);
 
         // Set position and transform
-        summon.transform.position = position;
+        SummonnedEntity.transform.position = position;
 
-        summon.transform.forward = new Vector3(forward.x, 0.0f, forward.y);
+        SummonnedEntity.transform.forward = new Vector3(forward.x, 0.0f, forward.y);
     }
 }

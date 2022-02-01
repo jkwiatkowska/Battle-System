@@ -36,7 +36,7 @@ public class TransformData
     public string EntityTag;                            // If using tagged entity position
     public eTaggedTargetPriority TaggedTargetPriority;  // If there is more than one entity with a given tag, this is used.
 
-    public Vector3 PositionOffset;          // Position offset from position origin
+    public Vector3 PositionOffset;          // Position offset from position origin. Relative to forward direction.
     public Vector3 RandomPositionOffset;    // Range of a random offset from the summon position, for each x and y axis
 
     public float ForwardRotationOffset;     // The forward vector can be rotated.
@@ -170,7 +170,8 @@ public class TransformData
         }
 
         // Add offsets.
-        var forwardRotation = ForwardRotationOffset + Random.Range(0.0f, RandomForwardOffset);
+        var randomOffset = RandomForwardOffset * (Random.value - 0.5f);
+        var forwardRotation = ForwardRotationOffset + Random.Range(0.0f, randomOffset);
         forward = Utility.Rotate(forward, forwardRotation);
         forward.Normalize();
 
@@ -187,7 +188,9 @@ public class TransformData
         {
             positionOffset.z += Random.Range(0.0f, RandomPositionOffset.z);
         }
-        positionOffset *= forward;
+        var positionOffset2D = Utility.Get2DVector(positionOffset) * Utility.Get2DVector(forward);
+        positionOffset.x = positionOffset2D.x;
+        positionOffset.z = positionOffset2D.y;
 
         position += positionOffset;
 

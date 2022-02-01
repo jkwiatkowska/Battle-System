@@ -6,15 +6,19 @@ public class TriggerData
 {
     public enum eTrigger
     {
-        OnHitOutgoing,      // Succesfully using a payload action
-        OnHitIncoming,      // Having payload applied
-        OnHitMissed,        // Failing to apply a payload action
-        OnDamageDealt,      // Succesfully damaging an entity
-        OnDamageReceived,   // Being damaged by another entity
-        OnRecoveryDealt,    // Succesfully restoring an entity's depletable
-        OnRecoveryReceived, // Having a depletable restored
-        OnDeath,            // Life depletable reaches 0
-        OnKill,             // Killing another entity
+        OnHitOutgoing,      // Succesfully using a payload action.
+        OnHitIncoming,      // Having payload applied.
+        OnHitMissed,        // Failing to apply a payload action.
+        OnDamageDealt,      // Succesfully damaging an entity.
+        OnDamageReceived,   // Being damaged by another entity.
+        OnRecoveryDealt,    // Succesfully restoring an entity's depletable.
+        OnRecoveryReceived, // Having a depletable restored.
+        OnDeath,            // Life depletable reaches 0.
+        OnKill,             // Killing another entity.
+        OnSpawn,            // Fires after setup.
+        OnCollisionEnemy,   // Fires on collision with an enemy.
+        OnCollisionFriend,  // Fireso on collision with a friend.
+        OnCollisionTerrain, // Fires on collision with an object on terrain layer.
         // Other potential triggers:
         // - on status applied/received,
         // - on collision with another entity

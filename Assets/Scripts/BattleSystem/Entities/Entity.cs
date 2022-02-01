@@ -42,7 +42,7 @@ public class Entity : MonoBehaviour
     public EntityCanvas EntityCanvas                                        { get; protected set; }
     public TargetingSystem TargetingSystem                                  { get; protected set; }
     public Targetable Targetable                                            { get; protected set; }
-    public EntityMovement Movement                                          { get; protected set; }
+    public MovementEntity Movement                                          { get; protected set; }
 
     // State
     public eEntityState EntityState                                         { get; private set; }
@@ -123,18 +123,14 @@ public class Entity : MonoBehaviour
         }
         TargetingSystem.Setup(this);
 
-        Movement = GetComponentInChildren<EntityMovement>();
+        Movement = GetComponentInChildren<MovementEntity>();
         if (Movement != null)
         {
             Movement.Setup(this);
         }
 
         EntityCanvas = GetComponentInChildren<EntityCanvas>();
-        if (EntityCanvas == null)
-        {
-            Debug.LogError("EntityCanvas could not be found");
-        }
-        else
+        if (EntityCanvas != null)
         {
             EntityCanvas.Setup(this);
         }
@@ -200,6 +196,11 @@ public class Entity : MonoBehaviour
                 SummonDetails.Update();
             }
         }
+    }
+
+    protected virtual void FixedUpdate()
+    {
+
     }
 
     #region Skills
@@ -293,8 +294,10 @@ public class Entity : MonoBehaviour
         SkillCharge = skillData.SkillChargeData;
         SkillStartTime = BattleSystem.Time;
 
-        EntityCanvas.StartSkillCharge(SkillCharge, skillData.SkillID);
-
+        if (EntityCanvas != null)
+        {
+            EntityCanvas.StartSkillCharge(SkillCharge, skillData.SkillID);
+        }
         SkillChargeCoroutine = StartCoroutine(SkillCharge.PreChargeTimeline.ExecuteActions(this, Target));
 
         bool chargeComplete;
@@ -309,7 +312,10 @@ public class Entity : MonoBehaviour
         }
         while (!chargeComplete && !chargeCancelled);
 
-        EntityCanvas.StopSkillCharge();
+        if (EntityCanvas != null)
+        {
+            EntityCanvas.StopSkillCharge();
+        }
 
         var timeElapsed = BattleSystem.Time - SkillStartTime;
         var minCharge = SkillCharge.RequiredChargeTimeForEntity(this);
@@ -338,7 +344,10 @@ public class Entity : MonoBehaviour
     {
         if (EntityState == eEntityState.ChargingSkill)
         {
-            EntityCanvas.StopSkillCharge();
+            if (EntityCanvas != null)
+            {
+                EntityCanvas.StopSkillCharge();
+            }
 
             if (SkillChargeCoroutine != null)
             {
@@ -368,14 +377,24 @@ public class Entity : MonoBehaviour
         Triggers[trigger.TriggerData.Trigger].Add(trigger);
     }
 
-    public virtual void OnTrigger(TriggerData.eTrigger trigger, PayloadResult payloadResult = null)
+    public virtual void OnTrigger(TriggerData.eTrigger trigger, Entity source, PayloadResult payloadResult = null)
     {
         // Variable triggers
         if (Triggers.ContainsKey(trigger))
         {
+            var target = Target;
+            if (payloadResult != null)
+            {
+                if (trigger == TriggerData.eTrigger.OnHitIncoming || trigger == TriggerData.eTrigger.OnDamageReceived || 
+                    trigger == TriggerData.eTrigger.OnRecoveryReceived || trigger == TriggerData.eTrigger.OnDeath)
+                {
+                    target = payloadResult.Caster;
+                }
+            }
+
             foreach (var t in Triggers[trigger])
             {
-                t.TryExecute(this, payloadResult, out var keep);
+                t.TryExecute(this, target, payloadResult, out var keep);
                 if (!keep)
                 {
                     Triggers[trigger].Remove(t);
@@ -396,7 +415,17 @@ public class Entity : MonoBehaviour
                 OnKill(payloadResult);
                 break;
             }
+            case TriggerData.eTrigger.OnSpawn:
+            {
+                OnSpawn();
+                break;
+            }
         }
+    }
+
+    protected virtual void OnSpawn()
+    {
+
     }
 
     protected virtual void OnDeath()
@@ -405,7 +434,10 @@ public class Entity : MonoBehaviour
 
         RemoveAllTagsOnSelf();
         RemoveAllTagsOnEntities();
-        Targetable.RemoveTargeting();
+        if (Targetable != null)
+        {
+            Targetable.RemoveTargeting();
+        }
         KillLinkedSummons();
         if (SummonDetails != null)
         {
@@ -542,7 +574,7 @@ public class Entity : MonoBehaviour
     }
     #endregion
 
-    #region Summon/Life Link
+    #region Summon
     public void AddSummonnedEntity(Entity entity, ActionSummon summonAction)
     {
         if (!SummonedEntities.ContainsKey(summonAction.EntityID))
@@ -553,7 +585,7 @@ public class Entity : MonoBehaviour
         while (SummonedEntities[summonAction.EntityID].Count >= summonAction.SummonLimit)
         {
             var entityToRemove = SummonedEntities[summonAction.EntityID][0];
-            entityToRemove.OnTrigger(TriggerData.eTrigger.OnDeath);
+            entityToRemove.OnTrigger(TriggerData.eTrigger.OnDeath, entity);
         }
 
         SummonedEntities[summonAction.EntityID].Add(entity);
@@ -583,7 +615,7 @@ public class Entity : MonoBehaviour
 
         foreach (var entity in linkedSummons)
         {
-            entity.OnTrigger(TriggerData.eTrigger.OnDeath);
+            entity.OnTrigger(TriggerData.eTrigger.OnDeath, entity);
         }
     }
     #endregion
@@ -599,28 +631,25 @@ public class Entity : MonoBehaviour
             {
                 EntityCanvas.UpdateDepletableDisplay(depletable);
             }
-            else
-            {
-                Debug.LogError($"Entity {EntityUID} is missing EntityDisplay.");
-            }
 
             payloadResult.Change = previous - DepletablesCurrent[depletable];
+            var source = payloadResult.Caster;
 
             if (payloadResult.Change > 0.0f)
             {
-                OnTrigger(TriggerData.eTrigger.OnRecoveryReceived, payloadResult);
-                payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnRecoveryDealt, payloadResult);
+                OnTrigger(TriggerData.eTrigger.OnRecoveryReceived, source, payloadResult);
+                payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnRecoveryDealt, source, payloadResult);
             }
             else if (payloadResult.Change < 0.0f)
             {
-                OnTrigger(TriggerData.eTrigger.OnDamageReceived, payloadResult);
-                payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnRecoveryReceived, payloadResult);
+                OnTrigger(TriggerData.eTrigger.OnDamageReceived, source, payloadResult);
+                payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnRecoveryReceived, source, payloadResult);
             }
 
             if (DepletablesCurrent[depletable] <= 0.0f && EntityData.LifeDepletables.Contains(depletable))
             {
-                OnTrigger(TriggerData.eTrigger.OnDeath, payloadResult);
-                payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnKill, payloadResult);
+                OnTrigger(TriggerData.eTrigger.OnDeath, source, payloadResult);
+                payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnKill, source, payloadResult);
             }
         }
         else
@@ -638,10 +667,6 @@ public class Entity : MonoBehaviour
             if (EntityCanvas != null)
             {
                 EntityCanvas.UpdateDepletableDisplay(depletable);
-            }
-            else
-            {
-                Debug.LogError($"Entity {EntityUID} is missing EntityDisplay.");
             }
 
             if (DepletablesCurrent[depletable] <= 0.0f && EntityData.LifeDepletables.Contains(depletable))
@@ -731,6 +756,10 @@ public class Entity : MonoBehaviour
                 return TargetingSystem.SelectedTarget;
             }
             return this;
+        }
+        protected set
+        {
+            TargetingSystem.SelectTarget(value);
         }
     }
 

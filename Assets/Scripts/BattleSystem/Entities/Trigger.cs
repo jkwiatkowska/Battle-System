@@ -17,7 +17,7 @@ public class Trigger
         ExpireTime = expireTime;
     }
 
-    public Coroutine TryExecute(Entity entity, PayloadResult payloadResult, out bool usesLeft)
+    public Coroutine TryExecute(Entity entity, Entity target, PayloadResult payloadResult, out bool usesLeft)
     {
         usesLeft = true;
 
@@ -25,6 +25,13 @@ public class Trigger
         {
             return null;
         }
+
+        return Execute(entity, target, out usesLeft);
+    }
+
+    public Coroutine Execute(Entity entity, Entity target, out bool usesLeft)
+    {
+        usesLeft = true;
 
         LastUsedTime = BattleSystem.Time;
 
@@ -34,7 +41,7 @@ public class Trigger
             usesLeft = UsesLeft > 0;
         }
 
-        return entity.StartCoroutine(TriggerData.Actions.ExecuteActions(entity, entity.Target));
+        return entity.StartCoroutine(TriggerData.Actions.ExecuteActions(entity, target));
     }
 
     public bool ConditionsMet(PayloadResult payloadResult)

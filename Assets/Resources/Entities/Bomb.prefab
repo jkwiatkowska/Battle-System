@@ -51,6 +51,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   EntityID: Bomb
   EntityLevel: 1
+  Faction: 
+  FactionOverride: 
 --- !u!114 &2045683188067523889
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -188,6 +190,7 @@ GameObject:
   - component: {fileID: 8497379034768385312}
   - component: {fileID: 8497379034768385315}
   - component: {fileID: 8497379034768385314}
+  - component: {fileID: 4764887197382678411}
   m_Layer: 0
   m_Name: Body
   m_TagString: Untagged
@@ -267,6 +270,19 @@ SphereCollider:
   m_GameObject: {fileID: 8497379034768385340}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!135 &4764887197382678411
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8497379034768385340}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.5

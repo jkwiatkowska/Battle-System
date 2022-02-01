@@ -38,7 +38,7 @@ public class ActionPayloadDirect : ActionPayload
                 {
                     if (BattleSystem.IsFriendly(entity.EntityUID, target.EntityUID))
                     {
-                        targets.Add(entity.Target);
+                        targets.Add(target);
                     }
                     else
                     {
@@ -49,12 +49,12 @@ public class ActionPayloadDirect : ActionPayload
                 {
                     if (BattleSystem.IsEnemy(entity.EntityUID, target.EntityUID))
                     {
-                        targets.Add(entity.Target);
+                        targets.Add(target);
                     }
                     else
                     {
-                        Debug.LogError($"Attempting to execute skill action {ActionID}, but no enemy target is selected.");
-                    }
+                        return targets;
+                    }    
                 }
                 break;
             }

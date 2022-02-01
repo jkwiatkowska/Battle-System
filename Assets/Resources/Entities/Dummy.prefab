@@ -95,6 +95,7 @@ GameObject:
   - component: {fileID: 4181005303031294397}
   - component: {fileID: 6934705420198072592}
   - component: {fileID: 6934705420198072593}
+  - component: {fileID: 7141314107999586230}
   m_Layer: 6
   m_Name: Dummy
   m_TagString: Untagged
@@ -133,6 +134,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   EntityID: Dummy
   EntityLevel: 1
+  Faction: 
+  FactionOverride: 
 --- !u!114 &6934705420198072594
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -191,6 +194,20 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 1, z: 0}
+--- !u!136 &7141314107999586230
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6934705420198072588}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!1 &6934705421952962650
 GameObject:
   m_ObjectHideFlags: 0
@@ -203,7 +220,7 @@ GameObject:
   - component: {fileID: 6934705421952962655}
   - component: {fileID: 6934705421952962648}
   m_Layer: 6
-  m_Name: PlayerBody
+  m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
