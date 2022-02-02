@@ -7,19 +7,17 @@ public class Projectile : Entity
     class ProjectileAction
     {
         public float SpeedMultiplier;           // Used to change speed, relative to entity movement speed. 
-        public Vector3 Direction;               // Movement direction relative to the current forward and anchor.
+        public float RotationPerSecond;         // Rotation speed.
+        public float RotationY;                 // Rotation in angles, affected by rotation speed.
         public string SkillName;                // Skill for the projectile to use. Null if none. 
-        public TransformData NewOrigin;         // Origin can be changed to a new position defined here. Null if origin is to stay the same.
         public float Timestamp;                 // Time at which the changes are applied, relative to the projectile spawning.
 
         public ProjectileAction(ActionProjectile.ProjectileAction sourceAction, float startTime)
         {
             SpeedMultiplier = Random.Range(sourceAction.SpeedMultiplier.x, sourceAction.SpeedMultiplier.y);
-            Direction = new Vector3(Random.Range(sourceAction.Direction.Item1.x, sourceAction.Direction.Item2.x),
-                                    Random.Range(sourceAction.Direction.Item1.y, sourceAction.Direction.Item2.y),
-                                    Random.Range(sourceAction.Direction.Item1.z, sourceAction.Direction.Item2.z));
+            RotationPerSecond = Random.Range(sourceAction.RotationPerSecond.x, sourceAction.RotationPerSecond.y);
+            RotationY = Random.Range(sourceAction.RotationY.x, sourceAction.RotationY.y);
             SkillName = sourceAction.SkillName;
-            NewOrigin = sourceAction.NewOrigin;
             Timestamp = sourceAction.Timestamp + startTime;
         }
     }
@@ -30,8 +28,10 @@ public class Projectile : Entity
     float StartTime;
     int ActionIndex;
     Vector3 StartPosition;
+    Vector3 StartForward;
     Transform TargetTransform;
     Vector3 TargetPosition;
+    float RotationY;
 
     public override void Setup(string entityID, int entityLevel, EntitySummonDetails summonDetails = null)
     {
@@ -42,6 +42,7 @@ public class Projectile : Entity
     {
         ProjectileData = projectileData;
         StartPosition = transform.position;
+        StartForward = transform.forward;
         StartTime = BattleSystem.Time;
         ActionIndex = 0;
         ProjectileTimeline = new List<ProjectileAction>();
@@ -74,7 +75,7 @@ public class Projectile : Entity
             }
             case ActionProjectile.eTarget.CustomPosition:
             {
-                ProjectileData.TargetPosition.TryGetTransformFromData(SummonDetails.Summoner, target, out var position, out var forward);
+                ProjectileData.TargetPosition.TryGetTransformFromData(SummonDetails.Summoner, target, out var position, out _);
                 TargetPosition = position;
                 break;
             }
@@ -88,53 +89,59 @@ public class Projectile : Entity
 
     protected override void FixedUpdate()
     {
-        base.Update();
+        base.FixedUpdate();
 
         if (Alive)
         {
-            var direction = transform.forward;
             var speedMultiplier = 1.0f;
+            var rotationMultiplier = 1.0f;
 
             if (ProjectileTimeline != null && ProjectileTimeline.Count > 0)
             {
                 var currentAction = ProjectileTimeline[ActionIndex];
 
-                if (currentAction.Timestamp >= BattleSystem.Time)
+                // Not the last action on the list
+                if (ProjectileTimeline.Count > ActionIndex + 1)
                 {
-                    // Not the last action on the list
-                    if (ProjectileTimeline.Count > ActionIndex + 1)
+                    var nextAction = ProjectileTimeline[ActionIndex + 1];
+
+                    // Move to next action on the timeline
+                    while (nextAction != null && nextAction.Timestamp <= BattleSystem.Time)
                     {
-                        var nextAction = ProjectileTimeline[ActionIndex + 1];
+                        ActionIndex++;
+                        currentAction = nextAction;
+                        nextAction = ProjectileTimeline.Count > ActionIndex + 1 ? ProjectileTimeline[ActionIndex + 1] : null;
 
-                        // Move to next action on the timeline
-                        while (nextAction != null && nextAction.Timestamp >= BattleSystem.Time)
+                        RotationY += currentAction.RotationY;
+
+                        if (!string.IsNullOrEmpty(currentAction.SkillName))
                         {
-                            ActionIndex++;
-                            currentAction = nextAction;
-                            nextAction = ProjectileTimeline.Count > ActionIndex + 1 ? ProjectileTimeline[ActionIndex + 1] : null;
-
-                            // To do: execute skill and set origin if needed.
+                            TryUseSkill(currentAction.SkillName);
                         }
                     }
+                }
 
-                    // Last action in timeline
-                    if (ProjectileTimeline.Count == ActionIndex + 1)
-                    {
-                        speedMultiplier = currentAction.SpeedMultiplier;
-                        direction = currentAction.Direction;
-                    }
-                    else
-                    {
-                        var nextAction = ProjectileTimeline[ActionIndex + 1];
+                // Last action in timeline
+                if (ProjectileTimeline.Count == ActionIndex + 1)
+                {
+                    speedMultiplier = currentAction.SpeedMultiplier;
+                    rotationMultiplier = currentAction.RotationPerSecond;
+                }
+                else
+                {
+                    var nextAction = ProjectileTimeline[ActionIndex + 1];
 
-                        var t = BattleSystem.Time - currentAction.Timestamp / nextAction.Timestamp - currentAction.Timestamp;
-                        speedMultiplier = Mathf.Lerp(currentAction.SpeedMultiplier, nextAction.SpeedMultiplier, t);
-                        direction = Vector3.Lerp(currentAction.Direction, nextAction.Direction, t);
-                    }
+                    var t = BattleSystem.Time - currentAction.Timestamp / nextAction.Timestamp - currentAction.Timestamp;
+                    speedMultiplier = Mathf.Lerp(currentAction.SpeedMultiplier, nextAction.SpeedMultiplier, t);
+                    rotationMultiplier = Mathf.Lerp(currentAction.RotationPerSecond, nextAction.RotationPerSecond, t);
                 }
             }
 
-            Movement.Move(direction, speedMultiplier);
+            if (rotationMultiplier > 0.0f && RotationY != 0.0f)
+            {
+                Movement.RotateY(rotationMultiplier, ref RotationY);
+            }
+            Movement.Move(transform.forward, speedMultiplier);
         }
     }
 
@@ -183,20 +190,23 @@ public class Projectile : Entity
     {
         var entityHit = other.GetComponentInChildren<Entity>();
 
-        if (entityHit != null && entityHit.IsTargetable && entityHit != SummonDetails.Summoner)
+        if (entityHit != null)
         {
-            if (BattleSystem.IsEnemy(EntityUID, entityHit.EntityUID))
+            if (entityHit.IsTargetable && entityHit != SummonDetails.Summoner)
             {
-                foreach (var reaction in ProjectileData.OnEnemyHit)
+                if (BattleSystem.IsEnemy(EntityUID, entityHit.EntityUID))
                 {
-                    ProjectileReaction(reaction, entityHit);
+                    foreach (var reaction in ProjectileData.OnEnemyHit)
+                    {
+                        ProjectileReaction(reaction, entityHit);
+                    }
                 }
-            }
-            else if (BattleSystem.IsFriendly(EntityUID, entityHit.EntityUID))
-            {
-                foreach (var reaction in ProjectileData.OnFriendHit)
+                else if (BattleSystem.IsFriendly(EntityUID, entityHit.EntityUID))
                 {
-                    ProjectileReaction(reaction, entityHit);
+                    foreach (var reaction in ProjectileData.OnFriendHit)
+                    {
+                        ProjectileReaction(reaction, entityHit);
+                    }
                 }
             }
         }

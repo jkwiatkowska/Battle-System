@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class MovementEntity : MonoBehaviour
 {
-    [SerializeField] LayerMask TerrainLayers;
     [SerializeField] float GroundCheckSphereRadius;
     Entity Parent;
 
@@ -54,7 +53,7 @@ public class MovementEntity : MonoBehaviour
 
         direction.Normalize();
 
-        transform.position += direction * Formulae.EntityMovementSpeed(Parent) * Time.fixedDeltaTime;
+        transform.position += direction * Formulae.EntityMovementSpeed(Parent) * speedMultiplier * Time.fixedDeltaTime;
         transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
 
         LastMoved = BattleSystem.Time;
@@ -73,6 +72,27 @@ public class MovementEntity : MonoBehaviour
         }
 
         LastJumped = BattleSystem.Time;
+    }
+
+    public void RotateY(float rotationPerSecond, ref float targetRotation)
+    {
+        var rotation = rotationPerSecond * Time.fixedDeltaTime;
+        if (targetRotation < 0.0f)
+        {
+            rotation *= -1.0f;
+            if (rotation < targetRotation)
+            {
+                rotation = targetRotation;
+            }
+        }
+        else if (rotation > targetRotation)
+        {
+            rotation = targetRotation;
+        }
+
+        transform.rotation *= Quaternion.Euler(0.0f, rotation, 0.0f);
+
+        targetRotation -= rotation;
     }
 
     public IEnumerator RotateTowardCoroutine(Vector3 targetPosition)
@@ -98,7 +118,7 @@ public class MovementEntity : MonoBehaviour
 
     void UpdateVelocity()
     {
-        IsGrounded = Velocity.y <= 0.0f && Physics.CheckSphere(transform.position + GroundCheckSphereOffset, GroundCheckSphereRadius, TerrainLayers);
+        IsGrounded = Velocity.y <= 0.0f && Physics.CheckSphere(transform.position + GroundCheckSphereOffset, GroundCheckSphereRadius, BattleSystem.Instance.TerrainLayers);
 
         if (IsGrounded)
         {

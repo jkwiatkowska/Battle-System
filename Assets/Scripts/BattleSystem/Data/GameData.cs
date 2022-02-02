@@ -1388,42 +1388,47 @@ public static class GameData
                                 PositionOrigin = TransformData.ePositionOrigin.CasterPosition,
                                 ForwardSource = TransformData.eForwardSource.CasterForward,
                                 PositionOffset = new Vector3(0.0f, 0.5f, 1.5f),
-                                RandomForwardOffset = 30.0f
+                                RandomForwardOffset = 360.0f
                             },
-                            SummonDuration = 6.0f,
-                            SummonLimit = 20,
+                            SummonDuration = 16.0f,
+                            SummonLimit = 100,
                             InheritFaction = true,
                             ProjectileTimeline = new List<ActionProjectile.ProjectileAction>()
                             {
                                 new ActionProjectile.ProjectileAction()
                                 {
                                     SpeedMultiplier = new Vector2(0.7f, 0.8f),
-                                    Direction = (Vector3.forward, Vector3.forward),
+                                    RotationPerSecond = new Vector2(30.0f, 30.0f),
+                                    RotationY = new Vector2(-110.0f, 110.9f),
                                     Timestamp = 0.0f
                                 },
                                 new ActionProjectile.ProjectileAction()
                                 {
                                     SpeedMultiplier = new Vector2(0.8f, 1.0f),
-                                    Direction = (Vector3.forward, Vector3.forward),
-                                    Timestamp = 2.0f
+                                    RotationPerSecond = new Vector2(30.0f, 30.0f),
+                                    RotationY = new Vector2(-130.9f, 130.9f),
+                                    Timestamp = 1.0f
                                 },
                                 new ActionProjectile.ProjectileAction()
                                 {
                                     SpeedMultiplier = new Vector2(0.1f, 0.2f),
-                                    Direction = (Vector3.forward, Vector3.forward),
-                                    Timestamp = 2.1f
+                                    RotationPerSecond = new Vector2(30.0f, 30.0f),
+                                    RotationY = new Vector2(-0.1f, 0.1f),
+                                    Timestamp = 1.1f
                                 },
                                 new ActionProjectile.ProjectileAction()
                                 {
                                     SpeedMultiplier = new Vector2(0.0f, 0.1f),
-                                    Direction = (Vector3.forward, Vector3.forward),
+                                    RotationPerSecond = new Vector2(30.0f, 30.0f),
+                                    RotationY = new Vector2(-0.9f, 0.9f),
                                     Timestamp = 3.5f
                                 },
                                 new ActionProjectile.ProjectileAction()
                                 {
                                     SpeedMultiplier = new Vector2(1.0f, 1.1f),
-                                    Direction = (Vector3.forward, Vector3.forward),
-                                    Timestamp = 6.0f
+                                    RotationPerSecond = new Vector2(30.0f, 30.0f),
+                                    RotationY = new Vector2(-120.0f, 120.9f),
+                                    Timestamp = 5.0f
                                 },
                             },
                             Target = ActionProjectile.eTarget.Target,

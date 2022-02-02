@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -21,9 +20,9 @@ public class ActionProjectile : ActionSummon
     public class ProjectileAction
     {
         public Vector2 SpeedMultiplier;         // Used to change speed, relative to entity movement speed. If values are different, a value in between is chosen at random. 
-        public (Vector3, Vector3) Direction;    // Movement direction relative to the current forward and anchor. If values are different, a value in between is chosen.
+        public Vector2 RotationPerSecond;       // Used to change rotation speed, can be a random value.
+        public Vector2 RotationY;               // Rotation around the projectile's Y axis in angles, at the given rotation speed.
         public string SkillName;                // Skill for the projectile to use. Leave blank if none. 
-        public TransformData NewOrigin;         // Origin can be changed to a new position defined here. Blank if origin is to stay the same.
         public float Timestamp;                 // Time at which the changes are applied, relative to the projectile spawning.
                                                 // If there are multiple entries, speed multiplier and direction from previous and next timestamp are weighted.
     }

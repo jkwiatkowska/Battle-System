@@ -5,8 +5,8 @@ using UnityEngine;
 public class BattleSystem : MonoBehaviour
 {
     [SerializeField] static string DataPath;
-    [SerializeField] static LayerMask TerrainLayers;            // For projectile collision
     public static BattleSystem Instance                         { get; private set; }
+    public LayerMask TerrainLayers;
 
     public static Dictionary<string, Entity> Entities           { get; private set; }
     public static List<Entity> TargetableEntities               { get; private set; }
@@ -142,6 +142,6 @@ public class BattleSystem : MonoBehaviour
 
     public static bool IsOnTerrainLayer(GameObject gameObject)
     {
-        return TerrainLayers == (TerrainLayers | (1 << gameObject.layer));
+        return Instance.TerrainLayers == (Instance.TerrainLayers | (1 << gameObject.layer));
     }
 }
