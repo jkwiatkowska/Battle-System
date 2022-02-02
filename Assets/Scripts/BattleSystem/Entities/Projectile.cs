@@ -73,15 +73,9 @@ public class Projectile : Entity
                 TargetTransform = target.transform;
                 break;
             }
-            case ActionProjectile.eTarget.CustomPosition:
-            {
-                ProjectileData.TargetPosition.TryGetTransformFromData(SummonDetails.Summoner, target, out var position, out _);
-                TargetPosition = position;
-                break;
-            }
             default:
             {
-                Debug.LogError($"Unsupported projectile target type: {projectileData.Target}");
+                Debug.LogError($"Unimplemented projectile target type: {projectileData.Target}");
                 break;
             }
         }
@@ -93,56 +87,73 @@ public class Projectile : Entity
 
         if (Alive)
         {
-            var speedMultiplier = 1.0f;
-            var rotationMultiplier = 1.0f;
-
-            if (ProjectileTimeline != null && ProjectileTimeline.Count > 0)
+            switch(ProjectileData.ProjectileMovementMode)
             {
-                var currentAction = ProjectileTimeline[ActionIndex];
-
-                // Not the last action on the list
-                if (ProjectileTimeline.Count > ActionIndex + 1)
+                case ActionProjectile.eProjectileMovementMode.Free:
                 {
-                    var nextAction = ProjectileTimeline[ActionIndex + 1];
+                    UpdateFreeMode();
+                    break;
+                }
+                default:
+                {
+                    Debug.LogError($"Unimplemented projectile mode: {ProjectileData.ProjectileMovementMode}");
+                    break;
+                }
+            }
+        }
+    }
 
-                    // Move to next action on the timeline
-                    while (nextAction != null && nextAction.Timestamp <= BattleSystem.Time)
+    void UpdateFreeMode()
+    {
+        var speedMultiplier = 1.0f;
+        var rotationMultiplier = 1.0f;
+
+        if (ProjectileTimeline != null && ProjectileTimeline.Count > 0)
+        {
+            var currentAction = ProjectileTimeline[ActionIndex];
+
+            // Not the last action on the list
+            if (ProjectileTimeline.Count > ActionIndex + 1)
+            {
+                var nextAction = ProjectileTimeline[ActionIndex + 1];
+
+                // Move to next action on the timeline
+                while (nextAction != null && nextAction.Timestamp <= BattleSystem.Time)
+                {
+                    ActionIndex++;
+                    currentAction = nextAction;
+                    nextAction = ProjectileTimeline.Count > ActionIndex + 1 ? ProjectileTimeline[ActionIndex + 1] : null;
+
+                    RotationY += currentAction.RotationY;
+
+                    if (!string.IsNullOrEmpty(currentAction.SkillName))
                     {
-                        ActionIndex++;
-                        currentAction = nextAction;
-                        nextAction = ProjectileTimeline.Count > ActionIndex + 1 ? ProjectileTimeline[ActionIndex + 1] : null;
-
-                        RotationY += currentAction.RotationY;
-
-                        if (!string.IsNullOrEmpty(currentAction.SkillName))
-                        {
-                            TryUseSkill(currentAction.SkillName);
-                        }
+                        TryUseSkill(currentAction.SkillName);
                     }
                 }
-
-                // Last action in timeline
-                if (ProjectileTimeline.Count == ActionIndex + 1)
-                {
-                    speedMultiplier = currentAction.SpeedMultiplier;
-                    rotationMultiplier = currentAction.RotationPerSecond;
-                }
-                else
-                {
-                    var nextAction = ProjectileTimeline[ActionIndex + 1];
-
-                    var t = BattleSystem.Time - currentAction.Timestamp / nextAction.Timestamp - currentAction.Timestamp;
-                    speedMultiplier = Mathf.Lerp(currentAction.SpeedMultiplier, nextAction.SpeedMultiplier, t);
-                    rotationMultiplier = Mathf.Lerp(currentAction.RotationPerSecond, nextAction.RotationPerSecond, t);
-                }
             }
 
-            if (rotationMultiplier > 0.0f && RotationY != 0.0f)
+            // Last action in timeline
+            if (ProjectileTimeline.Count == ActionIndex + 1)
             {
-                Movement.RotateY(rotationMultiplier, ref RotationY);
+                speedMultiplier = currentAction.SpeedMultiplier;
+                rotationMultiplier = currentAction.RotationPerSecond;
             }
-            Movement.Move(transform.forward, speedMultiplier);
+            else
+            {
+                var nextAction = ProjectileTimeline[ActionIndex + 1];
+
+                var t = BattleSystem.Time - currentAction.Timestamp / nextAction.Timestamp - currentAction.Timestamp;
+                speedMultiplier = Mathf.Lerp(currentAction.SpeedMultiplier, nextAction.SpeedMultiplier, t);
+                rotationMultiplier = Mathf.Lerp(currentAction.RotationPerSecond, nextAction.RotationPerSecond, t);
+            }
         }
+
+        if (rotationMultiplier > 0.0f && RotationY != 0.0f)
+        {
+            Movement.RotateY(rotationMultiplier, ref RotationY);
+        }
+        Movement.Move(transform.forward, false, speedMultiplier);
     }
 
     public void ProjectileReaction(ActionProjectile.OnCollisionReaction reaction, Entity entityHit = null)
@@ -173,7 +184,7 @@ public class Projectile : Entity
             }
             default:
             {
-                Debug.LogError($"Unsupported projectile reaction: {reaction.Reaction}");
+                Debug.LogError($"Unimplemented projectile reaction: {reaction.Reaction}");
                 break;
             }
         }

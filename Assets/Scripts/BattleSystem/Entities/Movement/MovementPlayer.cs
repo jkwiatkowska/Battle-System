@@ -22,6 +22,6 @@ public class MovementPlayer : MovementEntity
 
         var movementVector = direction.x * Camera.GetPlayerXVector() + -direction.y * Camera.GetPlayerZVector();
 
-        Move(movementVector, speedMultiplier);
+        Move(movementVector, true, speedMultiplier);
     }
 }

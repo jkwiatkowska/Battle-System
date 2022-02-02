@@ -44,7 +44,7 @@ public class MovementEntity : MonoBehaviour
         }
     }
 
-    public virtual void Move(Vector3 direction, float speedMultiplier = 1.0f)
+    public virtual void Move(Vector3 direction, bool updateRotation, float speedMultiplier = 1.0f)
     {
         if (IsMovementLocked)
         {
@@ -54,8 +54,10 @@ public class MovementEntity : MonoBehaviour
         direction.Normalize();
 
         transform.position += direction * Formulae.EntityMovementSpeed(Parent) * speedMultiplier * Time.fixedDeltaTime;
-        transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
-
+        if (updateRotation)
+        {
+            transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+        }
         LastMoved = BattleSystem.Time;
     }
 

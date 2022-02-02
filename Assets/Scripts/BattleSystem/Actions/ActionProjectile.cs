@@ -3,6 +3,17 @@ using UnityEngine;
 
 public class ActionProjectile : ActionSummon
 {
+    public enum eProjectileMovementMode
+    {
+        Free,           // The projectile moves along its forward direction. Movement and direction can be customised in the projectile timeline.
+        Homing,         // The projectile turns towards the given target. Movement and turning speed can be customised in the projectile timeline.
+        Arched,         // The projectile shoots up and lands at the target position. Movement direction cannot be changed.
+        CircleAround,   // The projectile circles around a given entity or position. Speed and direction are affected by rotation settings in projectile timeline.
+    }
+
+    public eProjectileMovementMode ProjectileMovementMode;  // This determines the trajectory a projectile takes.
+
+    #region Projectile Triggers
     public class OnCollisionReaction
     {
         public enum eReactionType
@@ -17,6 +28,13 @@ public class ActionProjectile : ActionSummon
         public ActionTimeline Actions; 
     }
 
+    // Some behaviours cancel one another out, but others may be used together
+    public List<OnCollisionReaction> OnEnemyHit;
+    public List<OnCollisionReaction> OnFriendHit;
+    public List<OnCollisionReaction> OnTerrainHit;
+    #endregion
+
+    #region Projectile Timeline
     public class ProjectileAction
     {
         public Vector2 SpeedMultiplier;         // Used to change speed, relative to entity movement speed. If values are different, a value in between is chosen at random. 
@@ -27,15 +45,28 @@ public class ActionProjectile : ActionSummon
                                                 // If there are multiple entries, speed multiplier and direction from previous and next timestamp are weighted.
     }
 
+    public List<ProjectileAction> ProjectileTimeline;   // Defines speed and direction changes, as well as skill use.
+    #endregion
+
+    #region Homing Mode
     public enum eTarget
     {
         None,           // The projectile will move along its forward.
         Caster,         // The projectile will move toward caster. This will create a homing effect.
-        Target,         // The projectile will move toward target. This will create a homing effect. 
-        CustomPosition  // The projectile will move towards a specific position
+        Target,         // The projectile will move toward target. This will create a homing effect.
     }
 
-    public enum eAnchor // A projectile moves relative to its anchor position.
+    public eTarget Target;                              // Target position affects the forward movement of the projectile.
+    public TransformData TargetPosition;                // If using custom position for target
+    #endregion
+
+    #region Arched Mode
+    public float ArchAngle;                             // Angle along the X axis at which the projectile is shot.
+    public float Gravity;                               // Zero for other modes.
+    #endregion
+
+    #region Circle Mode
+    public enum eAnchor // A projectile can moves relative to its anchor position.
     {
         None,
         SpawnPosition,
@@ -44,18 +75,9 @@ public class ActionProjectile : ActionSummon
         Target
     }
 
-    public List<ProjectileAction> ProjectileTimeline;   // Defines speed and direction changes, as well as skill use.
-
-    public eTarget Target;                              // Target position affects the forward movement of the projectile.
-    public TransformData TargetPosition;                // If using custom position for target
     public eAnchor Anchor;                              // Anchor position affects horizontal movement of the projectile.
     public TransformData AnchorPosition;                // If using custom position for anchor
-    public float Gravity;                               // Zero by default.
-
-    // Some behaviours cancel one another out, but others may be used together
-    public List<OnCollisionReaction> OnEnemyHit;
-    public List<OnCollisionReaction> OnFriendHit;
-    public List<OnCollisionReaction> OnTerrainHit;
+    #endregion
 
     public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
     {
