@@ -35,7 +35,7 @@ public class ActionTrigger : Action
             }
             default:
             {
-                Debug.LogError($"Unsupported trigger target: {TriggerTarget}");
+                Debug.LogError($"Unimplemented trigger target: {TriggerTarget}");
                 break;
             }
         }

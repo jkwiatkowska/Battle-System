@@ -16,6 +16,7 @@ public class Entity : MonoBehaviour
 
     [SerializeField] string EntityID;
     [SerializeField] int EntityLevel = 1;
+    public EntityData EntityData { get; protected set; }
 
     public string EntityUID                                                 { get; private set; }
     static int EntityCount = 0;
@@ -66,6 +67,7 @@ public class Entity : MonoBehaviour
         EntityState = eEntityState.Idle;
         name = EntityUID;
         SummonDetails = summonDetails;
+        EntityData = GameData.GetEntityData(entityID);
         Faction = EntityData.Faction;
 
         if (SummonDetails != null && SummonDetails.SummonAction.InheritFaction)
@@ -699,11 +701,14 @@ public class Entity : MonoBehaviour
         }
     }
 
-    public EntityData EntityData
+    public Vector3 Origin
     {
         get
         {
-            return GameData.GetEntityData(EntityID);
+            var position = transform.position;
+            position.y += EntityData.OriginHeight;
+
+            return position;
         }
     }
 

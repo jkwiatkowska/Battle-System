@@ -112,6 +112,7 @@ public static class GameData
                     IsAI = false,
                     Radius = 0.05f,
                     Height = 1.0f,
+                    OriginHeight = 0.5f,
                     LifeDepletables = new List<string>()
                     {
                         "hp"
@@ -189,6 +190,7 @@ public static class GameData
                     IsAI = false,
                     Radius = 0.25f,
                     Height = 1.0f,
+                    OriginHeight = 0.5f,
                     LifeDepletables = new List<string>()
                     {
                         "hp"
@@ -235,6 +237,7 @@ public static class GameData
                     IsAI = false,
                     Radius = 0.35f,
                     Height = 0.7f,
+                    OriginHeight = 0.45f,
                     LifeDepletables = new List<string>()
                     {
                         "hp"
@@ -1393,6 +1396,7 @@ public static class GameData
                             SummonDuration = 16.0f,
                             SummonLimit = 100,
                             InheritFaction = true,
+                            ProjectileMovementMode = ActionProjectile.eProjectileMovementMode.Free,
                             ProjectileTimeline = new List<ActionProjectile.ProjectileAction>()
                             {
                                 new ActionProjectile.ProjectileAction()
@@ -1469,14 +1473,25 @@ public static class GameData
                                                 DepletableAffected = "hp",
                                             },
                                         },
-                                        new ActionTrigger()
+                                        new ActionPayloadDirect()
                                         {
                                             ActionID = "deathAction",
                                             SkillID = "projectileAttack",
-                                            ActionType = Action.eActionType.Trigger,
+                                            ActionType = Action.eActionType.PayloadDirect,
                                             Timestamp = 0.015f,
-                                            TriggerType = TriggerData.eTrigger.OnDeath,
-                                            TriggerTarget = ActionTrigger.eTriggerTarget.Caster
+                                            Target = ActionPayload.eTarget.FriendlyEntities,
+                                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.Self,
+                                            PayloadData = new PayloadData()
+                                            {
+                                                Affinities = new List<string>(),
+                                                PayloadComponents = new List<PayloadData.PayloadComponent>(),
+                                                Flags = new Dictionary<string, bool>(),
+                                                SuccessChance = 1.0f,
+                                                Triggers = new List<TriggerData.eTrigger>()
+                                                {
+                                                    TriggerData.eTrigger.OnDeath
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1499,6 +1514,146 @@ public static class GameData
                     },
                     NeedsTarget = true,
                     PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
+                    Range = 19.0f,
+                    CasterState = global::SkillData.eCasterState.Any
+                }
+            },
+            {
+                "projectileSkill2",
+                new SkillData()
+                {
+                    SkillID = "projectileSkill2",
+                    SkillTimeline = new ActionTimeline()
+                    {
+                        new ActionCooldownApplication()
+                        {
+                            ActionID = "cd",
+                            SkillID = "projectileSkill2",
+                            ActionType = Action.eActionType.ApplyCooldown,
+                            Timestamp = 0.0f,
+                            Cooldown = 0.05f,
+                            CooldownTarget = ActionCooldownApplication.eCooldownTarget.Skill,
+                            CooldownTargetName = "projectileSkill"
+                        },
+                        new ActionProjectile()
+                        {
+                            ActionID = "projectileAction",
+                            SkillID = "projectileSkill2",
+                            ActionType = Action.eActionType.SpawnProjectile,
+                            Timestamp = 0.01f,
+                            EntityID = "Bullet",
+                            SharedAttributes = new Dictionary<string, float>()
+                            {
+                                { "atk", 0.9f }
+                            },
+                            SummonAtPosition = new TransformData()
+                            {
+                                PositionOrigin = TransformData.ePositionOrigin.CasterPosition,
+                                ForwardSource = TransformData.eForwardSource.CasterForward,
+                                PositionOffset = new Vector3(0.0f, 0.45f, 15.5f),
+                                RandomForwardOffset = 10.0f
+                            },
+                            SummonDuration = 16.0f,
+                            SummonLimit = 100,
+                            InheritFaction = true,
+                            ProjectileMovementMode = ActionProjectile.eProjectileMovementMode.Homing,
+                            ProjectileTimeline = new List<ActionProjectile.ProjectileAction>()
+                            {
+                                new ActionProjectile.ProjectileAction()
+                                {
+                                    SpeedMultiplier = new Vector2(0.2f, 0.2f),
+                                    RotationPerSecond = new Vector2(5.0f, 5.0f),
+                                    RotationY = new Vector2(0.0f, 0.0f),
+                                    Timestamp = 0.0f
+                                },
+                                new ActionProjectile.ProjectileAction()
+                                {
+                                    SpeedMultiplier = new Vector2(0.3f, 0.3f),
+                                    RotationPerSecond = new Vector2(5.0f, 5.0f),
+                                    RotationY = new Vector2(0.0f, 0.0f),
+                                    Timestamp = 1.0f
+                                },
+                                new ActionProjectile.ProjectileAction()
+                                {
+                                    SpeedMultiplier = new Vector2(0.1f, 0.2f),
+                                    RotationPerSecond = new Vector2(5.0f, 5.0f),
+                                    RotationY = new Vector2(0.0f, 0.0f),
+                                    Timestamp = 1.1f
+                                },
+                                new ActionProjectile.ProjectileAction()
+                                {
+                                    SpeedMultiplier = new Vector2(0.0f, 0.1f),
+                                    RotationPerSecond = new Vector2(5.0f, 5.0f),
+                                    RotationY = new Vector2(0.0f, 0.0f),
+                                    Timestamp = 3.5f
+                                },
+                                new ActionProjectile.ProjectileAction()
+                                {
+                                    SpeedMultiplier = new Vector2(1.0f, 1.1f),
+                                    RotationPerSecond = new Vector2(5.0f, 5.0f),
+                                    RotationY = new Vector2(0.0f, 0.0f),
+                                    Timestamp = 5.0f
+                                },
+                            },
+                            Target = ActionProjectile.eTarget.Caster,
+                            Gravity = 0.0f,
+                            OnFriendHit = new List<ActionProjectile.OnCollisionReaction>()
+                            {
+                                new ActionProjectile.OnCollisionReaction()
+                                {
+                                    Reaction = ActionProjectile.OnCollisionReaction.eReactionType.ExecuteActions,
+                                    Actions = new ActionTimeline()
+                                    {
+                                        new ActionPayloadDirect()
+                                        {
+                                            ActionID = "projectileHealAction",
+                                            SkillID = "projectileSkill2",
+                                            ActionType = Action.eActionType.PayloadDirect,
+                                            Timestamp = 0.01f,
+                                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.SelectedEntity,
+                                            TargetLimit = 1,
+                                            Target = ActionPayload.eTarget.FriendlyEntities,
+                                            PayloadData = new PayloadData()
+                                            {
+                                                Flags = new Dictionary<string, bool>()
+                                                {
+                                                    { "ignoreDef", false },
+                                                    { "canCrit", true }
+                                                },
+                                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                                {
+                                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterAttribute, -1.0f, "atk")
+                                                },
+                                                Affinities = new List<string>()
+                                                {
+                                                    "healing"
+                                                },
+                                                SuccessChance = 1.0f,
+                                                DepletableAffected = "hp",
+                                            },
+                                        }
+                                    }
+                                }
+                            },
+                            OnEnemyHit = new List<ActionProjectile.OnCollisionReaction>()
+                            {
+                                new ActionProjectile.OnCollisionReaction()
+                                {
+                                    Reaction = ActionProjectile.OnCollisionReaction.eReactionType.PassThrough
+                                }
+                            },
+                            OnTerrainHit = new List<ActionProjectile.OnCollisionReaction>()
+                            {
+                                new ActionProjectile.OnCollisionReaction()
+                                {
+                                    Reaction = ActionProjectile.OnCollisionReaction.eReactionType.SelfDestruct
+                                }
+                            }
+                        }
+                    },
+                    NeedsTarget = false,
+                    PreferredTarget = global::SkillData.eTargetPreferrence.Friendly,
                     Range = 19.0f,
                     CasterState = global::SkillData.eCasterState.Any
                 }

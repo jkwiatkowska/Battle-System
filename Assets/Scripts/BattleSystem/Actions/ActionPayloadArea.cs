@@ -103,7 +103,7 @@ public class ActionPayloadArea : ActionPayload
                         {
                             var direction = (tPos - areaPos).normalized;
 
-                            var angle = Utility.Angle(areaForward, Utility.Get2DVector(direction));
+                            var angle = Utility.Angle(Utility.Get2DVector(areaForward), Utility.Get2DVector(direction));
                             if (angle > maxAngle || angle < minAngle)
                             {
                                 continue;
@@ -143,7 +143,7 @@ public class ActionPayloadArea : ActionPayload
                         {
                             var direction = (tPos - areaPos).normalized;
 
-                            var angle = Utility.Angle(areaForward, Utility.Get2DVector(direction));
+                            var angle = Utility.Angle(Utility.Get2DVector(areaForward), Utility.Get2DVector(direction));
                             if (angle > maxAngle || angle < minAngle)
                             {
                                 continue;
@@ -163,7 +163,8 @@ public class ActionPayloadArea : ActionPayload
                     for (int i = potentialTargets.Count - 1; i >= 0; i--)
                     {
                         var t = potentialTargets[i];
-                        var tPos2D = Utility.RotateAroundPosition(Utility.Get2DVector(t.transform.position), Utility.Angle(areaForward), areaPos2D);
+                        var tPos2D = Utility.RotateAroundPosition(Utility.Get2DVector(t.transform.position), 
+                                     Utility.Angle(Utility.Get2DVector(areaForward)), areaPos2D);
 
                         // Check if the target is at the correct height
                         var tBottom = t.transform.position.y;
@@ -218,7 +219,7 @@ public class ActionPayloadArea : ActionPayload
                 }
                 default:
                 {
-                    Debug.LogError($"Unsupported area shape: {area.Shape}.");
+                    Debug.LogError($"Unimplemented area shape: {area.Shape}.");
                     break;
                 }
             }

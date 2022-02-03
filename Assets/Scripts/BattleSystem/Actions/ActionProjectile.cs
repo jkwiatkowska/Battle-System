@@ -51,13 +51,13 @@ public class ActionProjectile : ActionSummon
     #region Homing Mode
     public enum eTarget
     {
-        None,           // The projectile will move along its forward.
+        StaticPosition, // The projectile will move toward a specified position.
         Caster,         // The projectile will move toward caster. This will create a homing effect.
         Target,         // The projectile will move toward target. This will create a homing effect.
     }
 
-    public eTarget Target;                              // Target position affects the forward movement of the projectile.
-    public TransformData TargetPosition;                // If using custom position for target
+    public eTarget Target;                              // Target position for homing mode.
+    public TransformData TargetPosition;                // If using custom position for target. Also used by arched mode.
     #endregion
 
     #region Arched Mode

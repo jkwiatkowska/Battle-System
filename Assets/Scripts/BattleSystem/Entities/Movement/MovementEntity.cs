@@ -97,13 +97,23 @@ public class MovementEntity : MonoBehaviour
         targetRotation -= rotation;
     }
 
-    public IEnumerator RotateTowardCoroutine(Vector3 targetPosition)
+    public void RotateTowardPosition(Vector3 targetPosition, float rotationSpeed)
+    {
+        var targetDirection = targetPosition - transform.position;
+        var initialForward = transform.forward;
+;
+        var direction = Vector3.RotateTowards(initialForward, targetDirection, Time.fixedDeltaTime * rotationSpeed, 0.0f);
+
+        transform.rotation = Quaternion.LookRotation(direction);
+    }
+
+    public IEnumerator RotateTowardCoroutine(Vector3 targetPosition, float rotationMultiplier = 1.0f)
     {
         var targetDirection = targetPosition - transform.position;
         targetDirection.y = 0.0f;
         var initialForward = transform.forward;
 
-        var speed = Formulae.EntityRotateSpeed(Parent);
+        var speed = Formulae.EntityRotateSpeed(Parent) * rotationMultiplier;
         var startTime = BattleSystem.Time;
 
         do

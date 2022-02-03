@@ -76,7 +76,7 @@ public abstract class ActionPayload : Action
                 }
                 default:
                 {
-                    Debug.LogError($"Unsupported target priority - {TargetPriority}");
+                    Debug.LogError($"Unimplemented target priority - {TargetPriority}");
                     break;
                 }
             }
@@ -133,7 +133,7 @@ public abstract class ActionPayload : Action
             return !target.Alive;
         }
 
-        Debug.LogError($"Unsupported target state: {TargetState}");
+        Debug.LogError($"Unimplemented target state: {TargetState}");
         return false;
     }
 }

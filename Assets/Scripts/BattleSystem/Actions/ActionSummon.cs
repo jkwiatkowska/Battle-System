@@ -44,7 +44,7 @@ public class ActionSummon : Action
         // Set position and transform
         SummonnedEntity.transform.position = position;
 
-        SummonnedEntity.transform.forward = new Vector3(forward.x, 0.0f, forward.y);
+        SummonnedEntity.transform.forward = forward;
 
         actionResults[ActionID].Success = true;
     }

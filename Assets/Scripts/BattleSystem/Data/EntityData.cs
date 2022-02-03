@@ -17,8 +17,9 @@ public class EntityData
 
     public bool IsAI;                                       // AI entities hold a list of skills that they automatically execute.
 
-    public float Radius;
-    public float Height;
+    public float Radius;                                    // Radius of an entity, used by area attacks.
+    public float Height;                                    // Height of an entity. Used by area attacks and displaying UI elements above it.
+    public float OriginHeight;                              // The middle of an entity's height, used by homing projectile attacks. 
 
     public float MovementSpeed;
     public float RotateSpeed;

@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public static class Utility
@@ -9,15 +7,15 @@ public static class Utility
         return new Vector2(position.x, position.z);
     }
 
-    public static Vector2 Rotate(Vector2 v, float degrees)
+    public static Vector3 Rotate(Vector3 v, float degrees)
     {
         float sin = Mathf.Sin(degrees * Mathf.Deg2Rad);
         float cos = Mathf.Cos(degrees * Mathf.Deg2Rad);
 
         float x = v.x;
-        float y = v.y;
-        v.x = (cos * x) - (sin * y);
-        v.y = (sin * x) + (cos * y);
+        float z = v.z;
+        v.x = (cos * x) - (sin * z);
+        v.z = (sin * x) + (cos * z);
         return v;
     }
 
@@ -83,5 +81,10 @@ public static class Utility
         point = temp + centerOfRotation;
 
         return point;
+    }
+
+    public static Vector3 ApplyDirection(Vector3 point, Vector3 direction)
+    {
+        return Quaternion.LookRotation(direction) * point;
     }
 }

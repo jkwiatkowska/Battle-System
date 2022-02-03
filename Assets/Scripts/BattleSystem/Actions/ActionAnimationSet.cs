@@ -81,7 +81,7 @@ public class ActionAnimationSet<T> : Action
             }
             default:
             {
-                Debug.LogError($"Unsupported animation action type: {AnimationAction}");
+                Debug.LogError($"Unimplemented animation action type: {AnimationAction}");
                 return;
             }
         }

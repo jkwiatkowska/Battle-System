@@ -53,5 +53,6 @@ public class PayloadData
         PayloadComponents = new List<PayloadComponent>();
         Flags = new Dictionary<string, bool>();
         SuccessChance = 1.0f;
+        Triggers = new List<TriggerData.eTrigger>();
     }
 }

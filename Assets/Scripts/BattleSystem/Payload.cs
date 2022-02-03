@@ -80,7 +80,7 @@ public class Payload
                 }
                 default:
                 {
-                    Debug.LogError($"Unsupported payload component type: {component.ComponentType}");
+                    Debug.LogError($"Unimplemented payload component type: {component.ComponentType}");
                     break;
                 }
             }
@@ -133,6 +133,14 @@ public class Payload
             if (Action.PayloadData.Tag != null)
             {
                 caster.TagEntity(Action.PayloadData.Tag, target);
+            }
+
+            if (Action.PayloadData.Triggers != null)
+            {
+                foreach (var trigger in Action.PayloadData.Triggers)
+                {
+                    target.OnTrigger(trigger, caster, result);
+                }
             }
         }
     }

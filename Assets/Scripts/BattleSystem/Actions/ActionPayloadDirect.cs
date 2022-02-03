@@ -111,7 +111,7 @@ public class ActionPayloadDirect : ActionPayload
             }
             default:
             {
-                Debug.LogError($"Unsupported direct action target type: {TargetPriority}");
+                Debug.LogError($"Unimplemented direct action target type: {TargetPriority}");
                 break;
             }
         }

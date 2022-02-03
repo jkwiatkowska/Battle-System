@@ -21,7 +21,7 @@ public class TransformData
         TaggedEntityForward,    // Forward of a tagged entity
         CasterToTaggedEntity,   // Direction vector between caster and tagged entity
         CasterToPositionOrigin, // Direction vector between caster and position origin
-        NorthDirection          // North direction in the world
+        Vector3Forward,         // North direction in the world
     }
 
     public enum eTaggedTargetPriority
@@ -39,10 +39,10 @@ public class TransformData
     public Vector3 PositionOffset;          // Position offset from position origin. Relative to forward direction.
     public Vector3 RandomPositionOffset;    // Range of a random offset from the summon position, for each x and y axis
 
-    public float ForwardRotationOffset;     // The forward vector can be rotated.
+    public float ForwardRotationOffset;     // The forward vector can be rotated around its Y axis.
     public float RandomForwardOffset;       // Randomness can be applied to this as well. 
 
-    public bool TryGetTransformFromData(Entity caster, Entity target, out Vector3 position, out Vector2 forward)
+    public bool TryGetTransformFromData(Entity caster, Entity target, out Vector3 position, out Vector3 forward)
     {
         position = new Vector3();
         forward = new Vector3();
@@ -86,7 +86,7 @@ public class TransformData
             }
             default:
             {
-                Debug.LogError($"Unsupported position origin type: {PositionOrigin}");
+                Debug.LogError($"Unimplemented position origin type: {PositionOrigin}");
                 break;
             }
         }
@@ -95,14 +95,14 @@ public class TransformData
         {
             case eForwardSource.CasterForward:
             {
-                forward = Utility.Get2DVector(caster.transform.forward);
+                forward = caster.transform.forward;
                 break;
             }
             case eForwardSource.TargetForward:
             {
                 if (target != null)
                 {
-                    forward = Utility.Get2DVector(target.transform.forward);
+                    forward = target.transform.forward;
                 }
                 else
                 {
@@ -115,7 +115,7 @@ public class TransformData
             {
                 if (target != null)
                 {
-                    forward = Utility.Get2DVector(target.transform.position - caster.transform.position).normalized;
+                    forward = (target.transform.position - caster.transform.position).normalized;
                 }
                 else
                 {
@@ -129,7 +129,7 @@ public class TransformData
                 var taggedEntity = ChooseTaggedEntity(caster);
                 if (taggedEntity != null)
                 {
-                    forward = Utility.Get2DVector(taggedEntity.transform.forward);
+                    forward = taggedEntity.transform.forward;
                 }
                 else
                 {
@@ -143,7 +143,7 @@ public class TransformData
                 var taggedEntity = ChooseTaggedEntity(caster);
                 if (taggedEntity != null)
                 {
-                    forward = Utility.Get2DVector(taggedEntity.transform.forward - caster.transform.position).normalized;
+                    forward = (taggedEntity.transform.forward - caster.transform.position).normalized;
                 }
                 else
                 {
@@ -154,17 +154,17 @@ public class TransformData
             }
             case eForwardSource.CasterToPositionOrigin:
             {
-                forward = Utility.Get2DVector(position - caster.transform.position).normalized;
+                forward = (position - caster.transform.position).normalized;
                 break;
             }
-            case eForwardSource.NorthDirection:
+            case eForwardSource.Vector3Forward:
             {
-                forward = Vector2.up;
+                forward = Vector3.forward;
                 break;
             }
             default:
             {
-                Debug.LogError($"Unsupported forward source: {ForwardSource}");
+                Debug.LogError($"Unimplemented forward source: {ForwardSource}");
                 return false;
             }
         }
@@ -188,10 +188,8 @@ public class TransformData
         {
             positionOffset.z += Random.Range(0.0f, RandomPositionOffset.z);
         }
-        var positionOffset2D = Utility.Get2DVector(positionOffset) * Utility.Get2DVector(forward);
-        positionOffset.x = positionOffset2D.x;
-        positionOffset.z = positionOffset2D.y;
 
+        positionOffset = Utility.ApplyDirection(positionOffset, forward);
         position += positionOffset;
 
         return true;
@@ -241,7 +239,7 @@ public class TransformData
                     }
                     default:
                     {
-                        Debug.LogError($"Unsupported tagged target priority: {TaggedTargetPriority}");
+                        Debug.LogError($"Unimplemented tagged target priority: {TaggedTargetPriority}");
                         break;
                     }
                 }
