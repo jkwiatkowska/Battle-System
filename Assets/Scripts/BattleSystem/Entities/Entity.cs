@@ -22,9 +22,9 @@ public class Entity : MonoBehaviour
     static int EntityCount = 0;
 
     // Attributes
-    public Dictionary<string, float> BaseAttributes                         { get; private set; }
-    public Dictionary<string, float> DepletablesCurrent                     { get; private set; }
-    public Dictionary<string, float> DepletablesMax                         { get; private set; }
+    public Dictionary<string, float> BaseAttributes                         { get; protected set; }
+    public Dictionary<string, float> DepletablesCurrent                     { get; protected set; }
+    public Dictionary<string, float> DepletablesMax                         { get; protected set; }
 
     // Skills
     protected Dictionary<string, float> SkillAvailableTime;
@@ -45,20 +45,19 @@ public class Entity : MonoBehaviour
     public MovementEntity Movement                                          { get; protected set; }
 
     // State
-    public eEntityState EntityState                                         { get; private set; }
-    public bool IsTargetable                                                { get; private set; }
-    public string Faction;
-    public string FactionOverride;
+    public eEntityState EntityState                                         { get; protected set; }
+    public bool IsTargetable                                                { get; protected set; }
+    public string Faction                                                   { get; protected set; }
+    protected string FactionOverride;
     protected bool SetupComplete;
 
     // Connections with other entities
     public Dictionary<string, Dictionary<string, float>> TaggedEntities     { get; protected set; }
     protected Dictionary<string, List<string>> TagsAppliedBy;
 
-    public EntitySummonDetails SummonDetails;
-    public Dictionary<string, List<Entity>> SummonedEntities                { get; protected set; }
+    public Dictionary<string, List<EntitySummon>> SummonedEntities          { get; protected set; }
 
-    public virtual void Setup(string entityID, int entityLevel, EntitySummonDetails summonDetails = null)
+    public virtual void Setup(string entityID, int entityLevel, Entity source = null)
     {
         EntityID = entityID;
         EntityUID = entityID + EntityCount.ToString();
@@ -66,36 +65,17 @@ public class Entity : MonoBehaviour
         EntityLevel = entityLevel;
         EntityState = eEntityState.Idle;
         name = EntityUID;
-        SummonDetails = summonDetails;
         EntityData = GameData.GetEntityData(entityID);
         Faction = EntityData.Faction;
-
-        if (SummonDetails != null && SummonDetails.SummonAction.InheritFaction)
-        {
-            Faction = SummonDetails.Summoner.Faction;
-        }
 
         // Attributes
         BaseAttributes = new Dictionary<string, float>();
         foreach (var attribute in GameData.EntityAttributes)
         {
-            if (SummonDetails != null && SummonDetails.SummonAction.SharedAttributes.ContainsKey(attribute))
-            {
-                BaseAttributes[attribute] = SummonDetails.SummonAction.SharedAttributes[attribute] * 
-                                            SummonDetails.Summoner.BaseAttributes[attribute];
-            }
-            else
-            {
-                BaseAttributes.Add(attribute, Formulae.EntityBaseAttribute(this, attribute));
-            }
+            BaseAttributes.Add(attribute, Formulae.EntityBaseAttribute(this, attribute));
         }
-        DepletablesMax = new Dictionary<string, float>();
-        DepletablesCurrent = new Dictionary<string, float>();
-        foreach (var depletable in GameData.EntityDepletables)
-        {
-            DepletablesMax.Add(depletable, Formulae.DepletableMaxValue(this, depletable));
-            DepletablesCurrent.Add(depletable, Formulae.DepletableStartValue(this, depletable));
-        }
+
+        SetupDepletables();
 
         // Skills
         SkillAvailableTime = new Dictionary<string, float>();
@@ -111,7 +91,7 @@ public class Entity : MonoBehaviour
         // Connections
         TaggedEntities = new Dictionary<string, Dictionary<string, float>>();
         TagsAppliedBy = new Dictionary<string, List<string>>();
-        SummonedEntities = new Dictionary<string, List<Entity>>();
+        SummonedEntities = new Dictionary<string, List<EntitySummon>>();
 
         // Dependencies and components
         BattleSystem.AddEntity(this);
@@ -149,19 +129,20 @@ public class Entity : MonoBehaviour
         }
 
         SetupComplete = true;
+        OnTrigger(TriggerData.eTrigger.OnSpawn, source == null ? this : source);
     }
 
     protected virtual void Start()
     {
         if (!SetupComplete)
         {
-            Setup(EntityID, EntityLevel);
+            Setup(EntityID, EntityLevel, this);
         }
     }
 
     protected virtual void Update()
     {
-        if (Alive)
+        if (SetupComplete && Alive)
         {
             if (DepletablesCurrent != null)
             {
@@ -182,18 +163,13 @@ public class Entity : MonoBehaviour
             {
                 if (CurrentSkill.MovementCancelsSkill)
                 {
-                    var skillCancelled = SkillStartTime < Movement.LastJumped || SkillStartTime < Movement.LastMoved ||
+                    var skillCancelled = Movement != null && SkillStartTime < Movement.LastJumped || SkillStartTime < Movement.LastMoved ||
                                          CurrentSkill.CasterState == SkillData.eCasterState.Grounded && !Movement.IsGrounded;
                     if (skillCancelled)
                     {
                         CancelSkill();
                     }
                 }
-            }
-
-            if (SummonDetails != null)
-            {
-                SummonDetails.Update();
             }
         }
     }
@@ -246,8 +222,7 @@ public class Entity : MonoBehaviour
         // Ensure target is in range if a target is required or a preferred target is selected
         if (Target != null)
         {
-            var checkRange = skillData.NeedsTarget || (skillData.PreferredTarget == SkillData.eTargetPreferrence.Friendly && TargetingSystem.FriendlySelected) ||
-                                                      (skillData.PreferredTarget == SkillData.eTargetPreferrence.Enemy && TargetingSystem.EnemySelected);
+            var checkRange = skillData.NeedsTarget;
             if (checkRange)
             {
                 // Return if target is out of range.
@@ -268,7 +243,7 @@ public class Entity : MonoBehaviour
         CurrentSkill = skillData;
 
         // Rotate toward target
-        if (Target != null && skillData.PreferredTarget != SkillData.eTargetPreferrence.None)
+        if (Target != null && Movement != null && skillData.PreferredTarget != SkillData.eTargetPreferrence.None)
         {
             yield return Movement.RotateTowardCoroutine(Target.transform.position);
         }
@@ -385,7 +360,7 @@ public class Entity : MonoBehaviour
             var target = Target;
             if (payloadResult != null)
             {
-                if (trigger == TriggerData.eTrigger.OnHitIncoming || trigger == TriggerData.eTrigger.OnDamageReceived || 
+                if (trigger == TriggerData.eTrigger.OnHitIncoming || trigger == TriggerData.eTrigger.OnDamageTaken || 
                     trigger == TriggerData.eTrigger.OnRecoveryReceived || trigger == TriggerData.eTrigger.OnDeath)
                 {
                     target = payloadResult.Caster;
@@ -405,9 +380,44 @@ public class Entity : MonoBehaviour
         // Hard coded triggers
         switch (trigger)
         {
+            case TriggerData.eTrigger.OnHitOutgoing:
+            {
+                OnHitOutgoing(payloadResult);
+                break;
+            }
+            case TriggerData.eTrigger.OnHitIncoming:
+            {
+                OnHitIncoming(payloadResult);
+                break;
+            }
+            case TriggerData.eTrigger.OnHitMissed:
+            {
+                OnHitMissed();
+                break;
+            }
+            case TriggerData.eTrigger.OnDamageDealt:
+            {
+                OnDamageDealt(payloadResult);
+                break;
+            }
+            case TriggerData.eTrigger.OnDamageTaken:
+            {
+                OnDamageTaken(payloadResult);
+                break;
+            }
+            case TriggerData.eTrigger.OnRecoveryGiven:
+            {
+                OnRecoveryGiven(payloadResult);
+                break;
+            }
+            case TriggerData.eTrigger.OnRecoveryReceived:
+            {
+                OnRecoveryReceived(payloadResult);
+                break;
+            }
             case TriggerData.eTrigger.OnDeath:
             {
-                OnDeath();
+                OnDeath(source, payloadResult);
                 break;
             }
             case TriggerData.eTrigger.OnKill:
@@ -423,12 +433,42 @@ public class Entity : MonoBehaviour
         }
     }
 
-    protected virtual void OnSpawn()
+    protected virtual void OnHitOutgoing(PayloadResult payloadResult)
     {
 
     }
 
-    protected virtual void OnDeath()
+    protected virtual void OnHitIncoming(PayloadResult payloadResult)
+    {
+
+    }
+
+    protected virtual void OnHitMissed()
+    {
+
+    }
+
+    protected virtual void OnDamageDealt(PayloadResult payloadResult)
+    {
+
+    }
+
+    protected virtual void OnDamageTaken(PayloadResult payloadResult)
+    {
+
+    }
+
+    protected virtual void OnRecoveryGiven(PayloadResult payloadResult)
+    {
+
+    }
+
+    protected virtual void OnRecoveryReceived(PayloadResult payloadResult)
+    {
+
+    }
+
+    protected virtual void OnDeath(Entity source = null, PayloadResult payloadResult = null)
     {
         EntityState = eEntityState.Dead;
 
@@ -439,13 +479,14 @@ public class Entity : MonoBehaviour
             Targetable.RemoveTargeting();
         }
         KillLinkedSummons();
-        if (SummonDetails != null)
-        {
-            SummonDetails.Summoner.RemoveSummonedEntity(this);
-        }
     }
 
-    protected virtual void OnKill(PayloadResult payloadResult)
+    protected virtual void OnKill(PayloadResult payloadResult = null)
+    {
+
+    }
+
+    protected virtual void OnSpawn()
     {
 
     }
@@ -471,7 +512,7 @@ public class Entity : MonoBehaviour
         }
     }
 
-    public List<Entity> GetEntitiesWithTag(string tag)
+    public virtual List<Entity> GetEntitiesWithTag(string tag)
     {
         var entities = new List<Entity>();
         if (TaggedEntities.ContainsKey(tag))
@@ -485,7 +526,7 @@ public class Entity : MonoBehaviour
         return entities;
     }
 
-    public void TagEntity(TagData tagData, Entity entity)
+    public virtual void TagEntity(TagData tagData, Entity entity)
     {
         if (!TaggedEntities.ContainsKey(tagData.TagID))
         {
@@ -575,11 +616,11 @@ public class Entity : MonoBehaviour
     #endregion
 
     #region Summon
-    public void AddSummonnedEntity(Entity entity, ActionSummon summonAction)
+    public void AddSummonedEntity(EntitySummon entity, ActionSummon summonAction)
     {
         if (!SummonedEntities.ContainsKey(summonAction.EntityID))
         {
-            SummonedEntities.Add(summonAction.EntityID, new List<Entity>());
+            SummonedEntities.Add(summonAction.EntityID, new List<EntitySummon>());
         }
 
         while (SummonedEntities[summonAction.EntityID].Count >= summonAction.SummonLimit)
@@ -591,7 +632,7 @@ public class Entity : MonoBehaviour
         SummonedEntities[summonAction.EntityID].Add(entity);
     }
 
-    public void RemoveSummonedEntity(Entity entity)
+    public void RemoveSummonedEntity(EntitySummon entity)
     {
         if (SummonedEntities.ContainsKey(entity.EntityID))
         {
@@ -606,7 +647,7 @@ public class Entity : MonoBehaviour
         {
             foreach (var entity in group.Value)
             {
-                if (entity.SummonDetails.IsLinked)
+                if (entity.IsLinked)
                 {
                     linkedSummons.Add(entity);
                 }
@@ -620,7 +661,19 @@ public class Entity : MonoBehaviour
     }
     #endregion
 
-    #region Change Functions
+    #region Depletables
+    protected void SetupDepletables()
+    {
+        DepletablesMax = new Dictionary<string, float>();
+        DepletablesCurrent = new Dictionary<string, float>();
+
+        foreach (var depletable in GameData.EntityDepletables)
+        {
+            DepletablesMax.Add(depletable, Formulae.DepletableMaxValue(this, depletable));
+            DepletablesCurrent.Add(depletable, Formulae.DepletableStartValue(this, depletable));
+        }
+    }
+
     public void ApplyChangeToDepletable(string depletable, PayloadResult payloadResult)
     {
         var previous = DepletablesCurrent[depletable];
@@ -638,11 +691,11 @@ public class Entity : MonoBehaviour
             if (payloadResult.Change > 0.0f)
             {
                 OnTrigger(TriggerData.eTrigger.OnRecoveryReceived, source, payloadResult);
-                payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnRecoveryDealt, source, payloadResult);
+                payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnRecoveryGiven, source, payloadResult);
             }
             else if (payloadResult.Change < 0.0f)
             {
-                OnTrigger(TriggerData.eTrigger.OnDamageReceived, source, payloadResult);
+                OnTrigger(TriggerData.eTrigger.OnDamageTaken, source, payloadResult);
                 payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnRecoveryReceived, source, payloadResult);
             }
 
@@ -685,21 +738,11 @@ public class Entity : MonoBehaviour
     #endregion
 
     #region Getters and Checks
-    public string ID
-    {
-        get
-        {
-            return EntityID;
-        }
-    }
-
-    public int Level
-    {
-        get
-        {
-            return EntityLevel;
-        }
-    }
+    public int Level => EntityLevel;
+    public virtual Entity SummoningEntity => this;
+    public string EntityFaction => FactionOverride == null ? Faction : FactionOverride;
+    public TargetingSystem EntityTargetingSystem => TargetingSystem;
+    public bool Alive => EntityState != eEntityState.Dead;
 
     public Vector3 Origin
     {
@@ -712,41 +755,11 @@ public class Entity : MonoBehaviour
         }
     }
 
-    public string EntityFaction
-    {
-        get
-        {
-            if (FactionOverride != null)
-            {
-                return FactionOverride;
-            }
-            else
-            {
-                return Faction;
-            }
-        }
-    }
     public FactionData FactionData
     {
         get
         {
             return GameData.GetFactionData(EntityFaction);
-        }
-    }
-
-    public TargetingSystem EntityTargetingSystem
-    {
-        get
-        {
-            return TargetingSystem;
-        }
-    }
-
-    public bool Alive
-    {
-        get
-        {
-            return EntityState != eEntityState.Dead;
         }
     }
 

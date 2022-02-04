@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Projectile : Entity
+public class Projectile : EntitySummon
 {
     class ProjectileAction
     {
@@ -33,11 +33,6 @@ public class Projectile : Entity
     Vector3 TargetPosition;
     float RotationY;
 
-    public override void Setup(string entityID, int entityLevel, EntitySummonDetails summonDetails = null)
-    {
-        base.Setup(entityID, entityLevel, summonDetails);
-    }
-
     public void ProjectileStart(ActionProjectile projectileData, Entity target)
     {
         ProjectileData = projectileData;
@@ -61,12 +56,12 @@ public class Projectile : Entity
         {
             case ActionProjectile.eTarget.StaticPosition:
             {
-                projectileData.TargetPosition.TryGetTransformFromData(SummonDetails.Summoner, target, out TargetPosition, out _);
+                projectileData.TargetPosition.TryGetTransformFromData(Summoner, target, out TargetPosition, out _);
                 break;
             }
             case ActionProjectile.eTarget.Caster:
             {
-                TargetEntity = SummonDetails.Summoner;
+                TargetEntity = Summoner;
                 break;
             }
             case ActionProjectile.eTarget.Target:
@@ -205,9 +200,9 @@ public class Projectile : Entity
         }
     }
 
-    protected override void OnDeath()
+    protected override void OnDeath(Entity source = null, PayloadResult payloadResult = null)
     {
-        base.OnDeath();
+        base.OnDeath(source, payloadResult);
 
         TriggerCollider.enabled = false;
     }

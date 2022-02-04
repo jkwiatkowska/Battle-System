@@ -85,6 +85,11 @@ public static class Utility
 
     public static Vector3 ApplyDirection(Vector3 point, Vector3 direction)
     {
-        return Quaternion.LookRotation(direction) * point;
+        if (direction.sqrMagnitude > 0.001f)
+        {
+            return Quaternion.LookRotation(direction) * point;
+        }
+
+        return point;
     }
 }

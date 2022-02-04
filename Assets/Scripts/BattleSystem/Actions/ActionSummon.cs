@@ -17,8 +17,6 @@ public class ActionSummon : Action
     public bool LifeLink;                               // If true, the entity will disappear when the caster dies
     public bool InheritFaction;                         // The summoned entity will have its faction overriden with summoner's if true.
 
-    protected Entity SummonnedEntity;                   // Used by inheriting classes
-
     public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
     {
         actionResults[ActionID] = new ActionResult();
@@ -36,16 +34,30 @@ public class ActionSummon : Action
             return;
         }
 
-        // Setup
-        SummonnedEntity = BattleSystem.SpawnEntity(EntityID);
-        SummonnedEntity.Setup(EntityID, entity.Level, new EntitySummonDetails(this, entity, SummonnedEntity));
-        entity.AddSummonnedEntity(SummonnedEntity, this);
+        // Spawn and setup
+        var summon = BattleSystem.SpawnEntity(EntityID);
+        actionResults[ActionID].Success = SetupSummon(summon, entity.SummoningEntity, target, position, forward);
+    }
+
+    protected virtual bool SetupSummon(Entity summon, Entity summoner, Entity target, Vector3 position, Vector3 forward)
+    {
+        var summonedEntity = summon as EntitySummon;
+        if (summonedEntity == null)
+        {
+            Debug.LogError($"Summoned entity {EntityID} is missing an EntitySummon component.");
+            return false;
+        }
 
         // Set position and transform
-        SummonnedEntity.transform.position = position;
+        summonedEntity.transform.position = position;
+        forward.y = 0.0f;
+        summonedEntity.transform.forward = forward;
 
-        SummonnedEntity.transform.forward = forward;
+        //Setup
+        summonedEntity.Setup(EntityID, summoner.Level, summoner);
+        summonedEntity.SummonSetup(this, summoner);
 
-        actionResults[ActionID].Success = true;
+        summoner.AddSummonedEntity(summonedEntity, this);
+        return true;
     }
 }

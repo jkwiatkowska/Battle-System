@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2045683188067523892}
-  - component: {fileID: 2045683188067523888}
+  - component: {fileID: 7182312208712204350}
   - component: {fileID: 2045683188067523889}
   - component: {fileID: 8279393368966299802}
   - component: {fileID: 2045683188067523891}
@@ -37,7 +37,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2045683188067523888
+--- !u!114 &7182312208712204350
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -46,13 +46,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 2045683188067523887}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 202e67203bb371f44a3448441e2ec9c8, type: 3}
+  m_Script: {fileID: 11500000, guid: 1f406bd6f5c49074f92b280406894b71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   EntityID: Bomb
   EntityLevel: 1
-  Faction: 
-  FactionOverride: 
 --- !u!114 &2045683188067523889
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -10,8 +10,8 @@ public class TriggerData
         OnHitIncoming,      // Having payload applied.
         OnHitMissed,        // Failing to apply a payload action.
         OnDamageDealt,      // Succesfully damaging an entity.
-        OnDamageReceived,   // Being damaged by another entity.
-        OnRecoveryDealt,    // Succesfully restoring an entity's depletable.
+        OnDamageTaken,      // Being damaged by another entity.
+        OnRecoveryGiven,    // Succesfully restoring an entity's depletable.
         OnRecoveryReceived, // Having a depletable restored.
         OnDeath,            // Life depletable reaches 0.
         OnKill,             // Killing another entity.

@@ -6,7 +6,7 @@ public class EntityPlayer : Entity
 {
     public Dictionary<KeyCode, string> PlayerSkills;
 
-    public override void Setup(string entityID, int entityLevel, EntitySummonDetails summonDetails)
+    public override void Setup(string entityID, int entityLevel, Entity source = null)
     {
         base.Setup(entityID, entityLevel);
 

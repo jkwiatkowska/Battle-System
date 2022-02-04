@@ -79,23 +79,26 @@ public class ActionProjectile : ActionSummon
     public TransformData AnchorPosition;                // If using custom position for anchor
     #endregion
 
-    public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
+    protected override bool SetupSummon(Entity summon, Entity summoner, Entity target, Vector3 position, Vector3 forward)
     {
-        base.Execute(entity, target, ref actionResults);
-
-        if (!actionResults[ActionID].Success)
+        var projectile = summon as Projectile;
+        if (projectile == null)
         {
-            return;
+            Debug.LogError($"Entity {summon.name} is not a projectile.");
+            return false;
         }
 
-        var projectile = SummonnedEntity as Projectile;
-        if (projectile != null)
-        {
-            projectile.ProjectileStart(this, target);
-        }
-        else
-        {
-            Debug.LogError($"Entity {SummonnedEntity.name} is not a projectile.");
-        }
+        // Set position and transform
+        projectile.transform.position = position;
+        projectile.transform.forward = forward;
+
+        // Setup
+        projectile.Setup(EntityID, summoner.Level, summoner);
+        projectile.SummonSetup(this, summoner);
+        projectile.ProjectileStart(this, target);
+
+        summoner.AddSummonedEntity(projectile, this);
+
+        return true;
     }
 }

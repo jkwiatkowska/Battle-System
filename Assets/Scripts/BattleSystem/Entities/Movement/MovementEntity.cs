@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,11 +11,10 @@ public class MovementEntity : MonoBehaviour
     Vector3 Velocity;
     Vector3 GroundCheckSphereOffset;
 
-    public float GravitationalForce;
+    [NonSerialized] public float GravitationalForce;
     public bool IsGrounded { get; protected set; }
 
     float MovementLock;
-
     public float LastMoved      { get; private set; }
     public float LastJumped     { get; private set; }
 
