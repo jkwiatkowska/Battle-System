@@ -156,7 +156,7 @@ public class Projectile : Entity
                 {
                     break;
                 }
-                case ActionProjectile.eProjectileMovementMode.CircleAround:
+                case ActionProjectile.eProjectileMovementMode.Orbit:
                 {
                     break;
                 }

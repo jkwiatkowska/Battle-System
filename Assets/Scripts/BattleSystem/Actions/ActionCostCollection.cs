@@ -35,7 +35,7 @@ public class ActionCostCollection : Action
             }
             default:
             {
-                Debug.LogError($"Unsupported value type: {ValueType}");
+                Debug.LogError($"Unimplemented value type: {ValueType}");
                 return Value;
             }
         }

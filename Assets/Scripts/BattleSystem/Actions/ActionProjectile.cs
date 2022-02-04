@@ -8,7 +8,7 @@ public class ActionProjectile : ActionSummon
         Free,           // The projectile moves along its forward direction. Movement and direction can be customised in the projectile timeline.
         Homing,         // The projectile turns towards the given target. Movement and turning speed can be customised in the projectile timeline.
         Arched,         // The projectile shoots up and lands at the target position. Movement direction cannot be changed.
-        CircleAround,   // The projectile circles around a given entity or position. Speed and direction are affected by rotation settings in projectile timeline.
+        Orbit,          // The projectile circles around a given entity or position. Speed and direction are affected by rotation settings in projectile timeline.
     }
 
     public eProjectileMovementMode ProjectileMovementMode;  // This determines the trajectory a projectile takes.

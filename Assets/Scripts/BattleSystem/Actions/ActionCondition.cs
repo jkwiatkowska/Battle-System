@@ -76,7 +76,7 @@ public class ActionCondition
                     }
                     default:
                     {
-                        Debug.LogError($"Unsupported condition value type: {ConditionValueType}");
+                        Debug.LogError($"Unimplemented condition value type: {ConditionValueType}");
                         return false;
                     }
                 }
@@ -103,14 +103,14 @@ public class ActionCondition
                     }
                     default:
                     {
-                        Debug.LogError($"Unsupported condition value type: {ConditionValueType}");
+                        Debug.LogError($"Unimplemented condition value type: {ConditionValueType}");
                         return false;
                     }
                 }
             }
             default:
             {
-                Debug.LogError($"Unsupported execute condition: {Condition}");
+                Debug.LogError($"Unimplemented execute condition: {Condition}");
                 return false;
             }
         }

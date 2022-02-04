@@ -6,22 +6,25 @@ public class TransformData
 {
     public enum ePositionOrigin
     {
-        WorldPosition,          // A position in the world
-        CasterPosition,         // The entity casting the skill
-        TargetPosition,         // Selected entity
-        TaggedEntityPosition,   // Entity referenced with a string tag
+        WorldPosition,          // A position in the world.
+        CasterPosition,         // The entity casting the skill.
+        TargetPosition,         // Selected entity.
+        TaggedEntityPosition,   // Entity referenced with a string tag.
+        CasterOrigin,           // Center of the entity casting the skill.
+        TargetOrigin,           // Center of the selected entity.
+        TaggedEntityOrigin,     // Center of tagged entity.
         //PositionFromInput     
     }
 
     public enum eForwardSource
     {
-        CasterForward,          // The entity casting the skill
-        TargetForward,          // Forward of the target
-        CasterToTarget,         // Direction vector between caster and target
-        TaggedEntityForward,    // Forward of a tagged entity
-        CasterToTaggedEntity,   // Direction vector between caster and tagged entity
-        CasterToPositionOrigin, // Direction vector between caster and position origin
-        Vector3Forward,         // North direction in the world
+        CasterForward,          // The entity casting the skill.
+        TargetForward,          // Forward of the target.
+        CasterToTarget,         // Direction vector between caster and target.
+        TaggedEntityForward,    // Forward of a tagged entity.
+        CasterToTaggedEntity,   // Direction vector between caster and tagged entity.
+        CasterToPositionOrigin, // Direction vector between caster and position origin.
+        Vector3Forward,         // North direction in the world.
     }
 
     public enum eTaggedTargetPriority
@@ -37,7 +40,7 @@ public class TransformData
     public eTaggedTargetPriority TaggedTargetPriority;  // If there is more than one entity with a given tag, this is used.
 
     public Vector3 PositionOffset;          // Position offset from position origin. Relative to forward direction.
-    public Vector3 RandomPositionOffset;    // Range of a random offset from the summon position, for each x and y axis
+    public Vector3 RandomPositionOffset;    // Range of a random offset from the summon position, for each x and y axis.
 
     public float ForwardRotationOffset;     // The forward vector can be rotated around its Y axis.
     public float RandomForwardOffset;       // Randomness can be applied to this as well. 
@@ -76,6 +79,36 @@ public class TransformData
                 if (taggedEntity != null)
                 { 
                     position = taggedEntity.transform.position;
+                }
+                else
+                {
+                    // No tagged entity
+                    return false;
+                }
+                break;
+            }
+            case ePositionOrigin.CasterOrigin:
+            {
+                position = caster.Origin;
+                break;
+            }
+            case ePositionOrigin.TargetOrigin:
+            {
+                // No position if target was lost. 
+                if (target == null)
+                {
+                    return false;
+                }
+
+                position = target.Origin;
+                break;
+            }
+            case ePositionOrigin.TaggedEntityOrigin:
+            {
+                var taggedEntity = ChooseTaggedEntity(caster);
+                if (taggedEntity != null)
+                {
+                    position = taggedEntity.Origin;
                 }
                 else
                 {
