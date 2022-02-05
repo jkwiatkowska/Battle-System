@@ -45,6 +45,7 @@ public abstract class ActionPayload : Action
 
         if (targets.Count == 0)
         {
+            GetTargetsForAction(entity, target);
             return;
         }
 

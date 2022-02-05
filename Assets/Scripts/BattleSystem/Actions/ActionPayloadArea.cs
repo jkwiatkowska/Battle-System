@@ -81,7 +81,7 @@ public class ActionPayloadArea : ActionPayload
                         var tPos = t.transform.position;
 
                         // Check if the target is at the correct height
-                        var tBottom = tPos.y;
+                        var tBottom = tPos.y + 0.001f;
                         var tTop = tPos.y + t.EntityData.Height;
                         var areaBottom = areaPos.y;
                         var areaTop = areaPos.y + area.Dimensions.z;

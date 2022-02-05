@@ -12,7 +12,7 @@ public class MovementPlayer : MovementEntity
         Camera = FindObjectOfType<PlayerCamera>();
     }    
 
-    public virtual void MovePlayer(Vector2 direction, float speedMultiplier = 1.0f)
+    public virtual void MovePlayer(Vector2 input, float speedMultiplier = 1.0f)
     {
         // To do: Make a player movement class and move this there
         if (IsMovementLocked)
@@ -20,7 +20,11 @@ public class MovementPlayer : MovementEntity
             return;
         }
 
-        var movementVector = direction.x * Camera.GetPlayerXVector() + -direction.y * Camera.GetPlayerZVector();
+        var movementVector = input.x * Camera.GetPlayerXVector() + -input.y * Camera.GetPlayerZVector();
+        if (movementVector.sqrMagnitude < float.Epsilon)
+        {
+            return;
+        }
 
         Move(movementVector, true, speedMultiplier);
     }

@@ -163,8 +163,7 @@ public class Entity : MonoBehaviour
             {
                 if (CurrentSkill.MovementCancelsSkill)
                 {
-                    var skillCancelled = Movement != null && SkillStartTime < Movement.LastJumped || SkillStartTime < Movement.LastMoved ||
-                                         CurrentSkill.CasterState == SkillData.eCasterState.Grounded && !Movement.IsGrounded;
+                    var skillCancelled = Movement != null && (SkillStartTime < Movement.LastJumped || SkillStartTime < Movement.LastMoved);
                     if (skillCancelled)
                     {
                         CancelSkill();
@@ -317,6 +316,11 @@ public class Entity : MonoBehaviour
 
     public virtual void CancelSkill()
     {
+        if (CurrentSkill == null)
+        {
+            return;
+        }
+
         if (EntityState == eEntityState.ChargingSkill)
         {
             if (EntityCanvas != null)

@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 6346551627906020590}
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0.01, z: 0}
-  m_LocalScale: {x: 2.5, y: 2.5, z: 1}
+  m_LocalScale: {x: 1.75, y: 1.75, z: 1}
   m_Children: []
   m_Father: {fileID: 8799224501291485265}
   m_RootOrder: 2
@@ -107,8 +107,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8799224500666598629}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_Children: []
   m_Father: {fileID: 8799224501291485265}
   m_RootOrder: 0
@@ -194,7 +194,7 @@ Transform:
   m_GameObject: {fileID: 8799224501291485266}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 8799224500666598628}
   - {fileID: 5474480296918255473}
@@ -216,8 +216,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   EntityID: Player
   EntityLevel: 1
-  Faction: 
-  FactionOverride: 
 --- !u!114 &8799224501291485268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -260,11 +258,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a894b2c06246493438e5c49d7099aef8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TerrainLayers:
-    serializedVersion: 2
-    m_Bits: 8
   GroundCheckSphereRadius: 0.22
-  GravitationalForce: 0
 --- !u!54 &8799224501291485271
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -291,10 +285,10 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  m_Radius: 0.5
-  m_Height: 2
+  m_Radius: 0.25
+  m_Height: 1
   m_Direction: 1
-  m_Center: {x: 0, y: 1, z: 0}
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!136 &1808330096783725590
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -305,10 +299,10 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 1
   m_Enabled: 1
-  m_Radius: 0.5
-  m_Height: 2
+  m_Radius: 0.25
+  m_Height: 1
   m_Direction: 1
-  m_Center: {x: 0, y: 1, z: 0}
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!1001 &219229857905911461
 PrefabInstance:
   m_ObjectHideFlags: 0
