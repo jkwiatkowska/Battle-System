@@ -45,11 +45,10 @@ public abstract class ActionPayload : Action
 
         if (targets.Count == 0)
         {
-            GetTargetsForAction(entity, target);
             return;
         }
 
-        if (targets.Count > TargetLimit)
+        if (TargetLimit > 0 && targets.Count > TargetLimit)
         {
             switch (TargetPriority)
             {

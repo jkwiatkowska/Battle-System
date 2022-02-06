@@ -16,14 +16,14 @@ public static class Formulae
     {
         var flags = payloadData.Flags;
 
-        var isCrit = flags["canCrit"] && caster.BaseAttributes["critChance"] >= Random.value;
+        var isCrit = flags.ContainsKey("canCrit") && flags["canCrit"] && caster.BaseAttributes["critChance"] >= Random.value;
         if (isCrit)
         {
             resultFlags.Add("critical");
         }
         var critMultiplier = isCrit ? (1.0f + caster.BaseAttributes["critDamage"]) : 1.0f;
 
-        var defMultiplier = flags["ignoreDef"] ? 1.0f : 1.0f - target.BaseAttributes["def"] / (target.BaseAttributes["def"] + 5 * caster.Level + 500.0f);
+        var defMultiplier = flags.ContainsKey("ignoreDef") && flags["ignoreDef"] ? 1.0f : 1.0f - target.BaseAttributes["def"] / (target.BaseAttributes["def"] + 5 * caster.Level + 500.0f);
         var incomingDamage = rawDamage * critMultiplier * defMultiplier;
 
         return incomingDamage;

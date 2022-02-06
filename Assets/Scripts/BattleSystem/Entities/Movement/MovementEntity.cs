@@ -8,15 +8,14 @@ public class MovementEntity : MonoBehaviour
     [SerializeField] float GroundCheckSphereRadius;
     Entity Parent;
 
-    Vector3 Velocity;
+    [NonSerialized] public Vector3 Velocity;
+    [NonSerialized] public float GravitationalForce;
+    public bool IsGrounded                              { get; protected set; }
     Vector3 GroundCheckSphereOffset;
 
-    [NonSerialized] public float GravitationalForce;
-    public bool IsGrounded { get; protected set; }
-
     float MovementLock;
-    public float LastMoved      { get; private set; }
-    public float LastJumped     { get; private set; }
+    public float LastMoved                              { get; protected set; }
+    public float LastJumped                             { get; protected set; }
 
     public virtual void Setup(Entity parent)
     {
@@ -74,6 +73,24 @@ public class MovementEntity : MonoBehaviour
         }
 
         LastJumped = BattleSystem.Time;
+    }
+
+    public void ApplyForce(Vector3 force)
+    {
+        Velocity += force;
+    }
+
+    public void Launch(Vector3 targetPosition, float angle)
+    {
+        float xzDistance = Vector3.Distance(new Vector3(transform.position.x, 0.0f, transform.position.z), new Vector3(targetPosition.x, 0.0f, targetPosition.z));
+        float yDistance = Mathf.Abs(targetPosition.y - transform.position.y);
+        float tanAlpha = Mathf.Tan(angle * Mathf.Deg2Rad);
+
+        float zSpeed = Mathf.Sqrt(GravitationalForce * xzDistance * xzDistance / (2.0f * (yDistance - xzDistance * tanAlpha)));
+        float ySpeed = tanAlpha * zSpeed;
+
+        Vector3 localVelocity = new Vector3(0f, ySpeed, zSpeed);
+        Velocity = transform.TransformDirection(localVelocity);
     }
 
     public void RotateY(float rotationPerSecond, ref float targetRotation)
@@ -144,6 +161,9 @@ public class MovementEntity : MonoBehaviour
             Velocity.y += GravitationalForce * Time.deltaTime;
         }
 
-        gameObject.transform.position += (Velocity * Time.deltaTime);
+        if (Velocity != Vector3.zero)
+        {
+            gameObject.transform.position += Velocity * Time.deltaTime;
+        }
     }
 }

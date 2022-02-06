@@ -358,6 +358,8 @@ public class Entity : MonoBehaviour
 
     public virtual void OnTrigger(TriggerData.eTrigger trigger, Entity source, PayloadResult payloadResult = null)
     {
+        //var plText = payloadResult != null ? $", action: {payloadResult.ActionID}, target: {payloadResult.Target}" : "";
+        //Debug.Log($"{name} got trigger: {trigger}, source: {source.EntityUID}{plText}, time: {BattleSystem.Time}");
         // Variable triggers
         if (Triggers.ContainsKey(trigger))
         {
@@ -678,7 +680,7 @@ public class Entity : MonoBehaviour
         }
     }
 
-    public void ApplyChangeToDepletable(string depletable, PayloadResult payloadResult)
+    public void ApplyChangeToDepletable(string depletable, PayloadResult payloadResult, bool setTriggers = true)
     {
         var previous = DepletablesCurrent[depletable];
         DepletablesCurrent[depletable] = Mathf.Clamp(DepletablesCurrent[depletable] + payloadResult.Change, 0.0f, DepletablesMax[depletable]);
@@ -692,15 +694,18 @@ public class Entity : MonoBehaviour
             payloadResult.Change = previous - DepletablesCurrent[depletable];
             var source = payloadResult.Caster;
 
-            if (payloadResult.Change > 0.0f)
+            if (setTriggers)
             {
-                OnTrigger(TriggerData.eTrigger.OnRecoveryReceived, source, payloadResult);
-                payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnRecoveryGiven, source, payloadResult);
-            }
-            else if (payloadResult.Change < 0.0f)
-            {
-                OnTrigger(TriggerData.eTrigger.OnDamageTaken, source, payloadResult);
-                payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnRecoveryReceived, source, payloadResult);
+                if (payloadResult.Change < -Constants.Epsilon)
+                {
+                    OnTrigger(TriggerData.eTrigger.OnRecoveryReceived, source, payloadResult);
+                    payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnRecoveryGiven, source, payloadResult);
+                }
+                else if (payloadResult.Change > Constants.Epsilon)
+                {
+                    OnTrigger(TriggerData.eTrigger.OnDamageTaken, source, payloadResult);
+                    payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnDamageDealt, source, payloadResult);
+                }
             }
 
             if (DepletablesCurrent[depletable] <= 0.0f && EntityData.LifeDepletables.Contains(depletable))
@@ -728,7 +733,6 @@ public class Entity : MonoBehaviour
 
             if (DepletablesCurrent[depletable] <= 0.0f && EntityData.LifeDepletables.Contains(depletable))
             {
-                EntityState = eEntityState.Dead;
                 OnTrigger(TriggerData.eTrigger.OnDeath, null);
             }
         }

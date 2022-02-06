@@ -89,7 +89,10 @@ public class Payload
         // Damage can be further adjusted here, for example by applying multipliers
         var totalDamage = Formulae.OutgoingDamage(caster, change, Action.PayloadData);
 
-        PayloadDamage.Add(new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, totalDamage));
+        if (totalDamage > Constants.Epsilon || totalDamage < -Constants.Epsilon)
+        {
+            PayloadDamage.Add(new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, totalDamage));
+        }
     }
 
     public void ApplyPayload(Entity caster, Entity target, PayloadResult result)
@@ -122,10 +125,12 @@ public class Payload
             }
         }
 
-        // Incoming damage can be calculated using target attributes and other variables here. 
-        result.Change = Formulae.IncomingDamage(caster, target, result.Change, Action.PayloadData, ref result.Flags);
-
-        target.ApplyChangeToDepletable(Action.PayloadData.DepletableAffected, result);
+        // Incoming damage can be calculated using target attributes and other variables here.
+        if (result.Change > Constants.Epsilon || result.Change < -Constants.Epsilon)
+        {
+            result.Change = Formulae.IncomingDamage(caster, target, result.Change, Action.PayloadData, ref result.Flags);
+            target.ApplyChangeToDepletable(Action.PayloadData.DepletableAffected, result);
+        }
 
         // Only perform other actions if the target is still alive
         if (target.Alive)

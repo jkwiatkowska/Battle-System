@@ -156,7 +156,7 @@ public static class GameData
                             {
                                 new ActionDestroySelf()
                                 {
-                                    ActionID = "deathAction",
+                                    ActionID = "destroySelfAction",
                                     SkillID = "",
                                     ActionType = Action.eActionType.DestroySelf,
                                     Timestamp = 0.01f,
@@ -1592,53 +1592,19 @@ public static class GameData
                             {
                                 PositionOrigin = TransformData.ePositionOrigin.CasterPosition,
                                 ForwardSource = TransformData.eForwardSource.CasterForward,
-                                PositionOffset = new Vector3(0.0f, 0.5f, 1.5f),
-                                RandomForwardOffset = 360.0f
+                                PositionOffset = new Vector3(0.0f, 0.5f, 0.5f),
+                                RandomForwardOffset = 0.0f
                             },
                             SummonDuration = 16.0f,
-                            SummonLimit = 100,
+                            SummonLimit = 60,
                             InheritFaction = true,
-                            ProjectileMovementMode = ActionProjectile.eProjectileMovementMode.Free,
+                            ProjectileMovementMode = ActionProjectile.eProjectileMovementMode.Arched,
                             ProjectileTimeline = new List<ActionProjectile.ProjectileAction>()
                             {
-                                new ActionProjectile.ProjectileAction()
-                                {
-                                    SpeedMultiplier = new Vector2(0.7f, 0.8f),
-                                    RotationPerSecond = new Vector2(30.0f, 30.0f),
-                                    RotationY = new Vector2(-110.0f, 110.9f),
-                                    Timestamp = 0.0f
-                                },
-                                new ActionProjectile.ProjectileAction()
-                                {
-                                    SpeedMultiplier = new Vector2(0.8f, 1.0f),
-                                    RotationPerSecond = new Vector2(30.0f, 30.0f),
-                                    RotationY = new Vector2(-130.9f, 130.9f),
-                                    Timestamp = 1.0f
-                                },
-                                new ActionProjectile.ProjectileAction()
-                                {
-                                    SpeedMultiplier = new Vector2(0.1f, 0.2f),
-                                    RotationPerSecond = new Vector2(30.0f, 30.0f),
-                                    RotationY = new Vector2(-0.1f, 0.1f),
-                                    Timestamp = 1.1f
-                                },
-                                new ActionProjectile.ProjectileAction()
-                                {
-                                    SpeedMultiplier = new Vector2(0.0f, 0.1f),
-                                    RotationPerSecond = new Vector2(30.0f, 30.0f),
-                                    RotationY = new Vector2(-0.9f, 0.9f),
-                                    Timestamp = 3.5f
-                                },
-                                new ActionProjectile.ProjectileAction()
-                                {
-                                    SpeedMultiplier = new Vector2(1.0f, 1.1f),
-                                    RotationPerSecond = new Vector2(30.0f, 30.0f),
-                                    RotationY = new Vector2(-120.0f, 120.9f),
-                                    Timestamp = 5.0f
-                                },
                             },
                             Target = ActionProjectile.eTarget.Target,
-                            Gravity = 0.0f,
+                            ArchAngle = 50.0f,
+                            Gravity = -5.0f,
                             OnEnemyHit = new List<ActionProjectile.OnCollisionReaction>()
                             {
                                 new ActionProjectile.OnCollisionReaction()
@@ -1651,7 +1617,7 @@ public static class GameData
                                             ActionID = "projectileAttackAction",
                                             SkillID = "projectileAttack",
                                             ActionType = Action.eActionType.PayloadDirect,
-                                            Timestamp = 0.01f,
+                                            Timestamp = 0.0f,
                                             TargetPriority = ActionPayload.eTargetPriority.Random,
                                             ActionTargets = ActionPayloadDirect.eDirectActionTargets.SelectedEntity,
                                             TargetLimit = 1,
@@ -1677,12 +1643,13 @@ public static class GameData
                                         },
                                         new ActionPayloadDirect()
                                         {
-                                            ActionID = "deathAction",
+                                            ActionID = "deathTriggerAction",
                                             SkillID = "projectileAttack",
                                             ActionType = Action.eActionType.PayloadDirect,
-                                            Timestamp = 0.015f,
+                                            Timestamp = 0.0f,
                                             Target = ActionPayload.eTarget.FriendlyEntities,
                                             ActionTargets = ActionPayloadDirect.eDirectActionTargets.Self,
+                                            TargetLimit = 1,
                                             PayloadData = new PayloadData()
                                             {
                                                 Affinities = new List<string>(),

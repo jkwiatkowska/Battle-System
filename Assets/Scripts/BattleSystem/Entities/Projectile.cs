@@ -62,11 +62,13 @@ public class Projectile : EntitySummon
             case ActionProjectile.eTarget.Caster:
             {
                 TargetEntity = Summoner;
+                TargetPosition = TargetEntity.Origin;
                 break;
             }
             case ActionProjectile.eTarget.Target:
             {
                 TargetEntity = target;
+                TargetPosition = TargetEntity.Origin;
                 break;
             }
             default:
@@ -75,13 +77,18 @@ public class Projectile : EntitySummon
                 break;
             }
         }
+
+        if (projectileData.ProjectileMovementMode == ActionProjectile.eProjectileMovementMode.Arched)
+        {
+            Movement.Launch(TargetPosition, projectileData.ArchAngle);
+        }
     }
 
     protected override void FixedUpdate()
     {
         base.FixedUpdate();
 
-        if (Alive)
+        if (Alive && ProjectileData.ProjectileMovementMode != ActionProjectile.eProjectileMovementMode.Arched)
         {
             var speedMultiplier = 1.0f;
             var rotationPerSecond = 0.0f;
@@ -202,9 +209,11 @@ public class Projectile : EntitySummon
 
     protected override void OnDeath(Entity source = null, PayloadResult payloadResult = null)
     {
-        base.OnDeath(source, payloadResult);
-
         TriggerCollider.enabled = false;
+        Movement.GravitationalForce = 0.0f;
+        Movement.Velocity = Vector3.zero;
+
+        base.OnDeath(source, payloadResult);
     }
 
     public void OnTriggerEnter(Collider other)
