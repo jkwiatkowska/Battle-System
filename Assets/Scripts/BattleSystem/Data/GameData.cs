@@ -316,9 +316,9 @@ public static class GameData
                                             { "ignoreDef", false },
                                             { "canCrit", true }
                                         },
-                                        PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                        PayloadValue = new Value()
                                         {
-                                            new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterAttribute, 3.0f, "atk")
+                                            new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 3.0f, "atk")
                                         },
                                         Affinities = new List<string>()
                                         {
@@ -390,10 +390,10 @@ public static class GameData
                                     { "ignoreDef", false },
                                     { "canCrit", true }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 15),
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterAttribute, 0.8f, "atk")
+                                    new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 15),
+                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 0.8f, "atk")
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -460,9 +460,9 @@ public static class GameData
                                     { "ignoreDef", false },
                                     { "canCrit", true }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 150)
+                                    new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 150)
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -516,10 +516,10 @@ public static class GameData
                                     { "ignoreDef", false },
                                     { "canCrit", true }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 10),
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterDepletableCurrent, 1, "hp")
+                                    new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 10),
+                                    new ValueComponent(ValueComponent.eValueComponentType.CasterDepletableCurrent, 1, "hp")
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -555,9 +555,9 @@ public static class GameData
                                     { "ignoreDef", true },
                                     { "canCrit", false }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 22)
+                                    new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 22)
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -632,9 +632,9 @@ public static class GameData
                                     { "ignoreDef", false },
                                     { "canCrit", true }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 70)
+                                    new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 70)
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -674,9 +674,9 @@ public static class GameData
                                     { "ignoreDef", false },
                                     { "canCrit", true }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 50)
+                                    new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 50)
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -716,9 +716,9 @@ public static class GameData
                                     { "ignoreDef", false },
                                     { "canCrit", true }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 50)
+                                    new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 50)
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -758,9 +758,9 @@ public static class GameData
                                     { "ignoreDef", false },
                                     { "canCrit", true }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 50)
+                                    new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 50)
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -834,9 +834,9 @@ public static class GameData
                                     { "ignoreDef", false },
                                     { "canCrit", true }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 10)
+                                    new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 10)
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -876,9 +876,9 @@ public static class GameData
                                     { "ignoreDef", false },
                                     { "canCrit", true }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 10)
+                                    new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 10)
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -918,9 +918,9 @@ public static class GameData
                                     { "ignoreDef", false },
                                     { "canCrit", true }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 10)
+                                    new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 10)
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -960,9 +960,9 @@ public static class GameData
                                     { "ignoreDef", false },
                                     { "canCrit", true }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 10)
+                                    new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 10)
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -1036,9 +1036,9 @@ public static class GameData
                                     { "ignoreDef", false },
                                     { "canCrit", true }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 70)
+                                    new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 70)
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -1078,9 +1078,9 @@ public static class GameData
                                     { "ignoreDef", false },
                                     { "canCrit", true }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 50)
+                                    new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 50)
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -1120,9 +1120,9 @@ public static class GameData
                                     { "ignoreDef", false },
                                     { "canCrit", true }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 50)
+                                    new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 50)
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -1162,9 +1162,9 @@ public static class GameData
                                     { "ignoreDef", false },
                                     { "canCrit", true }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 50)
+                                    new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 50)
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -1251,9 +1251,9 @@ public static class GameData
                                     { "ignoreDef", true },
                                     { "canCrit", false }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.ActionResultValue, 1.0f, "mpCollect")
+                                    new ValueComponent(ValueComponent.eValueComponentType.ActionResultValue, 1.0f, "mpCollect")
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -1288,9 +1288,9 @@ public static class GameData
                                     { "ignoreDef", true },
                                     { "canCrit", false }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.ActionResultValue, 1.0f, "mpCollect")
+                                    new ValueComponent(ValueComponent.eValueComponentType.ActionResultValue, 1.0f, "mpCollect")
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -1342,9 +1342,9 @@ public static class GameData
                                     { "ignoreDef", true },
                                     { "canCrit", false }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.FlatValue, 100)
+                                    new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 100)
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -1402,9 +1402,9 @@ public static class GameData
                                     { "ignoreDef", true },
                                     { "canCrit", false }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax, -0.1f, "hp")
+                                    new ValueComponent(ValueComponent.eValueComponentType.TargetDepletableMax, -0.1f, "hp")
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -1432,9 +1432,9 @@ public static class GameData
                                     { "ignoreDef", true },
                                     { "canCrit", false }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax, -0.2f, "hp")
+                                    new ValueComponent(ValueComponent.eValueComponentType.TargetDepletableMax, -0.2f, "hp")
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -1462,9 +1462,9 @@ public static class GameData
                                     { "ignoreDef", true },
                                     { "canCrit", false }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax, -0.3f, "hp")
+                                    new ValueComponent(ValueComponent.eValueComponentType.TargetDepletableMax, -0.3f, "hp")
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -1492,9 +1492,9 @@ public static class GameData
                                     { "ignoreDef", true },
                                     { "canCrit", false }
                                 },
-                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                PayloadValue = new Value()
                                 {
-                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.TargetDepletableMax, -0.4f, "hp")
+                                    new ValueComponent(ValueComponent.eValueComponentType.TargetDepletableMax, -0.4f, "hp")
                                 },
                                 Affinities = new List<string>()
                                 {
@@ -1599,7 +1599,7 @@ public static class GameData
                             SummonLimit = 60,
                             InheritFaction = true,
                             ProjectileMovementMode = ActionProjectile.eProjectileMovementMode.Arched,
-                            ProjectileTimeline = new List<ActionProjectile.ProjectileAction>(),
+                            ProjectileTimeline = new List<ActionProjectile.ProjectileState>(),
                             Target = ActionProjectile.eTarget.Target,
                             ArchAngle = 70.0f,
                             Gravity = -5.0f,
@@ -1627,9 +1627,9 @@ public static class GameData
                                                     { "ignoreDef", false },
                                                     { "canCrit", true }
                                                 },
-                                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                                PayloadValue = new Value()
                                                 {
-                                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterAttribute, 1.0f, "atk")
+                                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 1.0f, "atk")
                                                 },
                                                 Affinities = new List<string>()
                                                 {
@@ -1651,7 +1651,7 @@ public static class GameData
                                             PayloadData = new PayloadData()
                                             {
                                                 Affinities = new List<string>(),
-                                                PayloadComponents = new List<PayloadData.PayloadComponent>(),
+                                                PayloadValue = new Value(),
                                                 Flags = new Dictionary<string, bool>(),
                                                 SuccessChance = 1.0f,
                                                 Triggers = new List<TriggerData.eTrigger>()
@@ -1718,37 +1718,37 @@ public static class GameData
                             SummonLimit = 100,
                             InheritFaction = true,
                             ProjectileMovementMode = ActionProjectile.eProjectileMovementMode.Homing,
-                            ProjectileTimeline = new List<ActionProjectile.ProjectileAction>()
+                            ProjectileTimeline = new List<ActionProjectile.ProjectileState>()
                             {
-                                new ActionProjectile.ProjectileAction()
+                                new ActionProjectile.ProjectileState()
                                 {
                                     SpeedMultiplier = new Vector2(0.2f, 0.2f),
                                     RotationPerSecond = new Vector2(5.0f, 5.0f),
                                     RotationY = new Vector2(0.0f, 0.0f),
                                     Timestamp = 0.0f
                                 },
-                                new ActionProjectile.ProjectileAction()
+                                new ActionProjectile.ProjectileState()
                                 {
                                     SpeedMultiplier = new Vector2(0.3f, 0.3f),
                                     RotationPerSecond = new Vector2(5.0f, 5.0f),
                                     RotationY = new Vector2(0.0f, 0.0f),
                                     Timestamp = 1.0f
                                 },
-                                new ActionProjectile.ProjectileAction()
+                                new ActionProjectile.ProjectileState()
                                 {
                                     SpeedMultiplier = new Vector2(0.1f, 0.2f),
                                     RotationPerSecond = new Vector2(5.0f, 5.0f),
                                     RotationY = new Vector2(0.0f, 0.0f),
                                     Timestamp = 1.1f
                                 },
-                                new ActionProjectile.ProjectileAction()
+                                new ActionProjectile.ProjectileState()
                                 {
                                     SpeedMultiplier = new Vector2(0.0f, 0.1f),
                                     RotationPerSecond = new Vector2(5.0f, 5.0f),
                                     RotationY = new Vector2(0.0f, 0.0f),
                                     Timestamp = 3.5f
                                 },
-                                new ActionProjectile.ProjectileAction()
+                                new ActionProjectile.ProjectileState()
                                 {
                                     SpeedMultiplier = new Vector2(1.0f, 1.1f),
                                     RotationPerSecond = new Vector2(5.0f, 5.0f),
@@ -1782,9 +1782,9 @@ public static class GameData
                                                     { "ignoreDef", false },
                                                     { "canCrit", true }
                                                 },
-                                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                                PayloadValue = new Value()
                                                 {
-                                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterAttribute, -1.0f, "atk")
+                                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, -1.0f, "atk")
                                                 },
                                                 Affinities = new List<string>()
                                                 {
@@ -1853,37 +1853,37 @@ public static class GameData
                             InheritFaction = true,
                             ProjectileMovementMode = ActionProjectile.eProjectileMovementMode.Orbit,
                             Anchor = ActionProjectile.eAnchor.Caster,
-                            ProjectileTimeline = new List<ActionProjectile.ProjectileAction>()
+                            ProjectileTimeline = new List<ActionProjectile.ProjectileState>()
                             {
-                                new ActionProjectile.ProjectileAction()
+                                new ActionProjectile.ProjectileState()
                                 {
                                     SpeedMultiplier = new Vector2(0.2f, 0.2f),
                                     RotationPerSecond = new Vector2(-50.0f, -50.0f),
                                     RotationY = new Vector2(0.0f, 0.0f),
                                     Timestamp = 0.0f
                                 },
-                                new ActionProjectile.ProjectileAction()
+                                new ActionProjectile.ProjectileState()
                                 {
                                     SpeedMultiplier = new Vector2(0.0f, 0.0f),
                                     RotationPerSecond = new Vector2(50.0f, 50.0f),
                                     RotationY = new Vector2(0.0f, 0.0f),
                                     Timestamp = 1.0f
                                 },
-                                new ActionProjectile.ProjectileAction()
+                                new ActionProjectile.ProjectileState()
                                 {
                                     SpeedMultiplier = new Vector2(0.0f, 0.0f),
                                     RotationPerSecond = new Vector2(50.0f, 50.0f),
                                     RotationY = new Vector2(0.0f, 0.0f),
                                     Timestamp = 4.0f
                                 },
-                                new ActionProjectile.ProjectileAction()
+                                new ActionProjectile.ProjectileState()
                                 {
                                     SpeedMultiplier = new Vector2(0.2f, 0.2f),
                                     RotationPerSecond = new Vector2(-50.0f, -50.0f),
                                     RotationY = new Vector2(0.0f, 0.0f),
                                     Timestamp = 5.0f
                                 },
-                                new ActionProjectile.ProjectileAction()
+                                new ActionProjectile.ProjectileState()
                                 {
                                     SpeedMultiplier = new Vector2(0.0f, 0.0f),
                                     RotationPerSecond = new Vector2(50.0f, 50.0f),
@@ -1918,9 +1918,9 @@ public static class GameData
                                                     { "ignoreDef", false },
                                                     { "canCrit", true }
                                                 },
-                                                PayloadComponents = new List<PayloadData.PayloadComponent>()
+                                                PayloadValue = new Value()
                                                 {
-                                                    new PayloadData.PayloadComponent(PayloadData.PayloadComponent.ePayloadComponentType.CasterAttribute, 1.0f, "atk")
+                                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 1.0f, "atk")
                                                 },
                                                 Affinities = new List<string>()
                                                 {

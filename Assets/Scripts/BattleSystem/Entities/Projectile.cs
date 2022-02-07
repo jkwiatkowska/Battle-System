@@ -4,20 +4,18 @@ using UnityEngine;
 
 public class Projectile : EntitySummon
 {
-    class ProjectileAction
+    class ProjectileState
     {
         public float SpeedMultiplier;           // Used to change speed, relative to entity movement speed. 
         public float RotationPerSecond;         // Rotation speed.
         public float RotationY;                 // Rotation in angles, affected by rotation speed.
-        public string SkillName;                // Skill for the projectile to use. Null if none. 
         public float Timestamp;                 // Time at which the changes are applied, relative to the projectile spawning.
 
-        public ProjectileAction(ActionProjectile.ProjectileAction sourceAction, float startTime)
+        public ProjectileState(ActionProjectile.ProjectileState sourceAction, float startTime)
         {
             SpeedMultiplier = Random.Range(sourceAction.SpeedMultiplier.x, sourceAction.SpeedMultiplier.y);
             RotationPerSecond = Random.Range(sourceAction.RotationPerSecond.x, sourceAction.RotationPerSecond.y);
             RotationY = Random.Range(sourceAction.RotationY.x, sourceAction.RotationY.y);
-            SkillName = sourceAction.SkillName;
             Timestamp = sourceAction.Timestamp + startTime;
         }
     }
@@ -25,7 +23,7 @@ public class Projectile : EntitySummon
     // Shared
     [SerializeField] Collider TriggerCollider;
     public ActionProjectile ProjectileData      { get; protected set; }
-    List<ProjectileAction> ProjectileTimeline;
+    List<ProjectileState> ProjectileTimeline;
     float StartTime;
     int ActionIndex;
     Entity TargetEntity;
@@ -42,13 +40,13 @@ public class Projectile : EntitySummon
         ProjectileData = projectileData;
         StartTime = BattleSystem.Time;
         ActionIndex = 0;
-        ProjectileTimeline = new List<ProjectileAction>();
+        ProjectileTimeline = new List<ProjectileState>();
 
         if (ProjectileData.ProjectileTimeline != null)
         {
             foreach (var action in ProjectileData.ProjectileTimeline)
             {
-                ProjectileTimeline.Add(new ProjectileAction(action, StartTime));
+                ProjectileTimeline.Add(new ProjectileState(action, StartTime));
             }
         }
 
@@ -123,11 +121,6 @@ public class Projectile : EntitySummon
                             nextAction = ProjectileTimeline.Count > ActionIndex + 1 ? ProjectileTimeline[ActionIndex + 1] : null;
 
                             RotationY += currentAction.RotationY;
-
-                            if (!string.IsNullOrEmpty(currentAction.SkillName))
-                            {
-                                TryUseSkill(currentAction.SkillName);
-                            }
                         }
                     }
 

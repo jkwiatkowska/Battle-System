@@ -34,17 +34,16 @@ public class ActionProjectile : ActionSummon
     #endregion
 
     #region Projectile Timeline
-    public class ProjectileAction
+    public class ProjectileState
     {
         public Vector2 SpeedMultiplier;         // Used to change speed, relative to entity movement speed. If values are different, a value in between is chosen at random. 
         public Vector2 RotationPerSecond;       // Used to change rotation speed, can be a random value.
-        public Vector2 RotationY;               // Rotation around the projectile's Y axis in angles, at the given rotation speed.
-        public string SkillName;                // Skill for the projectile to use. Leave blank if none. 
+        public Vector2 RotationY;               // Rotation around the projectile's Y axis in angles, at the given rotation speed. Used by the free movement mode.
         public float Timestamp;                 // Time at which the changes are applied, relative to the projectile spawning.
-                                                // If there are multiple entries, speed multiplier and direction from previous and next timestamp are weighted.
+                                                // If there are multiple entries, speed multiplier and direction from previous and next timestamp are interpolated.
     }
 
-    public List<ProjectileAction> ProjectileTimeline;   // Defines speed and direction changes, as well as skill use.
+    public List<ProjectileState> ProjectileTimeline;   // Defines speed and direction changes, as well as skill use.
     #endregion
 
     #region Homing Mode
