@@ -234,7 +234,7 @@ public class Projectile : EntitySummon
 
     public void OnTriggerEnter(Collider other)
     {
-        var entityHit = other.GetComponentInChildren<Entity>();
+        var entityHit = other.GetComponentInParent<Entity>();
 
         if (entityHit != null)
         {
