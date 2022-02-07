@@ -10,9 +10,10 @@ public class ActionTimeline : List<Action>
         var startTime = BattleSystem.Time;
         var actionResults = new Dictionary<string, ActionResult>();
 
-        foreach (var action in this)
+        for (int i = 0; i < Count; i++)
         {
-            Debug.Log($"Executing action {action.ActionID}, time: {BattleSystem.Time}");
+            var action = this[i];
+
             var timestamp = startTime + action.TimestampForEntity(entity);
             while (timestamp > BattleSystem.Time)
             {
@@ -20,6 +21,27 @@ public class ActionTimeline : List<Action>
             }
 
             action.Execute(entity, target, ref actionResults);
+
+            if (action.ActionType == Action.eActionType.LoopBack && actionResults[action.ActionID].Success)
+            {
+                var loopBackAction = action as ActionLoopBack;
+                if (loopBackAction != null)
+                {
+                    var goToTimestamp = startTime + Formulae.ActionTime(entity, loopBackAction.GoToTimestamp);
+                    var difference = BattleSystem.Time - goToTimestamp;
+
+                    startTime += difference;
+
+                    while (i >= 0 && this[i].Timestamp >= loopBackAction.GoToTimestamp)
+                    {
+                        i--;
+                    }
+                }
+                else
+                {
+                    Debug.LogError($"Action {action.ActionID} is not a loop back action.");
+                }
+            }
         }
         yield return null;
     }

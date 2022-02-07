@@ -22,22 +22,24 @@ public class Projectile : EntitySummon
         }
     }
 
+    // Shared
     [SerializeField] Collider TriggerCollider;
     public ActionProjectile ProjectileData      { get; protected set; }
     List<ProjectileAction> ProjectileTimeline;
     float StartTime;
     int ActionIndex;
-    Vector3 StartPosition;
-    Vector3 StartForward;
     Entity TargetEntity;
     Vector3 TargetPosition;
+
+    // Free
     float RotationY;
+
+    // Orbit
+    Vector3 RelativePosition;
 
     public void ProjectileStart(ActionProjectile projectileData, Entity target)
     {
         ProjectileData = projectileData;
-        StartPosition = transform.position;
-        StartForward = transform.forward;
         StartTime = BattleSystem.Time;
         ActionIndex = 0;
         ProjectileTimeline = new List<ProjectileAction>();
@@ -82,94 +84,112 @@ public class Projectile : EntitySummon
         {
             Movement.Launch(TargetPosition, projectileData.ArchAngle);
         }
+        else if (projectileData.ProjectileMovementMode == ActionProjectile.eProjectileMovementMode.Orbit)
+        {
+            RelativePosition = transform.position - TargetPosition;
+        }
     }
 
     protected override void FixedUpdate()
     {
         base.FixedUpdate();
 
-        if (Alive && ProjectileData.ProjectileMovementMode != ActionProjectile.eProjectileMovementMode.Arched)
+        if (Alive)
         {
-            var speedMultiplier = 1.0f;
-            var rotationPerSecond = 0.0f;
-
-            if (ProjectileTimeline != null && ProjectileTimeline.Count > 0)
-            {
-                var currentAction = ProjectileTimeline[ActionIndex];
-
-                // Not the last action on the list
-                if (ProjectileTimeline.Count > ActionIndex + 1)
-                {
-                    var nextAction = ProjectileTimeline[ActionIndex + 1];
-
-                    // Move to next action on the timeline
-                    while (nextAction != null && nextAction.Timestamp <= BattleSystem.Time)
-                    {
-                        ActionIndex++;
-                        currentAction = nextAction;
-                        nextAction = ProjectileTimeline.Count > ActionIndex + 1 ? ProjectileTimeline[ActionIndex + 1] : null;
-
-                        RotationY += currentAction.RotationY;
-
-                        if (!string.IsNullOrEmpty(currentAction.SkillName))
-                        {
-                            TryUseSkill(currentAction.SkillName);
-                        }
-                    }
-                }
-
-                // Last action in timeline
-                if (ProjectileTimeline.Count == ActionIndex + 1)
-                {
-                    speedMultiplier = currentAction.SpeedMultiplier;
-                    rotationPerSecond = currentAction.RotationPerSecond;
-                }
-                else
-                {
-                    var nextAction = ProjectileTimeline[ActionIndex + 1];
-
-                    var t = BattleSystem.Time - currentAction.Timestamp / nextAction.Timestamp - currentAction.Timestamp;
-                    speedMultiplier = Mathf.Lerp(currentAction.SpeedMultiplier, nextAction.SpeedMultiplier, t);
-                    rotationPerSecond = Mathf.Lerp(currentAction.RotationPerSecond, nextAction.RotationPerSecond, t);
-                }
-            }
-
             if (TargetEntity != null)
             {
                 TargetPosition = TargetEntity.Origin;
             }
 
-            switch (ProjectileData.ProjectileMovementMode)
+            if (ProjectileData.ProjectileMovementMode != ActionProjectile.eProjectileMovementMode.Arched)
             {
-                case ActionProjectile.eProjectileMovementMode.Free:
+                var speedMultiplier = 1.0f;
+                var rotationPerSecond = 0.0f;
+
+                if (ProjectileTimeline != null && ProjectileTimeline.Count > 0)
                 {
-                    if (rotationPerSecond > 0.0f && RotationY != 0.0f)
+                    var currentAction = ProjectileTimeline[ActionIndex];
+
+                    // Not the last action on the list
+                    if (ProjectileTimeline.Count > ActionIndex + 1)
                     {
-                        Movement.RotateY(rotationPerSecond, ref RotationY);
+                        var nextAction = ProjectileTimeline[ActionIndex + 1];
+
+                        // Move to next action on the timeline
+                        while (nextAction != null && nextAction.Timestamp <= BattleSystem.Time)
+                        {
+                            ActionIndex++;
+                            currentAction = nextAction;
+                            nextAction = ProjectileTimeline.Count > ActionIndex + 1 ? ProjectileTimeline[ActionIndex + 1] : null;
+
+                            RotationY += currentAction.RotationY;
+
+                            if (!string.IsNullOrEmpty(currentAction.SkillName))
+                            {
+                                TryUseSkill(currentAction.SkillName);
+                            }
+                        }
                     }
-                    break;
+
+                    // Last action in timeline
+                    if (ProjectileTimeline.Count == ActionIndex + 1)
+                    {
+                        speedMultiplier = currentAction.SpeedMultiplier;
+                        rotationPerSecond = currentAction.RotationPerSecond;
+                    }
+                    else
+                    {
+                        var nextAction = ProjectileTimeline[ActionIndex + 1];
+
+                        var t = BattleSystem.Time - currentAction.Timestamp / nextAction.Timestamp - currentAction.Timestamp;
+                        speedMultiplier = Mathf.Lerp(currentAction.SpeedMultiplier, nextAction.SpeedMultiplier, t);
+                        rotationPerSecond = Mathf.Lerp(currentAction.RotationPerSecond, nextAction.RotationPerSecond, t);
+                    }
                 }
-                case ActionProjectile.eProjectileMovementMode.Homing:
+
+                switch (ProjectileData.ProjectileMovementMode)
                 {
-                    Movement.RotateTowardPosition(TargetPosition, rotationPerSecond);
-                    break;
-                }
-                case ActionProjectile.eProjectileMovementMode.Arched:
-                {
-                    break;
-                }
-                case ActionProjectile.eProjectileMovementMode.Orbit:
-                {
-                    break;
-                }
-                default:
-                {
-                    Debug.LogError($"Unimplemented projectile mode: {ProjectileData.ProjectileMovementMode}");
-                    break;
+                    case ActionProjectile.eProjectileMovementMode.Free:
+                    {
+                        if (rotationPerSecond > 0.0f && RotationY != 0.0f)
+                        {
+                            Movement.RotateY(rotationPerSecond, ref RotationY);
+                        }
+                        Movement.Move(transform.forward, false, speedMultiplier);
+                        break;
+                    }
+                    case ActionProjectile.eProjectileMovementMode.Homing:
+                    {
+                        Movement.RotateTowardPosition(TargetPosition, rotationPerSecond);
+                        Movement.Move(transform.forward, false, speedMultiplier);
+                        break;
+                    }
+                    case ActionProjectile.eProjectileMovementMode.Orbit:
+                    {
+                        var previousPos = RelativePosition;
+
+                        var movement = MovementEntity.GetEntityMovement(this, Time.fixedDeltaTime, speedMultiplier) * RelativePosition.normalized;
+                        RelativePosition += movement;
+
+                        transform.position = TargetPosition + RelativePosition;
+                        transform.RotateAround(TargetPosition, Vector3.up, rotationPerSecond * Time.deltaTime);
+
+                        RelativePosition = transform.position - TargetPosition;
+                        transform.rotation = Quaternion.LookRotation(RelativePosition - previousPos);
+
+                        break;
+                    }
+                    default:
+                    {
+                        Debug.LogError($"Unimplemented projectile mode: {ProjectileData.ProjectileMovementMode}");
+                        break;
+                    }
                 }
             }
-
-            Movement.Move(transform.forward, false, speedMultiplier);
+            else
+            {
+                transform.rotation = Quaternion.LookRotation(Movement.Velocity);
+            }
         }
     }
 
@@ -177,10 +197,6 @@ public class Projectile : EntitySummon
     {
         switch (reaction.Reaction)
         {
-            case ActionProjectile.OnCollisionReaction.eReactionType.PassThrough:
-            {
-                break;
-            }
             case ActionProjectile.OnCollisionReaction.eReactionType.SelfDestruct:
             {
                 OnTrigger(TriggerData.eTrigger.OnDeath, this);

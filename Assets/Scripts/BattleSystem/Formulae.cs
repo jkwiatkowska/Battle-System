@@ -69,10 +69,10 @@ public static class Formulae
         return recoveryRate;
     }
 
-    public static float ActionTime(Entity entity, Action action)
+    public static float ActionTime(Entity entity, float actionTimestamp)
     {
         var timeMultiplier = 1.0f;
-        var actionTime = action.Timestamp * timeMultiplier;
+        var actionTime = actionTimestamp * timeMultiplier;
 
         return actionTime;
     }

@@ -43,21 +43,29 @@ public class MovementEntity : MonoBehaviour
         }
     }
 
-    public virtual void Move(Vector3 direction, bool updateRotation, float speedMultiplier = 1.0f)
+    public virtual Vector3 Move(Vector3 direction, bool updateRotation, float speedMultiplier = 1.0f)
     {
         if (IsMovementLocked)
         {
-            return;
+            return Vector3.zero;
         }
 
         direction.Normalize();
 
-        transform.position += direction * Formulae.EntityMovementSpeed(Parent) * speedMultiplier * Time.fixedDeltaTime;
+        var movement = direction * GetEntityMovement(Parent, Time.fixedDeltaTime, speedMultiplier);
+        transform.position += movement;
         if (updateRotation)
         {
             transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
         }
         LastMoved = BattleSystem.Time;
+
+        return movement;
+    }
+
+    public static float GetEntityMovement(Entity entity, float timeElapsed, float speedMultiplier = 1.0f)
+    {
+        return Formulae.EntityMovementSpeed(entity) * speedMultiplier * timeElapsed;
     }
 
     public void Jump()
@@ -95,7 +103,16 @@ public class MovementEntity : MonoBehaviour
 
     public void RotateY(float rotationPerSecond, ref float targetRotation)
     {
-        var rotation = rotationPerSecond * Time.fixedDeltaTime;
+        var rotation = GetRotation(rotationPerSecond, Time.fixedDeltaTime, ref targetRotation);
+
+        transform.rotation *= Quaternion.Euler(0.0f, rotation, 0.0f);
+
+        targetRotation -= rotation;
+    }
+
+    public static float GetRotation(float rotationPerSecond, float timeElapsed, ref float targetRotation)
+    {
+        var rotation = rotationPerSecond * timeElapsed;
         if (targetRotation < 0.0f)
         {
             rotation *= -1.0f;
@@ -109,9 +126,7 @@ public class MovementEntity : MonoBehaviour
             rotation = targetRotation;
         }
 
-        transform.rotation *= Quaternion.Euler(0.0f, rotation, 0.0f);
-
-        targetRotation -= rotation;
+        return rotation;
     }
 
     public void RotateTowardPosition(Vector3 targetPosition, float rotationSpeed)

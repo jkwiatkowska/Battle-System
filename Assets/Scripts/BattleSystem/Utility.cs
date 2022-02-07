@@ -19,7 +19,7 @@ public static class Utility
         return v;
     }
 
-    public static float Angle(Vector2 direction)
+    public static float Angle2D(Vector2 direction)
     {
         if (direction.x < 0)
         {
@@ -28,6 +28,18 @@ public static class Utility
         else
         {
             return Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
+        }
+    }
+
+    public static float Angle3D(Vector3 direction)
+    {
+        if (direction.x < 0)
+        {
+            return 360.0f - (Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg * -1.0f);
+        }
+        else
+        {
+            return Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
         }
     }
 
@@ -62,6 +74,11 @@ public static class Utility
         return distance;
     }
 
+    public static float DistanceXZ(Vector3 pos1, Vector3 pos2)
+    {
+        return Vector2.SqrMagnitude(Get2DVector(pos1) - Get2DVector(pos1));
+    }
+
     public static bool IsInRange(Entity entity1, Entity entity2, float range)
     {
         var distance = Distance2D(entity1, entity2);
@@ -81,6 +98,19 @@ public static class Utility
         point = temp + centerOfRotation;
 
         return point;
+    }
+
+    public static Vector3 OrbitPosition(float yOffset, Vector3 anchorPos, float distance, float angle)
+    {
+        var x = distance * Mathf.Cos(angle * Mathf.Deg2Rad);
+        var z = distance * Mathf.Sin(angle * Mathf.Deg2Rad);
+
+        var position = anchorPos;
+        position.x += x;
+        position.y += yOffset;
+        position.z += z;
+
+        return position;
     }
 
     public static Vector3 ApplyDirection(Vector3 point, Vector3 direction)

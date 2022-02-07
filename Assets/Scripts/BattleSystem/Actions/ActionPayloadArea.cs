@@ -164,7 +164,7 @@ public class ActionPayloadArea : ActionPayload
                     {
                         var t = potentialTargets[i];
                         var tPos2D = Utility.RotateAroundPosition(Utility.Get2DVector(t.transform.position), 
-                                     Utility.Angle(Utility.Get2DVector(areaForward)), areaPos2D);
+                                     Utility.Angle3D(areaForward), areaPos);
 
                         // Check if the target is at the correct height
                         var tBottom = t.transform.position.y;

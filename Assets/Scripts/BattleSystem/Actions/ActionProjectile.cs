@@ -18,7 +18,6 @@ public class ActionProjectile : ActionSummon
     {
         public enum eReactionType
         {
-            PassThrough,
             SelfDestruct,
             Bounce,
             ExecuteActions
@@ -61,11 +60,11 @@ public class ActionProjectile : ActionSummon
     #endregion
 
     #region Arched Mode
-    public float ArchAngle;                             // Angle along the X axis at which the projectile is shot.
+    public float ArchAngle;                             // Angle along the X axis at which the projectile is shot. Must be bigger than 0 and smaller than 90.
     public float Gravity;                               // Zero for other modes.
     #endregion
 
-    #region Circle Mode
+    #region Orbit Mode
     public enum eAnchor // A projectile can moves relative to its anchor position.
     {
         None,

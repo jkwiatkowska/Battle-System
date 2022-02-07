@@ -19,7 +19,7 @@ public class EntityPlayer : Entity
             { KeyCode.Alpha5, "cylinderAttack" },
             { KeyCode.Alpha6, "chargedAttack" },
             { KeyCode.Alpha7, "projectileSkill" },
-            { KeyCode.Alpha8, "projectileSkill2" },
+            { KeyCode.Alpha8, "projectileSkill3" },
             { KeyCode.Alpha9, "summonSkill" },
             { KeyCode.Alpha0, "healAll" },
         };

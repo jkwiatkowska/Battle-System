@@ -173,7 +173,17 @@ public class Entity : MonoBehaviour
         }
     }
 
+    protected virtual void LateUpdate()
+    {
+
+    }
+
     protected virtual void FixedUpdate()
+    {
+
+    }
+
+    protected virtual void LateFixedUpdate()
     {
 
     }
