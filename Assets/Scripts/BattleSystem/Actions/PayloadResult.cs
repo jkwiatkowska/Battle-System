@@ -13,14 +13,16 @@ public class PayloadResult
     public float Change;
     public List<string> Flags;
 
-    public PayloadResult(PayloadData payloadData, Entity caster, Entity target, string skillID, string actionID, float change, List<string> flags)
+    public PayloadResult(PayloadData payloadData, Entity caster, Entity target, string skillID = "", string actionID = "")
     {
         PayloadData = payloadData;
+
         Caster = caster;
         Target = target;
+        Change = 0.0f;
+        Flags = new List<string>();
+
         SkillID = skillID;
         ActionID = actionID;
-        Change = change;
-        Flags = flags;
     }
 }

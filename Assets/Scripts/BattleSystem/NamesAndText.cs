@@ -28,9 +28,9 @@ public static class NamesAndText
         return name;
     }
 
-    public static string DepletableName(string depletable)
+    public static string ResourceName(string resource)
     {
-        var name = depletable.ToUpper();
+        var name = resource.ToUpper();
 
         return name;
     }
@@ -53,7 +53,7 @@ public static class NamesAndText
             color = Color.green;
         }
 
-        text += $"{Mathf.Round(value)} {DepletableName(action.PayloadData.DepletableAffected)}";
+        text += $"{Mathf.Round(value)} {ResourceName(action.PayloadData.ResourceAffected)}";
 
         if (flags.Contains("critical"))
         {

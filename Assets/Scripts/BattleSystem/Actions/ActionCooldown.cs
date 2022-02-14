@@ -2,8 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ActionCooldownApplication : Action
+public class ActionCooldown : Action
 {
+    public enum eChangeMode
+    {
+        Set,
+        Modify
+    }
+
     public enum eCooldownTarget
     {
         Skill,
@@ -11,6 +17,7 @@ public class ActionCooldownApplication : Action
     }
 
     public float Cooldown;                      // After using a skill, it goes on cooldown and cannot be used again until this much time passes.
+    public eChangeMode ChangeMode;              // A skill cooldown can be set or modified.
     public eCooldownTarget CooldownTarget;      // A cooldown can be applied to a singular skill or a group of skills.
     public string CooldownTargetName;           // Name of a skill or skill group.
     
@@ -27,8 +34,16 @@ public class ActionCooldownApplication : Action
         {
             case eCooldownTarget.Skill:
             {
-                var availableTime = BattleSystem.Time + Formulae.CooldownTime(entity, CooldownTargetName, this);
-                entity.SetSkillAvailableTime(CooldownTargetName, availableTime);
+                if (ChangeMode == eChangeMode.Modify)
+                {
+                    entity.ModifySkillAvailableTime(CooldownTargetName, Cooldown);
+                }
+                else
+                {
+                    var availableTime = BattleSystem.Time + Formulae.CooldownTime(entity, CooldownTargetName, this);
+                    entity.SetSkillAvailableTime(CooldownTargetName, availableTime);
+                }
+
                 break;
             }
             case eCooldownTarget.SkillGroup:
@@ -41,8 +56,15 @@ public class ActionCooldownApplication : Action
 
                 foreach (var skill in GameData.SkillGroups[CooldownTargetName])
                 {
-                    var availableTime = BattleSystem.Time + Formulae.CooldownTime(entity, skill, this);
-                    entity.SetSkillAvailableTime(skill, availableTime);
+                    if (ChangeMode == eChangeMode.Modify)
+                    {
+                        entity.ModifySkillAvailableTime(skill, Cooldown);
+                    }
+                    else
+                    {
+                        var availableTime = BattleSystem.Time + Formulae.CooldownTime(entity, skill, this);
+                        entity.SetSkillAvailableTime(skill, availableTime);
+                    }
                 }
                 break;
             }

@@ -12,18 +12,21 @@ public static class Formulae
         return outgoingDamage;
     }
 
-    public static float IncomingDamage(Entity caster, Entity target, float rawDamage, PayloadData payloadData, ref List<string> resultFlags)
+    public static float IncomingDamage(Entity caster, Entity target, float rawDamage, Payload payload, ref List<string> resultFlags)
     {
+        var payloadData = payload.PayloadData;
         var flags = payloadData.Flags;
+        var casterAttributes = caster.EntityAttributes(payload.Action.SkillID, payload.Action.ActionID, payload.PayloadData.Categories);
+        var targetAttributes = target.EntityAttributes(payload.Action.SkillID, payload.Action.ActionID, payload.PayloadData.Categories);
 
-        var isCrit = flags.ContainsKey("canCrit") && flags["canCrit"] && caster.BaseAttributes["critChance"] >= Random.value;
+        var isCrit = flags.ContainsKey("canCrit") && flags["canCrit"] && casterAttributes["critChance"] >= Random.value;
         if (isCrit)
         {
             resultFlags.Add("critical");
         }
-        var critMultiplier = isCrit ? (1.0f + caster.BaseAttributes["critDamage"]) : 1.0f;
+        var critMultiplier = isCrit ? (1.0f + casterAttributes["critDamage"]) : 1.0f;
 
-        var defMultiplier = flags.ContainsKey("ignoreDef") && flags["ignoreDef"] ? 1.0f : 1.0f - target.BaseAttributes["def"] / (target.BaseAttributes["def"] + 5 * caster.Level + 500.0f);
+        var defMultiplier = flags.ContainsKey("ignoreDef") && flags["ignoreDef"] ? 1.0f : 1.0f - targetAttributes["def"] / (targetAttributes["def"] + 5 * caster.Level + 500.0f);
         var incomingDamage = rawDamage * critMultiplier * defMultiplier;
 
         return incomingDamage;
@@ -38,26 +41,22 @@ public static class Formulae
         return baseAttribute;
     }
 
-    public static float DepletableMaxValue(Entity entity, string depletable)
+    public static float ResourceMaxValue(Entity entity, string resource)
     {
-        var maxValue = 1.0f;
-        if (entity.BaseAttributes.ContainsKey(depletable))
-        {
-            maxValue = entity.BaseAttributes[depletable];
-        }
+        var maxValue = entity.Attribute(resource, "", "", null);
 
         return maxValue;
     }
 
-    public static float DepletableStartValue(Entity entity, string depletable)
+    public static float ResourceStartValue(Entity entity, string resource)
     {
         var startRatio = 1.0f;
-        var startValue = DepletableMaxValue(entity, depletable) * startRatio;
+        var startValue = ResourceMaxValue(entity, resource) * startRatio;
 
         return startValue;
     }
 
-    public static float DepletableRecoveryRate(Entity entity, string depletable)
+    public static float ResourceRecoveryRate(Entity entity, string resource)
     {
         var recoveryRate = 0.2f;
 
@@ -91,7 +90,7 @@ public static class Formulae
         return chargeTime;
     }
 
-    public static float CooldownTime(Entity entity, string skillID, ActionCooldownApplication action)
+    public static float CooldownTime(Entity entity, string skillID, ActionCooldown action)
     {
         var cooldown = action.Cooldown;
 

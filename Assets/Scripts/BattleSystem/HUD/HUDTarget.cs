@@ -8,7 +8,7 @@ public class HUDTarget : MonoBehaviour
     [SerializeField] Canvas HUD;
     [SerializeField] GameObject TargetHUDCanvas;
     [SerializeField] SkillChargeProgress SkillChargeDisplay;
-    [SerializeField] List<DepletableDisplay> DepletableDisplay;
+    [SerializeField] List<ResourceDisplay> ResourceDisplay;
     [SerializeField] Text TargetLevelText;
     [SerializeField] Text TargetNameText;
 
@@ -21,9 +21,9 @@ public class HUDTarget : MonoBehaviour
     public void SelectTarget(EntityCanvas entityCanvas)
     {
         entityCanvas.AddSkillChargeDisplay(SkillChargeDisplay);
-        foreach (var display in DepletableDisplay)
+        foreach (var display in ResourceDisplay)
         {
-            entityCanvas.AddDepletableDisplay(display);
+            entityCanvas.AddResourceDisplay(display);
         }
 
         entityCanvas.SetEntityNameText(TargetNameText);
@@ -35,9 +35,9 @@ public class HUDTarget : MonoBehaviour
     public void ClearSelection(EntityCanvas entityCanvas)
     {
         entityCanvas.RemoveSkillChargeDisplay(SkillChargeDisplay);
-        foreach (var display in DepletableDisplay)
+        foreach (var display in ResourceDisplay)
         {
-            entityCanvas.RemoveDepletableDisplay(display);
+            entityCanvas.RemoveResourceDisplay(display);
         }
 
         TargetHUDCanvas.SetActive(false);

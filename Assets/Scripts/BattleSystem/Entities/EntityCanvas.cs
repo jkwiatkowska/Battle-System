@@ -9,8 +9,8 @@ public class EntityCanvas : MonoBehaviour
     [SerializeField] List<Text> EntityNameText;
     [SerializeField] List<Text> EntityLevelText;
     [SerializeField] List<SkillChargeProgress> SkillChargeDisplay;
-    [SerializeField] List<DepletableDisplay> DepletableDisplays;
-    Dictionary<string, List<DepletableDisplay>> DepletableDisplay;
+    [SerializeField] List<ResourceDisplay> ResourceDisplays;
+    Dictionary<string, List<ResourceDisplay>> ResourceDisplay;
     Camera Camera;
 
     public void Setup(Entity entity)
@@ -18,10 +18,10 @@ public class EntityCanvas : MonoBehaviour
         Entity = entity;
         Camera = Camera.main;
 
-        DepletableDisplay = new Dictionary<string, List<DepletableDisplay>>();
-        foreach (var display in DepletableDisplays)
+        ResourceDisplay = new Dictionary<string, List<ResourceDisplay>>();
+        foreach (var display in ResourceDisplays)
         {
-            AddDepletableDisplay(display);
+            AddResourceDisplay(display);
         }
 
         foreach (var text in EntityNameText)
@@ -74,37 +74,37 @@ public class EntityCanvas : MonoBehaviour
         SkillChargeDisplay.Remove(display);
     }
 
-    public void UpdateDepletableDisplay(string depletableName)
+    public void UpdateResourceDisplay(string resourceName)
     {
-        if (DepletableDisplay.ContainsKey(depletableName) && DepletableDisplay[depletableName].Count > 0)
+        if (ResourceDisplay.ContainsKey(resourceName) && ResourceDisplay[resourceName].Count > 0)
         {
-            var current = Entity.DepletablesCurrent[depletableName];
-            var max = Entity.DepletablesMax[depletableName];
+            var current = Entity.ResourcesCurrent[resourceName];
+            var max = Entity.ResourcesMax[resourceName];
 
-            foreach (var display in DepletableDisplay[depletableName])
+            foreach (var display in ResourceDisplay[resourceName])
             {
                 display.UpdateValues(current, max);
             }
         }
     }
 
-    public void AddDepletableDisplay(DepletableDisplay display)
+    public void AddResourceDisplay(ResourceDisplay display)
     {
-        if (!DepletableDisplay.ContainsKey(display.DepletableName))
+        if (!ResourceDisplay.ContainsKey(display.ResourceName))
         {
-            DepletableDisplay.Add(display.DepletableName, new List<DepletableDisplay>());
+            ResourceDisplay.Add(display.ResourceName, new List<ResourceDisplay>());
         }
-        DepletableDisplay[display.DepletableName].Add(display);
+        ResourceDisplay[display.ResourceName].Add(display);
 
-        var current = Entity.DepletablesCurrent[display.DepletableName];
-        var max = Entity.DepletablesMax[display.DepletableName];
+        var current = Entity.ResourcesCurrent[display.ResourceName];
+        var max = Entity.ResourcesMax[display.ResourceName];
 
         display.SetValues(current, max);
     }
 
-    public void RemoveDepletableDisplay(DepletableDisplay display)
+    public void RemoveResourceDisplay(ResourceDisplay display)
     {
-        DepletableDisplay[display.DepletableName].Remove(display);
+        ResourceDisplay[display.ResourceName].Remove(display);
     }
 
     public void SetEntityNameText(Text text)

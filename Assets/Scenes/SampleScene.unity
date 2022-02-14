@@ -456,7 +456,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6818cfdd8cd2c4947b92017460dd0ccc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DepletableName: mp
+  ResourceName: mp
   Text: {fileID: 63463201}
 --- !u!222 &63463203
 CanvasRenderer:
@@ -1727,7 +1727,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6818cfdd8cd2c4947b92017460dd0ccc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DepletableName: hp
+  ResourceName: hp
   Text: {fileID: 252294918}
 --- !u!222 &252294920
 CanvasRenderer:
@@ -5083,7 +5083,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f24643a0862660948b80c0227c709bfd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DepletableName: hp
+  ResourceName: hp
   FastBar: {fileID: 1121986495}
   SlowBar: {fileID: 116569591}
   UpdateSpeed: 0.02
@@ -6903,7 +6903,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f24643a0862660948b80c0227c709bfd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DepletableName: mp
+  ResourceName: mp
   FastBar: {fileID: 1515556509}
   SlowBar: {fileID: 1329165404}
   UpdateSpeed: 0.02
@@ -7176,10 +7176,10 @@ MonoBehaviour:
   HUD: {fileID: 1036918386}
   TargetHUDCanvas: {fileID: 251052292}
   SkillChargeDisplay: {fileID: 857007517}
-  DepletableDisplay:
+  ResourceDisplay:
   - {fileID: 1913925236}
-  - {fileID: 252294919}
   - {fileID: 1000980726}
+  - {fileID: 252294919}
   TargetLevelText: {fileID: 621781112}
   TargetNameText: {fileID: 348344061}
 --- !u!1 &1037192576
@@ -9906,7 +9906,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6818cfdd8cd2c4947b92017460dd0ccc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DepletableName: hp
+  ResourceName: hp
   Text: {fileID: 1282248714}
 --- !u!222 &1282248716
 CanvasRenderer:
@@ -14199,7 +14199,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f24643a0862660948b80c0227c709bfd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DepletableName: mp
+  ResourceName: mp
   FastBar: {fileID: 137154422}
   SlowBar: {fileID: 359496124}
   UpdateSpeed: 0.02
@@ -14813,7 +14813,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f24643a0862660948b80c0227c709bfd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DepletableName: hp
+  ResourceName: hp
   FastBar: {fileID: 1136387154}
   SlowBar: {fileID: 1214194093}
   UpdateSpeed: 0.02
@@ -16214,6 +16214,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5474480296918255478, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
+      propertyPath: ResourceDisplays.Array.size
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5474480296918255478, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
       propertyPath: EntityNameText.Array.data[0]
       value: 
       objectReference: {fileID: 529919699}
@@ -16229,6 +16233,22 @@ PrefabInstance:
       propertyPath: SkillChargeDisplay.Array.size
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5474480296918255478, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
+      propertyPath: ResourceDisplays.Array.data[1]
+      value: 
+      objectReference: {fileID: 747552960}
+    - target: {fileID: 5474480296918255478, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
+      propertyPath: ResourceDisplays.Array.data[2]
+      value: 
+      objectReference: {fileID: 1811646169}
+    - target: {fileID: 5474480296918255478, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
+      propertyPath: ResourceDisplays.Array.data[3]
+      value: 
+      objectReference: {fileID: 1282248715}
+    - target: {fileID: 5474480296918255478, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
+      propertyPath: ResourceDisplays.Array.data[4]
+      value: 
+      objectReference: {fileID: 63463202}
     - target: {fileID: 5474480296918255478, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
       propertyPath: DepletableDisplays.Array.data[1]
       value: 
@@ -16392,6 +16412,10 @@ PrefabInstance:
     - target: {fileID: 8799224501291485291, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
       propertyPath: DistanceWeight
       value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8867919703910920424, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
+      propertyPath: ResourceName
+      value: hp
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}

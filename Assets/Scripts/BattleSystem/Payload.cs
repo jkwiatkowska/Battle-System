@@ -6,16 +6,17 @@ public class Payload
 {
     public Entity Source;
     public ActionPayload Action;
+    public PayloadData PayloadData;
     public Value PayloadValue;
-
-    // To do: status effects
-
-    public Payload(Entity caster, ActionPayload action, Dictionary<string, ActionResult> actionResults)
+    
+    public Payload(Entity caster, PayloadData payloadData, ActionPayload action = null, Dictionary<string, ActionResult> actionResults = null)
     {
         Source = caster;
         Action = action;
+        PayloadData = payloadData;
 
-        PayloadValue = action.PayloadData.PayloadValue.OutgoingValues(caster, actionResults);
+        var casterAttributes = caster.EntityAttributes(Action.SkillID, Action.ActionID, PayloadData.Categories);
+        PayloadValue = payloadData.PayloadValue.OutgoingValues(caster, casterAttributes, actionResults);
     }
 
     public void ApplyPayload(Entity caster, Entity target, PayloadResult result)
@@ -25,21 +26,21 @@ public class Payload
         // Incoming damage can be calculated using target attributes and other variables here.
         if (result.Change > Constants.Epsilon || result.Change < -Constants.Epsilon)
         {
-            result.Change = Formulae.IncomingDamage(caster, target, result.Change, Action.PayloadData, ref result.Flags);
-            target.ApplyChangeToDepletable(Action.PayloadData.DepletableAffected, result);
+            result.Change = Formulae.IncomingDamage(caster, target, result.Change, this, ref result.Flags);
+            target.ApplyChangeToResource(PayloadData.ResourceAffected, result);
         }
 
         // Only perform other actions if the target is still alive
         if (target.Alive)
         {
-            if (Action.PayloadData.Tag != null)
+            if (PayloadData.Tag != null)
             {
-                caster.TagEntity(Action.PayloadData.Tag, target);
+                caster.TagEntity(PayloadData.Tag, target);
             }
 
-            if (Action.PayloadData.Triggers != null)
+            if (PayloadData.Triggers != null)
             {
-                foreach (var trigger in Action.PayloadData.Triggers)
+                foreach (var trigger in PayloadData.Triggers)
                 {
                     target.OnTrigger(trigger, caster, result);
                 }

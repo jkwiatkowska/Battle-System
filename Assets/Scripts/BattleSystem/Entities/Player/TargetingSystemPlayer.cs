@@ -67,8 +67,6 @@ public class TargetingSystemPlayer : TargetingSystem
             {
                 ClearSelection();
             }
-
-            Debug.Log(hit.transform.gameObject.name);
         }
     }
 

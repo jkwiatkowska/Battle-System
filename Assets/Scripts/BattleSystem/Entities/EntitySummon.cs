@@ -34,11 +34,11 @@ public class EntitySummon : Entity
             if (SummonAction.SharedAttributes.ContainsKey(attribute))
             {
                 BaseAttributes[attribute] = SummonAction.SharedAttributes[attribute] *
-                                            Summoner.BaseAttributes[attribute];
+                                            Summoner.Attribute(attribute, action.SkillID, action.ActionID, null);
             }
         }
 
-        SetupDepletables();
+        SetupResources();
     }
 
     protected override void Update()

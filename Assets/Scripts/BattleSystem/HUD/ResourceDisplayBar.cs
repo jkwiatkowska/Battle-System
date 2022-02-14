@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class DepletableDisplayBar : DepletableDisplay
+public class ResourceDisplayBar : ResourceDisplay
 {
     [SerializeField] private Image FastBar;
     [SerializeField] private Image SlowBar;

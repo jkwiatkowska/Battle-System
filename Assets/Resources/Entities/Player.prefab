@@ -314,6 +314,14 @@ PrefabInstance:
       propertyPath: m_PresetInfoIsWorld
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5256719702630343123, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
+      propertyPath: ResourceDisplays.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5256719702630343123, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
+      propertyPath: ResourceDisplays.Array.data[0]
+      value: 
+      objectReference: {fileID: 8867919703910920424}
     - target: {fileID: 5256719702630343124, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -402,6 +410,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EntityCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 8654776745752794701, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
+      propertyPath: ResourceName
+      value: hp
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
 --- !u!224 &5474480296918255473 stripped
@@ -414,3 +426,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 5968998175909932700, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
   m_PrefabInstance: {fileID: 219229857905911461}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8867919703910920424 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8654776745752794701, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
+  m_PrefabInstance: {fileID: 219229857905911461}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f24643a0862660948b80c0227c709bfd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

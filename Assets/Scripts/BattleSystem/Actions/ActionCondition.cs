@@ -16,15 +16,15 @@ public class ActionCondition
     public enum eConditionValueType
     {
         ChargeRatio,
-        DepletableRatio,
-        DepletableCurrent,
+        ResourceRatio,
+        ResourceCurrent,
         RandomValue
     }
 
     public eActionCondition Condition;
     public eConditionValueType ConditionValueType;
     public float ConditionValueBoundary;            // Minimum or maximum value to compare against
-    public string ConditionTarget;                  // Name of depletable if using depletable ratio, or action if onActionSuccess/Fail
+    public string ConditionTarget;                  // Name of resource if using resource ratio, or action if onActionSuccess/Fail
 
     public virtual bool ConditionMet(Entity entity, string actionID, Dictionary<string, ActionResult> actionResults)
     {
@@ -62,13 +62,13 @@ public class ActionCondition
                     {
                         return ConditionValueBoundary <= entity.SkillChargeRatio;
                     }
-                    case eConditionValueType.DepletableRatio:
+                    case eConditionValueType.ResourceRatio:
                     {
-                        return ConditionValueBoundary <= entity.DepletableRatio(ConditionTarget);
+                        return ConditionValueBoundary <= entity.ResourceRatio(ConditionTarget);
                     }
-                    case eConditionValueType.DepletableCurrent:
+                    case eConditionValueType.ResourceCurrent:
                     {
-                        return ConditionValueBoundary <= entity.DepletablesCurrent[ConditionTarget];
+                        return ConditionValueBoundary <= entity.ResourcesCurrent[ConditionTarget];
                     }
                     case eConditionValueType.RandomValue:
                     {
@@ -89,13 +89,13 @@ public class ActionCondition
                     {
                         return ConditionValueBoundary >= entity.SkillChargeRatio;
                     }
-                    case eConditionValueType.DepletableRatio:
+                    case eConditionValueType.ResourceRatio:
                     {
-                        return ConditionValueBoundary >= entity.DepletableRatio(ConditionTarget);
+                        return ConditionValueBoundary >= entity.ResourceRatio(ConditionTarget);
                     }
-                    case eConditionValueType.DepletableCurrent:
+                    case eConditionValueType.ResourceCurrent:
                     {
-                        return ConditionValueBoundary >= entity.DepletablesCurrent[ConditionTarget];
+                        return ConditionValueBoundary >= entity.ResourcesCurrent[ConditionTarget];
                     }
                     case eConditionValueType.RandomValue:
                     {

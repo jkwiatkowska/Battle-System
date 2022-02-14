@@ -64,9 +64,9 @@ public class Trigger
             }
         }
 
-        if (TriggerData.DepletablesAffected.Count > 0)
+        if (TriggerData.ResourcesAffected.Count > 0)
         {
-            if (payloadResult == null || !TriggerData.DepletablesAffected.Contains(payloadResult.PayloadData.DepletableAffected))
+            if (payloadResult == null || !TriggerData.ResourcesAffected.Contains(payloadResult.PayloadData.ResourceAffected))
             {
                 return false;
             }

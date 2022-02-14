@@ -7,11 +7,11 @@ public class ActionCostCollection : Action
     public enum eCostValueType
     {
         FlatValue,                              // Value is not multiplied by anything
-        CurrentMult,                            // Value is multiplied by an entity's current depletable value
-        MaxMult                                 // Value is multiplied by an entity's max depletable value
+        CurrentMult,                            // Value is multiplied by an entity's current resource value
+        MaxMult                                 // Value is multiplied by an entity's max resource value
     }
 
-    public string DepletableName;               // One of the depletable attributes defined in game data.
+    public string ResourceName;               // One of the resource attributes defined in game data.
     public eCostValueType ValueType;            // Determines how the value is calculated.
     public float Value;                         // How much is depleted.
     public bool Optional;                       // If optional, the skill can be executed and continue without taking the cost. 
@@ -27,11 +27,11 @@ public class ActionCostCollection : Action
             }
             case eCostValueType.CurrentMult:
             {
-                return entity.DepletablesCurrent[DepletableName] * Value;
+                return entity.ResourcesCurrent[ResourceName] * Value;
             }
             case eCostValueType.MaxMult:
             {
-                return entity.DepletablesMax[DepletableName] * Value;
+                return entity.ResourcesMax[ResourceName] * Value;
             }
             default:
             {
@@ -43,7 +43,7 @@ public class ActionCostCollection : Action
 
     public bool CanCollectCost(Entity entity)
     {
-        return (GetValue(entity) <= entity.DepletablesCurrent[DepletableName]);
+        return (GetValue(entity) <= entity.ResourcesCurrent[ResourceName]);
     }
 
     public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
@@ -57,7 +57,7 @@ public class ActionCostCollection : Action
 
         var value = -GetValue(entity);
 
-        entity.ApplyChangeToDepletable(DepletableName, value);
+        entity.ApplyChangeToResource(ResourceName, value);
 
         actionResults[ActionID].Success = true;
         actionResults[ActionID].Value = value;

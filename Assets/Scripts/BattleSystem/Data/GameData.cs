@@ -4,16 +4,18 @@ using UnityEngine;
 
 public static class GameData
 {
-    public static List<string> Affinities;                      // Damage types and resistances can be calculated using these
-    public static List<string> EntityDepletables;               // Values like hit points, mana, stamina, etc.
-    public static List<string> EntityAttributes;                // Stats mainly used to determine outgoing and incoming damage
-    public static List<string> PayloadFlags;                    // Flags to customise payload damage
+    public static List<string> Categories;                          // Damage types and resistances can be calculated using these.
+    public static List<string> EntityResources;                     // Values like hit points, mana, stamina, etc.
+    public static List<string> EntityAttributes;                    // Stats mainly used to determine outgoing and incoming damage.
+    public static List<string> PayloadFlags;                        // Flags to customise payload damage.
 
-    public static Dictionary<string, FactionData> FactionData;  // Define entity allegiance and relations
-    public static string PlayerFaction;                         // Which of the factions the player is in
+    public static Dictionary<string, FactionData> FactionData;      // Define entity allegiance and relations.
+    public static string PlayerFaction;                             // Which of the factions the player is in.
     public static Dictionary<string, EntityData> EntityData;
     public static Dictionary<string, SkillData> SkillData;
-    public static Dictionary<string, List<string>> SkillGroups; // Cooldowns can be applied to multiple skills at once. 
+    public static Dictionary<string, List<string>> SkillGroups;     // Cooldowns and effects can apply to multiple skills at once.
+    public static Dictionary<string, StatusEffectData> EffectData;
+    public static Dictionary<string, List<string>> EffectGroups;    // Effects can be grouped together and affected all at once.
 
     public static void LoadData(string path)
     {
@@ -22,14 +24,14 @@ public static class GameData
 
     public static void LoadMockData()
     {
-        Affinities = new List<string>()
+        Categories = new List<string>()
         {
             "physical",
             "magic",
             "healing"
         };
 
-        EntityDepletables = new List<string>()
+        EntityResources = new List<string>()
         {
             "hp",
             "mp"
@@ -113,7 +115,7 @@ public static class GameData
                     Radius = 0.05f,
                     Height = 1.0f,
                     OriginHeight = 0.5f,
-                    LifeDepletables = new List<string>()
+                    LifeResources = new List<string>()
                     {
                         "hp"
                     },
@@ -144,7 +146,7 @@ public static class GameData
                     IsAI = false,
                     Radius = 0.05f,
                     Height = 0.1f,
-                    LifeDepletables = new List<string>(),
+                    LifeResources = new List<string>(),
                     Triggers = new List<TriggerData>()
                     {
                         new TriggerData()
@@ -163,7 +165,7 @@ public static class GameData
                                 }
                             },
                             SkillIDs = new List<string>(),
-                            DepletablesAffected = new List<string>(),
+                            ResourcesAffected = new List<string>(),
                             Flags = new List<string>()
                         }
                     },
@@ -191,7 +193,7 @@ public static class GameData
                     Radius = 0.25f,
                     Height = 1.0f,
                     OriginHeight = 0.5f,
-                    LifeDepletables = new List<string>()
+                    LifeResources = new List<string>()
                     {
                         "hp"
                     },
@@ -213,7 +215,7 @@ public static class GameData
                                 }
                             },
                             SkillIDs = new List<string>(),
-                            DepletablesAffected = new List<string>(),
+                            ResourcesAffected = new List<string>(),
                             Flags = new List<string>()
                         }
                     }
@@ -238,7 +240,7 @@ public static class GameData
                     Radius = 0.35f,
                     Height = 0.7f,
                     OriginHeight = 0.45f,
-                    LifeDepletables = new List<string>()
+                    LifeResources = new List<string>()
                     {
                         "hp"
                     },
@@ -320,12 +322,12 @@ public static class GameData
                                         {
                                             new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 3.0f, "atk")
                                         },
-                                        Affinities = new List<string>()
+                                        Categories = new List<string>()
                                         {
                                             "physical"
                                         },
                                         SuccessChance = 1.0f,
-                                        DepletableAffected = "hp"
+                                        ResourceAffected = "hp"
                                     }
                                 },
                                 new ActionDestroySelf()
@@ -337,7 +339,7 @@ public static class GameData
                                 }
                             },
                             SkillIDs = new List<string>(),
-                            DepletablesAffected = new List<string>(),
+                            ResourcesAffected = new List<string>(),
                             Flags = new List<string>()
                         }
                     }
@@ -363,14 +365,14 @@ public static class GameData
                             MessageString = "Attacking selected and tagging.",
                             MessageColor = Color.white
                         },
-                        new ActionCooldownApplication()
+                        new ActionCooldown()
                         {
                             ActionID = "cd",
                             SkillID = "singleTargetAttack",
                             ActionType = Action.eActionType.ApplyCooldown,
                             Timestamp = 0.0f,
                             Cooldown = 0.8f,
-                            CooldownTarget = ActionCooldownApplication.eCooldownTarget.Skill,
+                            CooldownTarget = ActionCooldown.eCooldownTarget.Skill,
                             CooldownTargetName = "singleTargetAttack"
                         },
                         new ActionPayloadDirect()
@@ -395,12 +397,12 @@ public static class GameData
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 15),
                                     new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 0.8f, "atk")
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "physical"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp",
+                                ResourceAffected = "hp",
                                 Tag = new TagData()
                                 {
                                     TagID = "tag",
@@ -433,14 +435,14 @@ public static class GameData
                             MessageString = "Attacking selected + tagged.",
                             MessageColor = Color.white
                         },
-                        new ActionCooldownApplication()
+                        new ActionCooldown()
                         {
                             ActionID = "cd",
                             SkillID = "singleTargetAttackWithDrain",
                             ActionType = Action.eActionType.ApplyCooldown,
                             Timestamp = 0.0f,
                             Cooldown = 1.0f,
-                            CooldownTarget = ActionCooldownApplication.eCooldownTarget.Skill,
+                            CooldownTarget = ActionCooldown.eCooldownTarget.Skill,
                             CooldownTargetName = "singleTargetAttackWithDrain"
                         },
                         new ActionPayloadDirect()
@@ -464,19 +466,19 @@ public static class GameData
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 150)
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "physical"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             },
                             ActionConditions = new List<ActionCondition>()
                             {
                                 new ActionCondition()
                                 {
                                     Condition = ActionCondition.eActionCondition.OnValueBelow,
-                                    ConditionValueType = ActionCondition.eConditionValueType.DepletableCurrent,
+                                    ConditionValueType = ActionCondition.eConditionValueType.ResourceCurrent,
                                     ConditionValueBoundary = 200,
                                     ConditionTarget = "hp"
                                 }
@@ -487,7 +489,7 @@ public static class GameData
                             ActionID = "hpCollect",
                             Timestamp = 0.0f,
                             ValueType = ActionCostCollection.eCostValueType.CurrentMult,
-                            DepletableName = "hp",
+                            ResourceName = "hp",
                             Value = 0.1f,
                             Optional = false,
                             ActionConditions = new List<ActionCondition>()
@@ -519,14 +521,14 @@ public static class GameData
                                 PayloadValue = new Value()
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 10),
-                                    new ValueComponent(ValueComponent.eValueComponentType.CasterDepletableCurrent, 1, "hp")
+                                    new ValueComponent(ValueComponent.eValueComponentType.CasterResourceCurrent, 1, "hp")
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "physical"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             },
                             ActionConditions = new List<ActionCondition>()
                             {
@@ -559,12 +561,12 @@ public static class GameData
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 22)
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "physical"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             },
                             ActionConditions = new List<ActionCondition>()
                         }
@@ -592,14 +594,14 @@ public static class GameData
                             MessageString = "Cylinder/cone attack.",
                             MessageColor = Color.white
                         },
-                        new ActionCooldownApplication()
+                        new ActionCooldown()
                         {
                             ActionID = "cd",
                             SkillID = "coneAttack",
                             ActionType = Action.eActionType.ApplyCooldown,
                             Timestamp = 0.0f,
                             Cooldown = 1.0f,
-                            CooldownTarget = ActionCooldownApplication.eCooldownTarget.Skill,
+                            CooldownTarget = ActionCooldown.eCooldownTarget.Skill,
                             CooldownTargetName = "coneAttack"
                         },
                         new ActionPayloadArea()
@@ -636,12 +638,12 @@ public static class GameData
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 70)
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "physical"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             }
                         },
                         new ActionPayloadArea()
@@ -678,12 +680,12 @@ public static class GameData
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 50)
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "physical"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             }
                         },
                         new ActionPayloadArea()
@@ -720,12 +722,12 @@ public static class GameData
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 50)
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "physical"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             }
                         },
                         new ActionPayloadArea()
@@ -762,12 +764,12 @@ public static class GameData
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 50)
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "physical"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             }
                         }
                     },
@@ -794,14 +796,14 @@ public static class GameData
                             MessageString = "Cylinder attack.",
                             MessageColor = Color.white
                         },
-                        new ActionCooldownApplication()
+                        new ActionCooldown()
                         {
                             ActionID = "cd",
                             SkillID = "coneAttack",
                             ActionType = Action.eActionType.ApplyCooldown,
                             Timestamp = 0.0f,
                             Cooldown = 1.0f,
-                            CooldownTarget = ActionCooldownApplication.eCooldownTarget.Skill,
+                            CooldownTarget = ActionCooldown.eCooldownTarget.Skill,
                             CooldownTargetName = "cylinderAttack"
                         },
                         new ActionPayloadArea()
@@ -838,12 +840,12 @@ public static class GameData
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 10)
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "physical"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             }
                         },
                         new ActionPayloadArea()
@@ -880,12 +882,12 @@ public static class GameData
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 10)
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "physical"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             }
                         },
                         new ActionPayloadArea()
@@ -922,12 +924,12 @@ public static class GameData
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 10)
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "physical"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             }
                         },
                         new ActionPayloadArea()
@@ -964,12 +966,12 @@ public static class GameData
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 10)
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "physical"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             }
                         },
                     },
@@ -996,14 +998,14 @@ public static class GameData
                             MessageString = "Box/frame attack.",
                             MessageColor = Color.white
                         },
-                        new ActionCooldownApplication()
+                        new ActionCooldown()
                         {
                             ActionID = "cd",
                             SkillID = "rectangleAttack",
                             ActionType = Action.eActionType.ApplyCooldown,
                             Timestamp = 0.0f,
                             Cooldown = 1.0f,
-                            CooldownTarget = ActionCooldownApplication.eCooldownTarget.Skill,
+                            CooldownTarget = ActionCooldown.eCooldownTarget.Skill,
                             CooldownTargetName = "rectangleAttack"
                         },
                         new ActionPayloadArea()
@@ -1040,12 +1042,12 @@ public static class GameData
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 70)
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "physical"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             }
                         },
                         new ActionPayloadArea()
@@ -1082,12 +1084,12 @@ public static class GameData
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 50)
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "physical"
                                 },
                                 SuccessChance = 0.9f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             }
                         },
                         new ActionPayloadArea()
@@ -1124,12 +1126,12 @@ public static class GameData
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 50)
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "physical"
                                 },
                                 SuccessChance = 0.7f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             }
                         },
                         new ActionPayloadArea()
@@ -1166,12 +1168,12 @@ public static class GameData
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 50)
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "physical"
                                 },
                                 SuccessChance = 0.6f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             }
                         }
                     },
@@ -1214,7 +1216,7 @@ public static class GameData
                             Timestamp = 0.0f,
                             ActionConditions = new List<ActionCondition>(),
                             ValueType = ActionCostCollection.eCostValueType.CurrentMult,
-                            DepletableName = "mp",
+                            ResourceName = "mp",
                             Value = 0.5f,
                             Optional = false
                         },
@@ -1255,12 +1257,12 @@ public static class GameData
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.ActionResultValue, 1.0f, "mpCollect")
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "magic"
                                 },
                                 SuccessChance = 0.6f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             },
                             Timestamp = 0.1f,
                             ActionConditions = new List<ActionCondition>()
@@ -1292,12 +1294,12 @@ public static class GameData
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.ActionResultValue, 1.0f, "mpCollect")
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "magic"
                                 },
                                 SuccessChance = 0.6f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             },
                             Timestamp = 0.4f,
                             ActionConditions = new List<ActionCondition>()
@@ -1346,12 +1348,12 @@ public static class GameData
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 100)
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "magic"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             },
                             Timestamp = 0.1f,
                             ActionConditions = new List<ActionCondition>()
@@ -1404,14 +1406,14 @@ public static class GameData
                                 },
                                 PayloadValue = new Value()
                                 {
-                                    new ValueComponent(ValueComponent.eValueComponentType.TargetDepletableMax, -0.1f, "hp")
+                                    new ValueComponent(ValueComponent.eValueComponentType.TargetResourceMax, -0.1f, "hp")
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "healing"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             },
                             ActionConditions = new List<ActionCondition>()
                         },
@@ -1434,14 +1436,14 @@ public static class GameData
                                 },
                                 PayloadValue = new Value()
                                 {
-                                    new ValueComponent(ValueComponent.eValueComponentType.TargetDepletableMax, -0.2f, "hp")
+                                    new ValueComponent(ValueComponent.eValueComponentType.TargetResourceMax, -0.2f, "hp")
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "healing"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             },
                             ActionConditions = new List<ActionCondition>()
                         },
@@ -1464,14 +1466,14 @@ public static class GameData
                                 },
                                 PayloadValue = new Value()
                                 {
-                                    new ValueComponent(ValueComponent.eValueComponentType.TargetDepletableMax, -0.3f, "hp")
+                                    new ValueComponent(ValueComponent.eValueComponentType.TargetResourceMax, -0.3f, "hp")
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "healing"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             },
                             ActionConditions = new List<ActionCondition>()
                         },
@@ -1494,14 +1496,14 @@ public static class GameData
                                 },
                                 PayloadValue = new Value()
                                 {
-                                    new ValueComponent(ValueComponent.eValueComponentType.TargetDepletableMax, -0.4f, "hp")
+                                    new ValueComponent(ValueComponent.eValueComponentType.TargetResourceMax, -0.4f, "hp")
                                 },
-                                Affinities = new List<string>()
+                                Categories = new List<string>()
                                 {
                                     "healing"
                                 },
                                 SuccessChance = 1.0f,
-                                DepletableAffected = "hp"
+                                ResourceAffected = "hp"
                             },
                             ActionConditions = new List<ActionCondition>()
                         }
@@ -1526,14 +1528,14 @@ public static class GameData
                             MessageString = "Summoning bomb.",
                             MessageColor = Color.white
                         },
-                        new ActionCooldownApplication()
+                        new ActionCooldown()
                         {
                             ActionID = "cd",
                             SkillID = "summonSkill",
                             ActionType = Action.eActionType.ApplyCooldown,
                             Timestamp = 0.0f,
                             Cooldown = 0.8f,
-                            CooldownTarget = ActionCooldownApplication.eCooldownTarget.Skill,
+                            CooldownTarget = ActionCooldown.eCooldownTarget.Skill,
                             CooldownTargetName = "summonSkill"
                         },
                         new ActionSummon()
@@ -1567,14 +1569,14 @@ public static class GameData
                     SkillID = "projectileSkill",
                     SkillTimeline = new ActionTimeline()
                     {
-                        new ActionCooldownApplication()
+                        new ActionCooldown()
                         {
                             ActionID = "cd",
                             SkillID = "projectileSkill",
                             ActionType = Action.eActionType.ApplyCooldown,
                             Timestamp = 0.0f,
                             Cooldown = 0.05f,
-                            CooldownTarget = ActionCooldownApplication.eCooldownTarget.Skill,
+                            CooldownTarget = ActionCooldown.eCooldownTarget.Skill,
                             CooldownTargetName = "projectileSkill"
                         },
                         new ActionProjectile()
@@ -1631,12 +1633,12 @@ public static class GameData
                                                 {
                                                     new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 1.0f, "atk")
                                                 },
-                                                Affinities = new List<string>()
+                                                Categories = new List<string>()
                                                 {
                                                     "physical"
                                                 },
                                                 SuccessChance = 1.0f,
-                                                DepletableAffected = "hp",
+                                                ResourceAffected = "hp",
                                             },
                                         },
                                         new ActionPayloadDirect()
@@ -1650,7 +1652,7 @@ public static class GameData
                                             TargetLimit = 1,
                                             PayloadData = new PayloadData()
                                             {
-                                                Affinities = new List<string>(),
+                                                Categories = new List<string>(),
                                                 PayloadValue = new Value(),
                                                 Flags = new Dictionary<string, bool>(),
                                                 SuccessChance = 1.0f,
@@ -1686,14 +1688,14 @@ public static class GameData
                     SkillID = "projectileSkill2",
                     SkillTimeline = new ActionTimeline()
                     {
-                        new ActionCooldownApplication()
+                        new ActionCooldown()
                         {
                             ActionID = "cd",
                             SkillID = "projectileSkill2",
                             ActionType = Action.eActionType.ApplyCooldown,
                             Timestamp = 0.0f,
                             Cooldown = 0.05f,
-                            CooldownTarget = ActionCooldownApplication.eCooldownTarget.Skill,
+                            CooldownTarget = ActionCooldown.eCooldownTarget.Skill,
                             CooldownTargetName = "projectileSkill"
                         },
                         new ActionProjectile()
@@ -1786,12 +1788,12 @@ public static class GameData
                                                 {
                                                     new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, -1.0f, "atk")
                                                 },
-                                                Affinities = new List<string>()
+                                                Categories = new List<string>()
                                                 {
                                                     "healing"
                                                 },
                                                 SuccessChance = 1.0f,
-                                                DepletableAffected = "hp",
+                                                ResourceAffected = "hp",
                                             },
                                         }
                                     }
@@ -1820,14 +1822,14 @@ public static class GameData
                     SkillID = "projectileSkill3",
                     SkillTimeline = new ActionTimeline()
                     {
-                        new ActionCooldownApplication()
+                        new ActionCooldown()
                         {
                             ActionID = "cd",
                             SkillID = "projectileSkill3",
                             ActionType = Action.eActionType.ApplyCooldown,
                             Timestamp = 0.0f,
                             Cooldown = 0.05f,
-                            CooldownTarget = ActionCooldownApplication.eCooldownTarget.Skill,
+                            CooldownTarget = ActionCooldown.eCooldownTarget.Skill,
                             CooldownTargetName = "projectileSkill"
                         },
                         new ActionProjectile()
@@ -1922,12 +1924,12 @@ public static class GameData
                                                 {
                                                     new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 1.0f, "atk")
                                                 },
-                                                Affinities = new List<string>()
+                                                Categories = new List<string>()
                                                 {
                                                     "magic"
                                                 },
                                                 SuccessChance = 1.0f,
-                                                DepletableAffected = "hp",
+                                                ResourceAffected = "hp",
                                             },
                                         }
                                     }

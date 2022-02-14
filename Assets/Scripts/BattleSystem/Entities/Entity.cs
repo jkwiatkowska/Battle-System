@@ -22,9 +22,9 @@ public class Entity : MonoBehaviour
     static int EntityCount = 0;
 
     // Attributes
-    public Dictionary<string, float> BaseAttributes                         { get; protected set; }
-    public Dictionary<string, float> DepletablesCurrent                     { get; protected set; }
-    public Dictionary<string, float> DepletablesMax                         { get; protected set; }
+    protected Dictionary<string, float> BaseAttributes;
+    public Dictionary<string, float> ResourcesCurrent                     { get; protected set; }
+    public Dictionary<string, float> ResourcesMax                         { get; protected set; }
 
     // Skills
     protected Dictionary<string, float> SkillAvailableTime;
@@ -34,6 +34,10 @@ public class Entity : MonoBehaviour
     public SkillChargeData SkillCharge                                      { get; protected set; }
     public float SkillStartTime                                             { get; protected set; }
     public float SkillChargeRatio                                           { get; protected set; }
+
+    // Status effects
+    protected Dictionary<string, StatusEffect> StatusEffects;
+    protected Dictionary<string, Dictionary<string, AttributeChange>> AttributeChanges;
 
     // Triggers
     protected Dictionary<TriggerData.eTrigger, List<Trigger>> Triggers;
@@ -75,10 +79,15 @@ public class Entity : MonoBehaviour
             BaseAttributes.Add(attribute, Formulae.EntityBaseAttribute(this, attribute));
         }
 
-        SetupDepletables();
+        AttributeChanges = new Dictionary<string, Dictionary<string, AttributeChange>>();
+
+        SetupResources();
 
         // Skills
         SkillAvailableTime = new Dictionary<string, float>();
+
+        // Status effects
+        StatusEffects = new Dictionary<string, StatusEffect>();
 
         // Triggers
         Triggers = new Dictionary<TriggerData.eTrigger, List<Trigger>>();
@@ -144,16 +153,16 @@ public class Entity : MonoBehaviour
     {
         if (SetupComplete && Alive)
         {
-            if (DepletablesCurrent != null)
+            if (ResourcesCurrent != null)
             {
-                foreach (var depletable in GameData.EntityDepletables)
+                foreach (var resource in GameData.EntityResources)
                 {
-                    if (DepletablesCurrent.ContainsKey(depletable))
+                    if (ResourcesCurrent.ContainsKey(resource))
                     {
-                        var recovery = Formulae.DepletableRecoveryRate(this, depletable) * Time.deltaTime;
+                        var recovery = Formulae.ResourceRecoveryRate(this, resource) * Time.deltaTime;
                         if (recovery != 0.0f)
                         {
-                            ApplyChangeToDepletable(depletable, recovery);
+                            ApplyChangeToResource(resource, recovery);
                         }
                     }
                 }
@@ -317,6 +326,16 @@ public class Entity : MonoBehaviour
             StopCoroutine(SkillCoroutine);
         }
         yield return null;
+    }
+
+    public virtual void ModifySkillAvailableTime(string skillID, float change)
+    {
+        if (!IsSkillOnCooldown(skillID))
+        {
+            SkillAvailableTime[skillID] = BattleSystem.Time;
+        }
+
+        SkillAvailableTime[skillID] += change;
     }
 
     public virtual void SetSkillAvailableTime(string skillID, float time)
@@ -677,31 +696,31 @@ public class Entity : MonoBehaviour
     }
     #endregion
 
-    #region Depletables
-    protected void SetupDepletables()
+    #region Resources
+    protected void SetupResources()
     {
-        DepletablesMax = new Dictionary<string, float>();
-        DepletablesCurrent = new Dictionary<string, float>();
+        ResourcesMax = new Dictionary<string, float>();
+        ResourcesCurrent = new Dictionary<string, float>();
 
-        foreach (var depletable in GameData.EntityDepletables)
+        foreach (var resource in GameData.EntityResources)
         {
-            DepletablesMax.Add(depletable, Formulae.DepletableMaxValue(this, depletable));
-            DepletablesCurrent.Add(depletable, Formulae.DepletableStartValue(this, depletable));
+            ResourcesMax.Add(resource, Formulae.ResourceMaxValue(this, resource));
+            ResourcesCurrent.Add(resource, Formulae.ResourceStartValue(this, resource));
         }
     }
 
-    public void ApplyChangeToDepletable(string depletable, PayloadResult payloadResult, bool setTriggers = true)
+    public void ApplyChangeToResource(string resource, PayloadResult payloadResult, bool setTriggers = true)
     {
-        var previous = DepletablesCurrent[depletable];
-        DepletablesCurrent[depletable] = Mathf.Clamp(DepletablesCurrent[depletable] + payloadResult.Change, 0.0f, DepletablesMax[depletable]);
-        if (previous != DepletablesCurrent[depletable])
+        var previous = ResourcesCurrent[resource];
+        ResourcesCurrent[resource] = Mathf.Clamp(ResourcesCurrent[resource] + payloadResult.Change, 0.0f, ResourcesMax[resource]);
+        if (previous != ResourcesCurrent[resource])
         {
             if (EntityCanvas != null)
             {
-                EntityCanvas.UpdateDepletableDisplay(depletable);
+                EntityCanvas.UpdateResourceDisplay(resource);
             }
 
-            payloadResult.Change = previous - DepletablesCurrent[depletable];
+            payloadResult.Change = previous - ResourcesCurrent[resource];
             var source = payloadResult.Caster;
 
             if (setTriggers)
@@ -718,7 +737,7 @@ public class Entity : MonoBehaviour
                 }
             }
 
-            if (DepletablesCurrent[depletable] <= 0.0f && EntityData.LifeDepletables.Contains(depletable))
+            if (ResourcesCurrent[resource] <= 0.0f && EntityData.LifeResources.Contains(resource))
             {
                 OnTrigger(TriggerData.eTrigger.OnDeath, source, payloadResult);
                 payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnKill, source, payloadResult);
@@ -730,18 +749,18 @@ public class Entity : MonoBehaviour
         }
     }
 
-    public void ApplyChangeToDepletable(string depletable, float change)
+    public void ApplyChangeToResource(string resource, float change)
     {
-        var previous = DepletablesCurrent[depletable];
-        DepletablesCurrent[depletable] = Mathf.Clamp(DepletablesCurrent[depletable] + change, 0.0f, DepletablesMax[depletable]);
-        if (previous != DepletablesCurrent[depletable])
+        var previous = ResourcesCurrent[resource];
+        ResourcesCurrent[resource] = Mathf.Clamp(ResourcesCurrent[resource] + change, 0.0f, ResourcesMax[resource]);
+        if (previous != ResourcesCurrent[resource])
         {
             if (EntityCanvas != null)
             {
-                EntityCanvas.UpdateDepletableDisplay(depletable);
+                EntityCanvas.UpdateResourceDisplay(resource);
             }
 
-            if (DepletablesCurrent[depletable] <= 0.0f && EntityData.LifeDepletables.Contains(depletable))
+            if (ResourcesCurrent[resource] <= 0.0f && EntityData.LifeResources.Contains(resource))
             {
                 OnTrigger(TriggerData.eTrigger.OnDeath, null);
             }
@@ -761,6 +780,103 @@ public class Entity : MonoBehaviour
     public string EntityFaction => FactionOverride == null ? Faction : FactionOverride;
     public TargetingSystem EntityTargetingSystem => TargetingSystem;
     public bool Alive => EntityState != eEntityState.Dead;
+
+    public float BaseAttribute(string attribute)
+    {
+        if (BaseAttributes.ContainsKey(attribute))
+        {
+            return BaseAttributes[attribute];
+        }
+        else
+        {
+            Debug.LogError($"Entity {EntityID} doesn't have a [{attribute}] attribute.");
+            return 0.0f;
+        }
+    }
+
+    public float Attribute(string attribute, string skillID, string actionID, List<string> categories)
+    {
+        if (BaseAttributes.ContainsKey(attribute))
+        {
+            var value = BaseAttributes[attribute];
+            if (AttributeChanges.ContainsKey(attribute))
+            {
+                foreach (var entry in AttributeChanges[attribute])
+                {
+                    var attributeChange = entry.Value;
+                    var requirement = attributeChange.Requirement;
+
+                    switch (attributeChange.PayloadFilter)
+                    {
+                        case EffectData.ePayloadFilter.All:
+                        {
+                            break;
+                        }
+                        case EffectData.ePayloadFilter.Action:
+                        {
+                            if (!string.IsNullOrEmpty(actionID) && requirement == actionID)
+                            {
+                                break;
+                            }
+                            continue;
+                        }
+                        case EffectData.ePayloadFilter.Category:
+                        {
+                            if (categories != null && categories.Contains(requirement))
+                            {
+                                break;
+                            }
+                            continue;
+                        }
+                        case EffectData.ePayloadFilter.Skill:
+                        {
+                            if (!string.IsNullOrEmpty(skillID) && requirement == skillID)
+                            {
+                                break;
+                            }
+                            continue;
+                        }
+                        case EffectData.ePayloadFilter.SkillGroup:
+                        {
+                            if (!string.IsNullOrEmpty(skillID) && GameData.SkillGroups.ContainsKey(requirement) && 
+                                requirement.Contains(skillID))
+                            {
+                                break;
+                            }
+                            continue;
+                        }
+
+                        default:
+                        {
+                            Debug.LogError($"Unimplemented payload filter: {attributeChange.PayloadFilter}");
+                            break;
+                        }
+                    }
+                    var change = attributeChange.Value.IncomingValue(this);
+                    value += change;
+                }
+            }
+
+            return value;
+        }
+        else
+        {
+            Debug.LogError($"Entity {EntityID} doesn't have a [{attribute}] attribute.");
+            return 0.0f;
+        }
+    }
+
+    public Dictionary<string, float> EntityAttributes(string skillID, string actionID, List<string> categories)
+    {
+        var attributes = new Dictionary<string, float>();
+
+        foreach (var attribute in BaseAttributes)
+        {
+            attributes.Add(attribute.Key, Attribute(attribute.Key, skillID, actionID, categories));
+        }
+
+        return attributes;
+    }
 
     public Vector3 Origin
     {
@@ -797,15 +913,15 @@ public class Entity : MonoBehaviour
         }
     }
 
-    public float DepletableRatio(string depletableName)
+    public float ResourceRatio(string resourceName)
     {
-        if (DepletablesCurrent.ContainsKey(depletableName) && DepletablesMax.ContainsKey(depletableName))
+        if (ResourcesCurrent.ContainsKey(resourceName) && ResourcesMax.ContainsKey(resourceName))
         {
-            return DepletablesCurrent[depletableName] / DepletablesMax[depletableName];
+            return ResourcesCurrent[resourceName] / ResourcesMax[resourceName];
         }
         else
         {
-            Debug.LogError($"Depletable name {depletableName} is invalid.");
+            Debug.LogError($"Resource name {resourceName} is invalid.");
             return 0.0f;
         }
     }
@@ -855,18 +971,18 @@ public class Entity : MonoBehaviour
         var costs = new Dictionary<string, float>();
         foreach (var cost in costActions)
         {
-            if (costs.ContainsKey(cost.DepletableName))
+            if (costs.ContainsKey(cost.ResourceName))
             {
-                costs[cost.DepletableName] += cost.GetValue(this);
+                costs[cost.ResourceName] += cost.GetValue(this);
             }
             else
             {
-                costs.Add(cost.DepletableName, cost.GetValue(this));
+                costs.Add(cost.ResourceName, cost.GetValue(this));
             }
         }
         foreach (var cost in costs)
         {
-            if (cost.Value > DepletablesCurrent[cost.Key])
+            if (cost.Value > ResourcesCurrent[cost.Key])
             {
                 return false;
             }

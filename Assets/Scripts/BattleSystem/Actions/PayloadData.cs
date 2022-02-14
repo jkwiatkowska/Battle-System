@@ -4,13 +4,14 @@ using UnityEngine;
 
 public class PayloadData
 {
-    public List<string> Affinities;                     // Can define what kind of payload this is, affected by damage bonuses and resistances
+    public List<string> Categories;                     // Can define what kind of payload this is, affected by damage bonuses and resistances
 
     public Value PayloadValue;                          // The value components are added together. Example: 20% TargetMaxHP + 1000 (FlatValue)
-    public string DepletableAffected;                   // Typically hp, but can be other things like energy
+    public string ResourceAffected;                   // Typically hp, but can be other things like energy
 
     public Dictionary<string, bool> Flags;              // Flags to customise the payload 
 
+    public List<StatusEffectData> StatusEffects;        // Effects applied to the target entity along with the payload.
     public TagData Tag;                                 // An entity can be "tagged". This makes it possible for skills to affect this entity specifically without selecting it
 
     public List<TriggerData.eTrigger> Triggers;         // Can be used to force trigger reactions in target, such as death without taking damage.
@@ -24,7 +25,7 @@ public class PayloadData
 
     public PayloadData()
     {
-        Affinities = new List<string>();
+        Categories = new List<string>();
         PayloadValue = new Value();
         Flags = new Dictionary<string, bool>();
         SuccessChance = 1.0f;

@@ -40,7 +40,7 @@ public class SkillData
     {
         get
         {
-            var cooldownAction = SkillTimeline.Find(a => a.ActionType == Action.eActionType.ApplyCooldown) as ActionCooldownApplication;
+            var cooldownAction = SkillTimeline.Find(a => a.ActionType == Action.eActionType.ApplyCooldown) as ActionCooldown;
             if (cooldownAction != null)
             {
                 return cooldownAction.Cooldown;

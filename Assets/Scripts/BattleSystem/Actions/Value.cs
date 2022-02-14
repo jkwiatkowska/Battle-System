@@ -8,16 +8,16 @@ public class ValueComponent
     {
         FlatValue,
         CasterAttribute,
-        CasterDepletableMax,
-        CasterDepletableCurrent,
-        TargetDepletableMax,
-        TargetDepletableCurrent,
+        CasterResourceMax,
+        CasterResourceCurrent,
+        TargetResourceMax,
+        TargetResourceCurrent,
         ActionResultValue
     }
     public eValueComponentType ComponentType;
 
     public float Potency;                           // Multiplier
-    public string Attribute;                        // The value can scale off different attributes, depletables or action results (for example damage dealt or cost collected).
+    public string Attribute;                        // The value can scale off different attributes, resources or action results (for example damage dealt or cost collected).
 
     public ValueComponent(eValueComponentType type, float potency, string attribute = "")
     {
@@ -26,7 +26,7 @@ public class ValueComponent
         Attribute = attribute;
     }
 
-    public float GetValue(Entity caster, Entity target, Dictionary<string, ActionResult> actionResults = null)
+    public float GetValue(Entity caster, Entity target, Dictionary<string, float> casterAttributes, Dictionary<string, ActionResult> actionResults = null)
     {
         switch (ComponentType)
         {
@@ -36,46 +36,46 @@ public class ValueComponent
             }
             case eValueComponentType.CasterAttribute:
             {
-                if (!caster.BaseAttributes.ContainsKey(Attribute))
+                if (casterAttributes == null || !casterAttributes.ContainsKey(Attribute))
                 {
-                    Debug.LogError($"Invalid attribute [{Attribute}]. It should be an entity attribute name.");
+                    Debug.LogError($"Invalid attribute [{Attribute}].");
                     return 0.0f;
                 }
-                return Potency * caster.BaseAttributes[Attribute];
+                return Potency * casterAttributes[Attribute];
             }
-            case eValueComponentType.CasterDepletableMax:
+            case eValueComponentType.CasterResourceMax:
             {
-                if (!caster.DepletablesMax.ContainsKey(Attribute))
+                if (!caster.ResourcesMax.ContainsKey(Attribute))
                 {
-                    Debug.LogError($"Invalid attribute [{Attribute}]. The attribute should be a name of a depletable value.");
+                    Debug.LogError($"Invalid attribute [{Attribute}]. The attribute should be a name of a resource value.");
                     return 0.0f;
                 }
-                return Potency * caster.DepletablesMax[Attribute];
+                return Potency * caster.ResourcesMax[Attribute];
             }
-            case eValueComponentType.CasterDepletableCurrent:
+            case eValueComponentType.CasterResourceCurrent:
             {
-                if (!caster.DepletablesCurrent.ContainsKey(Attribute))
+                if (!caster.ResourcesCurrent.ContainsKey(Attribute))
                 {
-                    Debug.LogError($"Invalid attribute [{Attribute}]. The attribute should be a name of a depletable value.");
+                    Debug.LogError($"Invalid attribute [{Attribute}]. The attribute should be a name of a resource value.");
                     return 0.0f;
                 }
-                return Potency * caster.DepletablesCurrent[Attribute];
+                return Potency * caster.ResourcesCurrent[Attribute];
             }
-            case eValueComponentType.TargetDepletableMax:
+            case eValueComponentType.TargetResourceMax:
             {
-                if (target == null || !target.DepletablesMax.ContainsKey(Attribute))
+                if (target == null || !target.ResourcesMax.ContainsKey(Attribute))
                 {
                     return 0.0f;
                 }
-                return Potency * target.DepletablesMax[Attribute];
+                return Potency * target.ResourcesMax[Attribute];
             }
-            case eValueComponentType.TargetDepletableCurrent:
+            case eValueComponentType.TargetResourceCurrent:
             {
-                if (target == null || !target.DepletablesCurrent.ContainsKey(Attribute))
+                if (target == null || !target.ResourcesCurrent.ContainsKey(Attribute))
                 {
                     return 0.0f;
                 }
-                return Potency * caster.DepletablesCurrent[Attribute];
+                return Potency * caster.ResourcesCurrent[Attribute];
             }
             case eValueComponentType.ActionResultValue:
             {
@@ -100,21 +100,21 @@ public class ValueComponent
 
 public class Value : List<ValueComponent>
 {
-    public Value OutgoingValues(Entity caster, Dictionary<string, ActionResult> actionResults)
+    public Value OutgoingValues(Entity caster, Dictionary<string, float> casterAttributes, Dictionary<string, ActionResult> actionResults)
     {
         var value = new Value();
         var totalValue = 0.0f;
 
         foreach (var component in this)
         {
-            if (component.ComponentType == ValueComponent.eValueComponentType.TargetDepletableCurrent ||
-                component.ComponentType == ValueComponent.eValueComponentType.TargetDepletableMax)
+            if (component.ComponentType == ValueComponent.eValueComponentType.TargetResourceCurrent ||
+                component.ComponentType == ValueComponent.eValueComponentType.TargetResourceMax)
             {
                 value.Add(component);
             }
             else
             {
-                totalValue += component.GetValue(caster, null, actionResults);
+                totalValue += component.GetValue(caster, target: null, casterAttributes, actionResults);
             }
         }
 
@@ -132,11 +132,11 @@ public class Value : List<ValueComponent>
 
         foreach (var component in this)
         {
-            if (component.ComponentType == ValueComponent.eValueComponentType.TargetDepletableCurrent ||
-                component.ComponentType == ValueComponent.eValueComponentType.TargetDepletableMax ||
+            if (component.ComponentType == ValueComponent.eValueComponentType.TargetResourceCurrent ||
+                component.ComponentType == ValueComponent.eValueComponentType.TargetResourceMax ||
                 component.ComponentType == ValueComponent.eValueComponentType.FlatValue)
             {
-                totalValue += component.GetValue(null, target, null);
+                totalValue += component.GetValue(caster: null, target, casterAttributes: null, actionResults: null);
             }
             else
             {

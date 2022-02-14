@@ -11,9 +11,9 @@ public class TriggerData
         OnHitMissed,        // Failing to apply a payload action.
         OnDamageDealt,      // Succesfully damaging an entity.
         OnDamageTaken,      // Being damaged by another entity.
-        OnRecoveryGiven,    // Succesfully restoring an entity's depletable.
-        OnRecoveryReceived, // Having a depletable restored.
-        OnDeath,            // Life depletable reaches 0.
+        OnRecoveryGiven,    // Succesfully restoring an entity's resource.
+        OnRecoveryReceived, // Having a resource restored.
+        OnDeath,            // Life resource reaches 0.
         OnKill,             // Killing another entity.
         OnSpawn,            // Fires after setup.
         OnCollisionEnemy,   // Fires on collision with an enemy.
@@ -31,6 +31,6 @@ public class TriggerData
     public ActionTimeline Actions;
 
     public List<string> SkillIDs;               // A trigger may be limited to specific skills 
-    public List<string> DepletablesAffected;    // A trigger may be limited to specific depletables being affected (for example OnRecovery only triggering when MP is recovered, but not HP)
+    public List<string> ResourcesAffected;    // A trigger may be limited to specific resources being affected (for example OnRecovery only triggering when MP is recovered, but not HP)
     public List<string> Flags;                  // For damage-related triggers - applying a payload can return flags, which may be for a trigger to activate its actions
 }

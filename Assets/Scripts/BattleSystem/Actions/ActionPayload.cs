@@ -82,10 +82,10 @@ public abstract class ActionPayload : Action
             }
         }
 
-        var payload = new Payload(entity, this, actionResults);
+        var payload = new Payload(entity, PayloadData, this, actionResults);
         foreach (var t in targets)
         {
-            var result = new PayloadResult(PayloadData, entity, t, SkillID, ActionID, 0.0f, new List<string>());
+            var result = new PayloadResult(PayloadData, entity, t, SkillID, ActionID);
 
             // If payload isn't guaranteed to trigger.
             var chance = Formulae.PayloadSuccessChance(PayloadData, entity, t);

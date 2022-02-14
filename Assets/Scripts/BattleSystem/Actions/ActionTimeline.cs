@@ -6,7 +6,6 @@ public class ActionTimeline : List<Action>
 {
     public IEnumerator ExecuteActions(Entity entity, Entity target)
     {
-        Debug.Log("Boop");
         var startTime = BattleSystem.Time;
         var actionResults = new Dictionary<string, ActionResult>();
 
