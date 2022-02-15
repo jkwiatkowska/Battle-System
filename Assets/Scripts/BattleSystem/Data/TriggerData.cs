@@ -25,12 +25,13 @@ public class TriggerData
     }
 
     public eTrigger Trigger;                    // Type of trigger.
+    public float TriggerChance = 1.0f;          // The odds of an effect triggering. 
     public float Cooldown;                      // A trigger can have a cooldown applied whenever it activates to limit its effects
     public int Limit;                           // A trigger can have a limit set. It will be removed from an entity when that limit is reached. Unlimited if 0. 
 
     public ActionTimeline Actions;
 
     public List<string> SkillIDs;               // A trigger may be limited to specific skills 
-    public List<string> ResourcesAffected;    // A trigger may be limited to specific resources being affected (for example OnRecovery only triggering when MP is recovered, but not HP)
+    public List<string> ResourcesAffected;      // A trigger may be limited to specific resources being affected (for example OnRecovery only triggering when MP is recovered, but not HP)
     public List<string> Flags;                  // For damage-related triggers - applying a payload can return flags, which may be for a trigger to activate its actions
 }

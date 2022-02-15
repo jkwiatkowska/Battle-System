@@ -88,6 +88,11 @@ public class Trigger
             }
         }
 
+        if (Random.value > TriggerData.TriggerChance)
+        {
+            return false;
+        }
+
         return true;
     }
 }
