@@ -23,8 +23,8 @@ public class Entity : MonoBehaviour
 
     // Attributes
     protected Dictionary<string, float> BaseAttributes;
-    public Dictionary<string, float> ResourcesCurrent                     { get; protected set; }
-    public Dictionary<string, float> ResourcesMax                         { get; protected set; }
+    public Dictionary<string, float> ResourcesCurrent                       { get; protected set; }
+    public Dictionary<string, float> ResourcesMax                           { get; protected set; }
 
     // Skills
     protected Dictionary<string, float> SkillAvailableTime;
@@ -37,21 +37,21 @@ public class Entity : MonoBehaviour
 
     // Status effects
     protected Dictionary<string, StatusEffect> StatusEffects;
-    protected Dictionary<string, Dictionary<string, EntityAttributeChange>> AttributeChanges;
+    protected Dictionary<string, Dictionary<string, AttributeChange>> AttributeChanges;
 
     // Triggers
     protected Dictionary<TriggerData.eTrigger, List<Trigger>> Triggers;
 
     // Other objects that make up an entity
     public EntityCanvas EntityCanvas                                        { get; protected set; }
-    public TargetingSystem TargetingSystem                                  { get; protected set; }
+    public TargetingSystem EntityTargetingSystem                            { get; protected set; }
     public Targetable Targetable                                            { get; protected set; }
     public MovementEntity Movement                                          { get; protected set; }
 
     // State
     public eEntityState EntityState                                         { get; protected set; }
     public bool IsTargetable                                                { get; protected set; }
-    public string Faction                                                   { get; protected set; }
+    protected string EntityFaction;
     protected string FactionOverride;
     protected bool SetupComplete;
 
@@ -70,7 +70,7 @@ public class Entity : MonoBehaviour
         EntityState = eEntityState.Idle;
         name = EntityUID;
         EntityData = GameData.GetEntityData(entityID);
-        Faction = EntityData.Faction;
+        EntityFaction = EntityData.Faction;
 
         // Attributes
         BaseAttributes = new Dictionary<string, float>();
@@ -79,7 +79,7 @@ public class Entity : MonoBehaviour
             BaseAttributes.Add(attribute, Formulae.EntityBaseAttribute(this, attribute));
         }
 
-        AttributeChanges = new Dictionary<string, Dictionary<string, EntityAttributeChange>>();
+        AttributeChanges = new Dictionary<string, Dictionary<string, AttributeChange>>();
 
         SetupResourcesMax();
         SetupResourcesStart();
@@ -106,12 +106,12 @@ public class Entity : MonoBehaviour
         // Dependencies and components
         BattleSystem.AddEntity(this);
 
-        TargetingSystem = GetComponentInChildren<TargetingSystem>();
-        if (TargetingSystem == null)
+        EntityTargetingSystem = GetComponentInChildren<TargetingSystem>();
+        if (EntityTargetingSystem == null)
         {
             Debug.LogError($"TargetingSystem could not be found for {EntityUID}");
         }
-        TargetingSystem.Setup(this);
+        EntityTargetingSystem.Setup(this);
 
         Movement = GetComponentInChildren<MovementEntity>();
         if (Movement != null)
@@ -214,16 +214,16 @@ public class Entity : MonoBehaviour
         CancelSkill();
 
         // Ensure target if one is required.
-        TargetingSystem.UpdateEntityLists();
+        EntityTargetingSystem.UpdateEntityLists();
 
         if (skillData.NeedsTarget)
         {
-            var hasTarget = TargetingSystem.EnemySelected;
+            var hasTarget = EntityTargetingSystem.EnemySelected;
 
             // If there is no target, try selecting one.
             if (!hasTarget)
             {
-                TargetingSystem.SelectBestEnemy();
+                EntityTargetingSystem.SelectBestEnemy();
             }
 
             // If one couldn't be found, a skill cannot be used.
@@ -565,11 +565,11 @@ public class Entity : MonoBehaviour
         }
     }
 
-    public void ApplyAttributeChange(EntityAttributeChange attributeChange)
+    public void ApplyAttributeChange(AttributeChange attributeChange)
     {
         if (!AttributeChanges.ContainsKey(attributeChange.Attribute))
         {
-            AttributeChanges[attributeChange.Attribute] = new Dictionary<string, EntityAttributeChange>();
+            AttributeChanges[attributeChange.Attribute] = new Dictionary<string, AttributeChange>();
         }
         AttributeChanges[attributeChange.Attribute][attributeChange.Key] = attributeChange;
 
@@ -586,6 +586,16 @@ public class Entity : MonoBehaviour
         AttributeChanges[attribute].Remove(key);
 
         SetupResourcesMax();
+    }
+
+    public void Convert(string faction)
+    {
+        FactionOverride = faction;
+    }
+
+    public void RemoveConversion()
+    {
+        FactionOverride = "";
     }
 
     #endregion
@@ -845,8 +855,8 @@ public class Entity : MonoBehaviour
     #region Getters and Checks
     public int Level => EntityLevel;
     public virtual Entity SummoningEntity => this;
-    public string EntityFaction => FactionOverride == null ? Faction : FactionOverride;
-    public TargetingSystem EntityTargetingSystem => TargetingSystem;
+    public string Faction => string.IsNullOrEmpty(FactionOverride) ? EntityFaction : FactionOverride;
+    public TargetingSystem TargetingSystem => EntityTargetingSystem;
     public bool Alive => EntityState != eEntityState.Dead;
 
     public float BaseAttribute(string attribute)
@@ -974,7 +984,7 @@ public class Entity : MonoBehaviour
     {
         get
         {
-            return GameData.GetFactionData(EntityFaction);
+            return GameData.GetFactionData(Faction);
         }
     }
 

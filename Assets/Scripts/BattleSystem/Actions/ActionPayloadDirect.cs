@@ -72,7 +72,7 @@ public class ActionPayloadDirect : ActionPayload
             }
             case eDirectActionTargets.AllEntities:
             {
-                var targetingSystem = entity.TargetingSystem;
+                var targetingSystem = entity.EntityTargetingSystem;
 
                 switch (Target)
                 {

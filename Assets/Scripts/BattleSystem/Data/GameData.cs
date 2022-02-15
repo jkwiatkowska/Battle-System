@@ -1615,7 +1615,7 @@ public static class GameData
                             ProjectileMovementMode = ActionProjectile.eProjectileMovementMode.Arched,
                             ProjectileTimeline = new List<ActionProjectile.ProjectileState>(),
                             Target = ActionProjectile.eTarget.Target,
-                            ArchAngle = 70.0f,
+                            ArchAngle = 60.0f,
                             Gravity = -5.0f,
                             OnEnemyHit = new List<ActionProjectile.OnCollisionReaction>()
                             {

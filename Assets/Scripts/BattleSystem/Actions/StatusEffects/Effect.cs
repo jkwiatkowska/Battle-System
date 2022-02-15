@@ -31,7 +31,7 @@ public abstract class Effect
     public abstract void Remove(string statusID, Entity target);
 }
 
-public class AttributeChangeData : Effect
+public class EffectAttributeChange : Effect
 {
     public string Attribute;                            // Affected attribute.
     public Value Value;                                 // Increase/decrease to the attribute. Entity that applies the status is the caster, while the entity that receives it is the target.
@@ -42,7 +42,7 @@ public class AttributeChangeData : Effect
 
     public override void Apply(string statusID, Entity target, Entity caster, Payload payload)
     {
-        var attributeChange = new EntityAttributeChange
+        var attributeChange = new AttributeChange
         {
             Attribute = Attribute,
             Key = Key(statusID),
@@ -66,7 +66,20 @@ public class AttributeChangeData : Effect
     }
 }
 
-public class EntityAttributeChange
+public class EffectConvert : Effect
+{
+    public override void Apply(string statusID, Entity target, Entity caster, Payload payload)
+    {
+        target.Convert(caster.Faction);
+    }
+
+    public override void Remove(string statusID, Entity target)
+    {
+        target.RemoveConversion();
+    }
+}
+
+public class AttributeChange
 {
     public string Attribute;                            // Affected attribute.
     public string Key;                                  // Used to identify the attribute change.
@@ -76,7 +89,7 @@ public class EntityAttributeChange
     public string Requirement;                          // Name or ID of the above.
 }
 
-public class Immunity : Effect
+public class EffectImmunity : Effect
 {
     public ePayloadFilter PayloadFilter;                // Resistance can be to all damage or to a specific type of skills or actions.
     public string PayloadName;                          // Name or ID of the above.

@@ -26,7 +26,7 @@ public class EntitySummon : Entity
 
         if (SummonAction.InheritFaction)
         {
-            Faction = Summoner.Faction;
+            EntityFaction = Summoner.Faction;
         }
 
         foreach (var attribute in GameData.EntityAttributes)

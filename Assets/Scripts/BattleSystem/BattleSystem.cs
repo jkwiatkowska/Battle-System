@@ -91,11 +91,11 @@ public class BattleSystem : MonoBehaviour
         var entity = Entities[entityUID];
         var targetEntity = Entities[targetUID];
 
-        if (entity.EntityFaction == targetEntity.EntityFaction)
+        if (entity.Faction == targetEntity.Faction)
         {
             return true;
         }
-        if (GameData.GetFactionData(entity.EntityFaction).FriendlyFactions.Contains(targetEntity.EntityFaction))
+        if (GameData.GetFactionData(entity.Faction).FriendlyFactions.Contains(targetEntity.Faction))
         {
             return true;
         }
@@ -113,11 +113,11 @@ public class BattleSystem : MonoBehaviour
         var entity = Entities[entityUID];
         var targetEntity = Entities[targetUID];
 
-        if (entity.EntityFaction == targetEntity.EntityFaction)
+        if (entity.Faction == targetEntity.Faction)
         {
             return false;
         }
-        if (GameData.GetFactionData(entity.EntityFaction).EnemyFactions.Contains(targetEntity.EntityFaction))
+        if (GameData.GetFactionData(entity.Faction).EnemyFactions.Contains(targetEntity.Faction))
         {
             return true;
         }

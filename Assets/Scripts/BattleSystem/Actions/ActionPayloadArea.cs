@@ -30,7 +30,7 @@ public class ActionPayloadArea : ActionPayload
     {
         var targets = new List<Entity>();
         var potentialTargets = new List<Entity>();
-        var targetingSystem = entity.EntityTargetingSystem;
+        var targetingSystem = entity.TargetingSystem;
 
         switch (Target)
         {
