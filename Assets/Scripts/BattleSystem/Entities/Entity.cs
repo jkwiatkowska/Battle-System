@@ -81,7 +81,8 @@ public class Entity : MonoBehaviour
 
         AttributeChanges = new Dictionary<string, Dictionary<string, EntityAttributeChange>>();
 
-        SetupResources();
+        SetupResourcesMax();
+        SetupResourcesStart();
 
         // Skills
         SkillAvailableTime = new Dictionary<string, float>();
@@ -157,12 +158,12 @@ public class Entity : MonoBehaviour
             {
                 foreach (var resource in GameData.EntityResources)
                 {
-                    if (ResourcesCurrent.ContainsKey(resource))
+                    if (ResourcesCurrent.ContainsKey(resource.Key))
                     {
-                        var recovery = Formulae.ResourceRecoveryRate(this, resource) * Time.deltaTime;
+                        var recovery = Formulae.ResourceRecoveryRate(this, resource.Key) * Time.deltaTime;
                         if (recovery != 0.0f)
                         {
-                            ApplyChangeToResource(resource, recovery);
+                            ApplyChangeToResource(resource.Key, recovery);
                         }
                     }
                 }
@@ -571,6 +572,8 @@ public class Entity : MonoBehaviour
             AttributeChanges[attributeChange.Attribute] = new Dictionary<string, EntityAttributeChange>();
         }
         AttributeChanges[attributeChange.Attribute][attributeChange.Key] = attributeChange;
+
+        SetupResourcesMax();
     }
 
     public void RemoveAttributeChange(string attribute, string key)
@@ -581,6 +584,8 @@ public class Entity : MonoBehaviour
         }
 
         AttributeChanges[attribute].Remove(key);
+
+        SetupResourcesMax();
     }
 
     #endregion
@@ -750,15 +755,25 @@ public class Entity : MonoBehaviour
     #endregion
 
     #region Resources
-    protected void SetupResources()
+    protected void SetupResourcesMax()
     {
         ResourcesMax = new Dictionary<string, float>();
-        ResourcesCurrent = new Dictionary<string, float>();
+        var attributes = EntityAttributes(skillID: null, actionID: null, statusID: null, categories: null);
 
         foreach (var resource in GameData.EntityResources)
         {
-            ResourcesMax.Add(resource, Formulae.ResourceMaxValue(this, resource));
-            ResourcesCurrent.Add(resource, Formulae.ResourceStartValue(this, resource));
+            ResourcesMax.Add(resource.Key, Formulae.ResourceMaxValue(attributes, resource.Key));
+        }
+    }
+
+    protected void SetupResourcesStart()
+    {
+        ResourcesCurrent = new Dictionary<string, float>();
+        var attributes = EntityAttributes(skillID: null, actionID: null, statusID: null, categories: null);
+
+        foreach (var resource in GameData.EntityResources)
+        {
+            ResourcesCurrent.Add(resource.Key, Formulae.ResourceMaxValue(attributes, resource.Key));
         }
     }
 

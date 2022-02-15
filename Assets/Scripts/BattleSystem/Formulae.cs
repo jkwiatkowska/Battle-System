@@ -40,29 +40,35 @@ public static class Formulae
         return baseAttribute;
     }
 
-    public static float ResourceMaxValue(Entity entity, string resource)
+    public static float ResourceMaxValue(Dictionary<string, float> entityAttributes, string resource)
     {
-        var maxValue = entity.Attribute(resource, skillID: null, actionID: null, statusID: null, categories: null);
+        if (GameData.EntityResources.ContainsKey(resource))
+        {
+            return GameData.EntityResources[resource].GetValue(entityAttributes);
+        }
 
-        return maxValue;
+        Debug.LogError($"Resource {resource} not found in game data.");
+        return 1.0f;
     }
 
     public static float ResourceStartValue(Entity entity, string resource)
     {
         var startRatio = 1.0f;
-        var startValue = ResourceMaxValue(entity, resource) * startRatio;
+        var startValue = entity.ResourcesMax[resource] * startRatio;
 
         return startValue;
     }
 
     public static float ResourceRecoveryRate(Entity entity, string resource)
     {
-        var recoveryRate = 0.2f;
+        var recoveryRate = 0.005f;
 
         if (entity.IsInCombat())
         {
-            recoveryRate = 0.1f;
+            recoveryRate = 0.001f;
         }
+
+        recoveryRate *= entity.ResourcesMax[resource];
 
         return recoveryRate;
     }

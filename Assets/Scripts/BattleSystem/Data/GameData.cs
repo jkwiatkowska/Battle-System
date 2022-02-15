@@ -5,7 +5,7 @@ using UnityEngine;
 public static class GameData
 {
     public static List<string> Categories;                                  // Damage types and resistances can be calculated using these.
-    public static List<string> EntityResources;                             // Values like hit points, mana, stamina, etc.
+    public static Dictionary<string, Value> EntityResources;                // Values like hit points, mana, stamina, etc and their max values based on entity attributes.
     public static List<string> EntityAttributes;                            // Stats mainly used to determine outgoing and incoming damage.
     public static List<string> PayloadFlags;                                // Flags to customise payload damage.
 
@@ -31,10 +31,22 @@ public static class GameData
             "healing"
         };
 
-        EntityResources = new List<string>()
+        EntityResources = new Dictionary<string, Value>()
         {
-            "hp",
-            "mp"
+            {
+                "hp", 
+                new Value()
+                {
+                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 1.0f, "hp")
+                }
+            },
+            {
+                "mp",
+                new Value()
+                {
+                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 1.0f, "mp")
+                }
+            }
         };
 
         EntityAttributes = new List<string>()

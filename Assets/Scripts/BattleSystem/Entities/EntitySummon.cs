@@ -38,7 +38,8 @@ public class EntitySummon : Entity
             }
         }
 
-        SetupResources();
+        SetupResourcesMax();
+        SetupResourcesStart();
     }
 
     protected override void Update()

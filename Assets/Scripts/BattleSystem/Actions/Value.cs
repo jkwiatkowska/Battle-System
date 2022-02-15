@@ -26,6 +26,31 @@ public class ValueComponent
         Attribute = attribute;
     }
 
+    public float GetValue(Dictionary<string, float> entityAttributes)
+    {
+        switch (ComponentType)
+        {
+            case eValueComponentType.CasterAttribute:
+            {
+                if (entityAttributes == null || !entityAttributes.ContainsKey(Attribute))
+                {
+                    Debug.LogError($"Invalid attribute [{Attribute}].");
+                    return 0.0f;
+                }
+                return Potency * entityAttributes[Attribute];
+            }
+            case eValueComponentType.FlatValue:
+            {
+                return Potency;
+            }
+            default:
+            {
+                Debug.LogError($"This GetValue function doesn't support the {ComponentType} component type.");
+                return 0.0f;
+            }
+        }
+    }
+
     public float GetValue(Entity caster, Entity target, Dictionary<string, float> casterAttributes, Dictionary<string, ActionResult> actionResults = null)
     {
         switch (ComponentType)
@@ -91,7 +116,7 @@ public class ValueComponent
             }
             default:
             {
-                Debug.LogError($"Unimplemented payload component type: {ComponentType}");
+                Debug.LogError($"Unimplemented value component type: {ComponentType}");
                 return 0.0f;
             }
         }
@@ -100,6 +125,18 @@ public class ValueComponent
 
 public class Value : List<ValueComponent>
 {
+    public float GetValue(Dictionary<string, float> entityAttributes)
+    {
+        var totalValue = 0.0f;
+
+        foreach (var value in this)
+        {
+            totalValue += value.GetValue(entityAttributes);
+        }
+
+        return totalValue;
+    }
+
     public Value OutgoingValues(Entity caster, Dictionary<string, float> casterAttributes, Dictionary<string, ActionResult> actionResults)
     {
         var value = new Value();
