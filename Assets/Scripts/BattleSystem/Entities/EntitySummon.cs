@@ -34,7 +34,7 @@ public class EntitySummon : Entity
             if (SummonAction.SharedAttributes.ContainsKey(attribute))
             {
                 BaseAttributes[attribute] = SummonAction.SharedAttributes[attribute] *
-                                            Summoner.Attribute(attribute, action.SkillID, action.ActionID, null);
+                                            Summoner.Attribute(attribute, action.SkillID, action.ActionID, statusID: null, EntityData.Categories);
             }
         }
 

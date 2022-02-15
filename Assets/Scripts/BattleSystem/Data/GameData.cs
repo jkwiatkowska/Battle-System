@@ -4,18 +4,18 @@ using UnityEngine;
 
 public static class GameData
 {
-    public static List<string> Categories;                          // Damage types and resistances can be calculated using these.
-    public static List<string> EntityResources;                     // Values like hit points, mana, stamina, etc.
-    public static List<string> EntityAttributes;                    // Stats mainly used to determine outgoing and incoming damage.
-    public static List<string> PayloadFlags;                        // Flags to customise payload damage.
+    public static List<string> Categories;                                  // Damage types and resistances can be calculated using these.
+    public static List<string> EntityResources;                             // Values like hit points, mana, stamina, etc.
+    public static List<string> EntityAttributes;                            // Stats mainly used to determine outgoing and incoming damage.
+    public static List<string> PayloadFlags;                                // Flags to customise payload damage.
 
-    public static Dictionary<string, FactionData> FactionData;      // Define entity allegiance and relations.
-    public static string PlayerFaction;                             // Which of the factions the player is in.
+    public static Dictionary<string, FactionData> FactionData;              // Define entity allegiance and relations.
+    public static string PlayerFaction;                                     // Which of the factions the player is in.
     public static Dictionary<string, EntityData> EntityData;
     public static Dictionary<string, SkillData> SkillData;
-    public static Dictionary<string, List<string>> SkillGroups;     // Cooldowns and effects can apply to multiple skills at once.
-    public static Dictionary<string, StatusEffectData> EffectData;
-    public static Dictionary<string, List<string>> EffectGroups;    // Effects can be grouped together and affected all at once.
+    public static Dictionary<string, List<string>> SkillGroups;             // Cooldowns and effects can apply to multiple skills at once.
+    public static Dictionary<string, StatusEffectData> StatusEffectData;
+    public static Dictionary<string, List<string>> StatusEffectGroups;      // Effects can be grouped together and affected all at once.
 
     public static void LoadData(string path)
     {

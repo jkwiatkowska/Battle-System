@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class EffectData
+public abstract class Effect
 {
     public enum eEffectType
     {
@@ -18,20 +18,20 @@ public abstract class EffectData
         All,
         Action,
         Category,
-        Effect,
-        EffectGroup,
         Skill,
         SkillGroup,
+        Status,
+        StatusGroup
     }
 
     public eEffectType EffectType;
     public Vector2Int StacksRequired;                   // Effect is only applied if the current stack number is within this range.
 
     public abstract void Apply(string statusID, Entity target, Entity caster, Payload payload);
-    public abstract void Remove(string statusID);
+    public abstract void Remove(string statusID, Entity target);
 }
 
-public class AttributeChangeData : EffectData
+public class AttributeChangeData : Effect
 {
     public string Attribute;                            // Affected attribute.
     public Value Value;                                 // Increase/decrease to the attribute. Entity that applies the status is the caster, while the entity that receives it is the target.
@@ -42,33 +42,41 @@ public class AttributeChangeData : EffectData
 
     public override void Apply(string statusID, Entity target, Entity caster, Payload payload)
     {
-        var effect = new AttributeChange
+        var attributeChange = new EntityAttributeChange
         {
             Attribute = Attribute,
+            Key = Key(statusID),
             Value = Value.OutgoingValues(caster, caster.EntityAttributes(payload.Action.SkillID, 
-                                        payload.Action.ActionID, payload.PayloadData.Categories), null),
+                                        payload.Action.ActionID, statusID, payload.PayloadData.Categories), null),
             PayloadFilter = PayloadTargetType,
             Requirement = PayloadTarget
         };
 
+        target.ApplyAttributeChange(attributeChange);
     }
 
-    public override void Remove(string statusID)
+    public override void Remove(string statusID, Entity target)
     {
-        throw new System.NotImplementedException();
+        target.RemoveAttributeChange(Attribute, Key(statusID));
+    }
+
+    public string Key(string statusID)
+    {
+        return statusID + StacksRequired.ToString() + PayloadTargetType + PayloadTarget;
     }
 }
 
-public class AttributeChange
+public class EntityAttributeChange
 {
     public string Attribute;                            // Affected attribute.
+    public string Key;                                  // Used to identify the attribute change.
     public Value Value;                                 // Increase/decrease to the attribute. Entity that applies the status is the caster, while the entity that receives it is the target.
 
-    public EffectData.ePayloadFilter PayloadFilter;   // An attribute can be affected directly or only when specific skills and actions are used.
+    public Effect.ePayloadFilter PayloadFilter;         // An attribute can be affected directly or only when specific skills and actions are used.
     public string Requirement;                          // Name or ID of the above.
 }
 
-public class ImmunityData : EffectData
+public class Immunity : Effect
 {
     public ePayloadFilter PayloadFilter;                // Resistance can be to all damage or to a specific type of skills or actions.
     public string PayloadName;                          // Name or ID of the above.
@@ -78,7 +86,7 @@ public class ImmunityData : EffectData
         throw new System.NotImplementedException();
     }
 
-    public override void Remove(string statusID)
+    public override void Remove(string statusID, Entity target)
     {
         throw new System.NotImplementedException();
     }

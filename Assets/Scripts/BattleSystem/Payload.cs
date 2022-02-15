@@ -5,18 +5,21 @@ using UnityEngine;
 public class Payload
 {
     public Entity Source;
-    public ActionPayload Action;
+    public Action Action;
     public PayloadData PayloadData;
     public Value PayloadValue;
+    public Dictionary<string, float> CasterAttributes;
+    public string StatusID;
     
-    public Payload(Entity caster, PayloadData payloadData, ActionPayload action = null, Dictionary<string, ActionResult> actionResults = null)
+    public Payload(Entity caster, PayloadData payloadData, Action action, string statusID = null, Dictionary<string, ActionResult> actionResults = null)
     {
         Source = caster;
         Action = action;
         PayloadData = payloadData;
+        StatusID = statusID;
 
-        var casterAttributes = caster.EntityAttributes(Action.SkillID, Action.ActionID, PayloadData.Categories);
-        PayloadValue = payloadData.PayloadValue.OutgoingValues(caster, casterAttributes, actionResults);
+        CasterAttributes = caster.EntityAttributes(Action.SkillID, Action.ActionID, statusID, PayloadData.Categories);
+        PayloadValue = payloadData.PayloadValue.OutgoingValues(caster, CasterAttributes, actionResults);
     }
 
     public void ApplyPayload(Entity caster, Entity target, PayloadResult result)

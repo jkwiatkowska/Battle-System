@@ -5,27 +5,32 @@ using UnityEngine;
 public class StatusEffect
 {
     StatusEffectData Data;
+    Action Action;
     int CurrentStacks;
     Entity Target;
-    Entity Caster;
+    public Entity Caster    { get; private set; }
     float StartTime;
     Payload SourcePayload;
 
     public List<(Payload, float)> OnInterval;
     public List<(Payload, int)> OnStacksGained;
-    public Payload OnRemoved;
+    public Payload OnCleared;
     public Payload OnExpired;
 
-    public StatusEffect (Entity target, Entity caster, StatusEffectData statusEffectData, Payload payload)
+    public StatusEffect (Entity target, Entity caster, StatusEffectData statusEffectData, Action action, Payload payload)
+    {
+        Setup(target, caster, statusEffectData, action, payload);
+    }
+
+    public void Setup(Entity target, Entity caster, StatusEffectData statusEffectData, Action action, Payload payload)
     {
         Data = statusEffectData;
+        Action = action;
         CurrentStacks = 0;
         Target = target;
         Caster = caster;
         StartTime = BattleSystem.Time;
         SourcePayload = payload;
-
-        ApplyStacks();
     }
 
     void UpdatePayloads()
@@ -33,52 +38,55 @@ public class StatusEffect
         OnInterval = new List<(Payload, float)>();
         foreach (var payload in Data.OnInterval)
         {
-            OnInterval.Add((new Payload(Caster, payload.Item1), StartTime + payload.Item2));
+            OnInterval.Add((new Payload(Caster, payloadData: payload.Item1, Action, Data.StatusID), StartTime + payload.Item2));
         }
 
         OnStacksGained = new List<(Payload, int)>();
         foreach (var payload in Data.OnStacksGained)
         {
-            OnStacksGained.Add((new Payload(Caster, payload.Item1), payload.Item2));
+            OnStacksGained.Add((new Payload(Caster, payloadData: payload.Item1, Action, Data.StatusID), payload.Item2));
         }
 
-        if (Data.OnRemoved != null)
+        if (Data.OnCleared != null)
         {
-            OnRemoved = new Payload(Caster, Data.OnRemoved);
+            OnCleared = new Payload(Caster, Data.OnCleared, Action, Data.StatusID);
         }
 
         if (Data.OnExpired != null)
         {
-            OnRemoved = new Payload(Caster, Data.OnRemoved);
+            OnCleared = new Payload(Caster, Data.OnCleared, Action, Data.StatusID);
         }
     }
 
     public void Update()
     {
         var now = BattleSystem.Time;
-        var end = StartTime + Data.Duration;
 
-        if (end < now)
+        if (Data.Duration > 0.0f)
         {
-            if (OnExpired != null)
-            {
-                var payloadResult = new PayloadResult(Data.OnExpired, Caster, Target);
-                OnExpired.ApplyPayload(Caster, Target, payloadResult);
-            }
-            EndStatus();
-        }
-        else
-        {
-            for (int i = 0; i < OnInterval.Count; i++)
-            {
-                var actionTimeline = OnInterval[i];
+            var end = StartTime + Data.Duration;
 
-                if (actionTimeline.Item2 < now)
+            if (end < now)
+            {
+                if (OnExpired != null)
                 {
-                    var payloadResult = new PayloadResult(Data.OnInterval[i].Item1, Caster, Target);
-                    actionTimeline.Item1.ApplyPayload(Caster, Target, payloadResult);
-                    actionTimeline.Item2 += Data.OnInterval[i].Item2;
+                    var payloadResult = new PayloadResult(Data.OnExpired, Caster, Target);
+                    OnExpired.ApplyPayload(Caster, Target, payloadResult);
                 }
+                RemoveStatus();
+                return;
+            }
+        }
+        
+        for (int i = 0; i < OnInterval.Count; i++)
+        {
+            var actionTimeline = OnInterval[i];
+
+            if (actionTimeline.Item2 < now)
+            {
+                var payloadResult = new PayloadResult(Data.OnInterval[i].Item1, Caster, Target);
+                actionTimeline.Item1.ApplyPayload(Caster, Target, payloadResult);
+                actionTimeline.Item2 += Data.OnInterval[i].Item2;
             }
         }
     }
@@ -114,7 +122,7 @@ public class StatusEffect
         {
             if (effect.StacksRequired.x > stacksBefore && effect.StacksRequired.y <= stacksBefore)
             {
-                effect.Remove(Data.StatusID);
+                effect.Remove(Data.StatusID, Target);
             }
 
             if (effect.StacksRequired.x > CurrentStacks && effect.StacksRequired.y <= CurrentStacks)
@@ -137,21 +145,23 @@ public class StatusEffect
         }
     }
 
-    public void RemoveStatus()
+    public void ClearStatus()
     {
-        if (OnRemoved != null)
+        if (OnCleared != null)
         {
-            var payloadResult = new PayloadResult(Data.OnRemoved, Caster, Target);
-            OnRemoved.ApplyPayload(Caster, Target, payloadResult);
+            var payloadResult = new PayloadResult(Data.OnCleared, Caster, Target);
+            OnCleared.ApplyPayload(Caster, Target, payloadResult);
         }
-        EndStatus();
+        RemoveStatus();
     }
 
-    void EndStatus()
+    void RemoveStatus()
     {
         foreach (var effect in Data.Effects)
         {
-            effect.Remove(Data.StatusID);
+            effect.Remove(Data.StatusID, Target);
         }
+
+        Target.RemoveStatusEffect(Data.StatusID);
     }
 }

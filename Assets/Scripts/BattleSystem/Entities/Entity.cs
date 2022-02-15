@@ -37,7 +37,7 @@ public class Entity : MonoBehaviour
 
     // Status effects
     protected Dictionary<string, StatusEffect> StatusEffects;
-    protected Dictionary<string, Dictionary<string, AttributeChange>> AttributeChanges;
+    protected Dictionary<string, Dictionary<string, EntityAttributeChange>> AttributeChanges;
 
     // Triggers
     protected Dictionary<TriggerData.eTrigger, List<Trigger>> Triggers;
@@ -79,7 +79,7 @@ public class Entity : MonoBehaviour
             BaseAttributes.Add(attribute, Formulae.EntityBaseAttribute(this, attribute));
         }
 
-        AttributeChanges = new Dictionary<string, Dictionary<string, AttributeChange>>();
+        AttributeChanges = new Dictionary<string, Dictionary<string, EntityAttributeChange>>();
 
         SetupResources();
 
@@ -188,11 +188,6 @@ public class Entity : MonoBehaviour
     }
 
     protected virtual void FixedUpdate()
-    {
-
-    }
-
-    protected virtual void LateFixedUpdate()
     {
 
     }
@@ -532,6 +527,64 @@ public class Entity : MonoBehaviour
     }
     #endregion
 
+    #region Status Effects
+    public void ApplyStatusEffect(Action action, StatusEffectData statusEffectData, int stacks, Payload sourcePayload)
+    {
+        if (!StatusEffects.ContainsKey(statusEffectData.StatusID))
+        {
+            if (stacks < 0)
+            {
+                return;
+            }
+
+            StatusEffects[statusEffectData.StatusID] = new StatusEffect(target: this, sourcePayload.Source, statusEffectData, action, sourcePayload);
+        }
+        else if (sourcePayload.Source.EntityUID != StatusEffects[statusEffectData.StatusID].Caster.EntityUID)
+        {
+            StatusEffects[statusEffectData.StatusID].Setup(target: this, sourcePayload.Source, statusEffectData, action, sourcePayload);
+        }
+
+        StatusEffects[statusEffectData.StatusID].ApplyStacks(stacks);
+    }
+
+    public void ClearStatusEffect(string statusID)
+    {
+        if (StatusEffects.ContainsKey(statusID))
+        {
+            StatusEffects[statusID].ClearStatus();
+        }
+    }
+
+    public void RemoveStatusEffect(string statusID)
+    {
+        // This has to be called from StatusEffect.RemoveStatus, after all effects are removed.
+        if (StatusEffects.ContainsKey(statusID))
+        {
+            StatusEffects.Remove(statusID);
+        }
+    }
+
+    public void ApplyAttributeChange(EntityAttributeChange attributeChange)
+    {
+        if (!AttributeChanges.ContainsKey(attributeChange.Attribute))
+        {
+            AttributeChanges[attributeChange.Attribute] = new Dictionary<string, EntityAttributeChange>();
+        }
+        AttributeChanges[attributeChange.Attribute][attributeChange.Key] = attributeChange;
+    }
+
+    public void RemoveAttributeChange(string attribute, string key)
+    {
+        if (!AttributeChanges.ContainsKey(attribute) || AttributeChanges[attribute].ContainsKey(key))
+        {
+            return;
+        }
+
+        AttributeChanges[attribute].Remove(key);
+    }
+
+    #endregion
+
     #region Tagging
     protected void UpdateTags()
     {
@@ -794,7 +847,7 @@ public class Entity : MonoBehaviour
         }
     }
 
-    public float Attribute(string attribute, string skillID, string actionID, List<string> categories)
+    public float Attribute(string attribute, string skillID, string actionID, string statusID, List<string> categories)
     {
         if (BaseAttributes.ContainsKey(attribute))
         {
@@ -808,11 +861,11 @@ public class Entity : MonoBehaviour
 
                     switch (attributeChange.PayloadFilter)
                     {
-                        case EffectData.ePayloadFilter.All:
+                        case Effect.ePayloadFilter.All:
                         {
                             break;
                         }
-                        case EffectData.ePayloadFilter.Action:
+                        case Effect.ePayloadFilter.Action:
                         {
                             if (!string.IsNullOrEmpty(actionID) && requirement == actionID)
                             {
@@ -820,7 +873,7 @@ public class Entity : MonoBehaviour
                             }
                             continue;
                         }
-                        case EffectData.ePayloadFilter.Category:
+                        case Effect.ePayloadFilter.Category:
                         {
                             if (categories != null && categories.Contains(requirement))
                             {
@@ -828,7 +881,7 @@ public class Entity : MonoBehaviour
                             }
                             continue;
                         }
-                        case EffectData.ePayloadFilter.Skill:
+                        case Effect.ePayloadFilter.Skill:
                         {
                             if (!string.IsNullOrEmpty(skillID) && requirement == skillID)
                             {
@@ -836,24 +889,37 @@ public class Entity : MonoBehaviour
                             }
                             continue;
                         }
-                        case EffectData.ePayloadFilter.SkillGroup:
+                        case Effect.ePayloadFilter.SkillGroup:
                         {
-                            if (!string.IsNullOrEmpty(skillID) && GameData.SkillGroups.ContainsKey(requirement) && 
-                                requirement.Contains(skillID))
+                            if (!string.IsNullOrEmpty(skillID) && GameData.SkillGroups.ContainsKey(requirement))
                             {
                                 break;
                             }
                             continue;
                         }
-
+                        case Effect.ePayloadFilter.Status:
+                        {
+                            if (!string.IsNullOrEmpty(statusID) && requirement == statusID)
+                            {
+                                break;
+                            }
+                            continue;
+                        }
+                        case Effect.ePayloadFilter.StatusGroup:
+                        {
+                            if (!string.IsNullOrEmpty(statusID) && GameData.StatusEffectGroups.ContainsKey(requirement))
+                            {
+                                break;
+                            }
+                            continue;
+                        }
                         default:
                         {
                             Debug.LogError($"Unimplemented payload filter: {attributeChange.PayloadFilter}");
                             break;
                         }
                     }
-                    var change = attributeChange.Value.IncomingValue(this);
-                    value += change;
+                    value += attributeChange.Value.IncomingValue(this);
                 }
             }
 
@@ -866,13 +932,13 @@ public class Entity : MonoBehaviour
         }
     }
 
-    public Dictionary<string, float> EntityAttributes(string skillID, string actionID, List<string> categories)
+    public Dictionary<string, float> EntityAttributes(string skillID, string actionID, string statusID, List<string> categories)
     {
         var attributes = new Dictionary<string, float>();
 
         foreach (var attribute in BaseAttributes)
         {
-            attributes.Add(attribute.Key, Attribute(attribute.Key, skillID, actionID, categories));
+            attributes.Add(attribute.Key, Attribute(attribute.Key, skillID, actionID, statusID, categories));
         }
 
         return attributes;

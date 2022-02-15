@@ -16,15 +16,14 @@ public static class Formulae
     {
         var payloadData = payload.PayloadData;
         var flags = payloadData.Flags;
-        var casterAttributes = caster.EntityAttributes(payload.Action.SkillID, payload.Action.ActionID, payload.PayloadData.Categories);
-        var targetAttributes = target.EntityAttributes(payload.Action.SkillID, payload.Action.ActionID, payload.PayloadData.Categories);
+        var targetAttributes = target.EntityAttributes(payload.Action.SkillID, payload.Action.ActionID, payload.StatusID, payload.PayloadData.Categories);
 
-        var isCrit = flags.ContainsKey("canCrit") && flags["canCrit"] && casterAttributes["critChance"] >= Random.value;
+        var isCrit = flags.ContainsKey("canCrit") && flags["canCrit"] && payload.CasterAttributes["critChance"] >= Random.value;
         if (isCrit)
         {
             resultFlags.Add("critical");
         }
-        var critMultiplier = isCrit ? (1.0f + casterAttributes["critDamage"]) : 1.0f;
+        var critMultiplier = isCrit ? (1.0f + payload.CasterAttributes["critDamage"]) : 1.0f;
 
         var defMultiplier = flags.ContainsKey("ignoreDef") && flags["ignoreDef"] ? 1.0f : 1.0f - targetAttributes["def"] / (targetAttributes["def"] + 5 * caster.Level + 500.0f);
         var incomingDamage = rawDamage * critMultiplier * defMultiplier;
@@ -43,7 +42,7 @@ public static class Formulae
 
     public static float ResourceMaxValue(Entity entity, string resource)
     {
-        var maxValue = entity.Attribute(resource, "", "", null);
+        var maxValue = entity.Attribute(resource, skillID: null, actionID: null, statusID: null, categories: null);
 
         return maxValue;
     }

@@ -82,7 +82,7 @@ public abstract class ActionPayload : Action
             }
         }
 
-        var payload = new Payload(entity, PayloadData, this, actionResults);
+        var payload = new Payload(entity, PayloadData, action: this, statusID: null, actionResults);
         foreach (var t in targets)
         {
             var result = new PayloadResult(PayloadData, entity, t, SkillID, ActionID);
