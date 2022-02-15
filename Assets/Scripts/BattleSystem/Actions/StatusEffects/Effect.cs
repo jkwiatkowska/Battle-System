@@ -96,11 +96,16 @@ public class EffectImmunity : Effect
 
     public override void Apply(string statusID, Entity target, Entity caster, Payload payload)
     {
-        throw new System.NotImplementedException();
+        target.ApplyImmunity(this, Key(statusID));
     }
 
     public override void Remove(string statusID, Entity target)
     {
-        throw new System.NotImplementedException();
+        target.RemoveImmunity(PayloadFilter, Key(statusID));
+    }
+
+    public string Key(string statusID)
+    {
+        return statusID + StacksRequired.ToString() + PayloadFilter + PayloadName;
     }
 }

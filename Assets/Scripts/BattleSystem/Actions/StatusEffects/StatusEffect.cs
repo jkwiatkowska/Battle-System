@@ -58,7 +58,7 @@ public class StatusEffect
         }
     }
 
-    public void Update()
+    public bool Update()
     {
         var now = BattleSystem.Time;
 
@@ -73,8 +73,7 @@ public class StatusEffect
                     var payloadResult = new PayloadResult(Data.OnExpired, Caster, Target);
                     OnExpired.ApplyPayload(Caster, Target, payloadResult);
                 }
-                RemoveStatus();
-                return;
+                return false;
             }
         }
         
@@ -89,6 +88,7 @@ public class StatusEffect
                 actionTimeline.Item2 += Data.OnInterval[i].Item2;
             }
         }
+        return true;
     }
 
     public void ApplyStacks(int stacks = 1)
@@ -109,7 +109,6 @@ public class StatusEffect
 
     public void RemoveStacks(int stacks = 1)
     {
-
         UpdateEffects(-stacks);
     }
 
@@ -155,7 +154,7 @@ public class StatusEffect
         RemoveStatus();
     }
 
-    void RemoveStatus()
+    public void RemoveStatus()
     {
         foreach (var effect in Data.Effects)
         {

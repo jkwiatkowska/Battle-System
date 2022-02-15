@@ -38,6 +38,7 @@ public class Entity : MonoBehaviour
     // Status effects
     protected Dictionary<string, StatusEffect> StatusEffects;
     protected Dictionary<string, Dictionary<string, AttributeChange>> AttributeChanges;
+    protected Dictionary<Effect.ePayloadFilter, Dictionary<string, EffectImmunity>> Immunities;
 
     // Triggers
     protected Dictionary<TriggerData.eTrigger, List<Trigger>> Triggers;
@@ -154,6 +155,7 @@ public class Entity : MonoBehaviour
     {
         if (SetupComplete && Alive)
         {
+            // Resource recovery
             if (ResourcesCurrent != null)
             {
                 foreach (var resource in GameData.EntityResources)
@@ -169,6 +171,7 @@ public class Entity : MonoBehaviour
                 }
             }
 
+            // Skill cancelation
             if (EntityState == eEntityState.CastingSkill)
             {
                 if (CurrentSkill.MovementCancelsSkill)
@@ -179,6 +182,22 @@ public class Entity : MonoBehaviour
                         CancelSkill();
                     }
                 }
+            }
+
+            // Status effects
+            var effectsToRemove = new List<string>();
+            foreach (var status in StatusEffects)
+            {
+                var expired = !status.Value.Update();
+                if (expired)
+                {
+                    effectsToRemove.Add(status.Key);
+                }
+            }
+
+            foreach (var key in effectsToRemove)
+            {
+                RemoveStatusEffect(key);
             }
         }
     }
@@ -558,9 +577,9 @@ public class Entity : MonoBehaviour
 
     public void RemoveStatusEffect(string statusID)
     {
-        // This has to be called from StatusEffect.RemoveStatus, after all effects are removed.
         if (StatusEffects.ContainsKey(statusID))
         {
+            StatusEffects[statusID].RemoveStatus();
             StatusEffects.Remove(statusID);
         }
     }
@@ -578,7 +597,7 @@ public class Entity : MonoBehaviour
 
     public void RemoveAttributeChange(string attribute, string key)
     {
-        if (!AttributeChanges.ContainsKey(attribute) || AttributeChanges[attribute].ContainsKey(key))
+        if (!AttributeChanges.ContainsKey(attribute) || !AttributeChanges[attribute].ContainsKey(key))
         {
             return;
         }
@@ -596,6 +615,25 @@ public class Entity : MonoBehaviour
     public void RemoveConversion()
     {
         FactionOverride = "";
+    }
+
+    public void ApplyImmunity(EffectImmunity immunity, string key)
+    {
+        if (!Immunities.ContainsKey(immunity.PayloadFilter))
+        {
+            Immunities[immunity.PayloadFilter] = new Dictionary<string, EffectImmunity>();
+        }
+        Immunities[immunity.PayloadFilter][key] = immunity;
+    }
+
+    public void RemoveImmunity(Effect.ePayloadFilter payloadFilter, string key)
+    {
+        if (!Immunities.ContainsKey(payloadFilter) || !Immunities[payloadFilter].ContainsKey(key))
+        {
+            return;
+        }
+
+        Immunities[payloadFilter].Remove(key);
     }
 
     #endregion
