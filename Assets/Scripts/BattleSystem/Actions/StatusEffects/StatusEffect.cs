@@ -13,8 +13,8 @@ public class StatusEffect
     float EndTime;
     Payload SourcePayload;
 
-    public List<(Payload, float)> OnInterval;
-    public List<(Payload, int)> OnStacksGained;
+    public List<(Payload Payload, float NextTimestamp)> OnInterval;
+    public List<(Payload Payload, int Stacks)> OnStacksGained;
     public Payload OnCleared;
     public Payload OnExpired;
 
@@ -37,16 +37,16 @@ public class StatusEffect
 
     void UpdatePayloads()
     {
-        OnInterval = new List<(Payload, float)>();
+        OnInterval = new List<(Payload Payload, float NextTimestamp)>();
         foreach (var payload in Data.OnInterval)
         {
-            OnInterval.Add((new Payload(Caster, payloadData: payload.Item1, Action, Data.StatusID), StartTime + payload.Item2));
+            OnInterval.Add((Payload: new Payload(Caster, payloadData: payload.PayloadData, Action, Data.StatusID), NextTimestamp: BattleSystem.Time + payload.Interval));
         }
 
         OnStacksGained = new List<(Payload, int)>();
         foreach (var payload in Data.OnStacksGained)
         {
-            OnStacksGained.Add((new Payload(Caster, payloadData: payload.Item1, Action, Data.StatusID), payload.Item2));
+            OnStacksGained.Add((Payload: new Payload(Caster, payloadData: payload.PayloadData, Action, Data.StatusID), Stacks: payload.Stacks));
         }
 
         if (Data.OnCleared != null)
@@ -79,13 +79,15 @@ public class StatusEffect
         
         for (int i = 0; i < OnInterval.Count; i++)
         {
-            var actionTimeline = OnInterval[i];
+            var payload = OnInterval[i];
 
-            if (actionTimeline.Item2 < now)
+            if (payload.NextTimestamp < now)
             {
-                var payloadResult = new PayloadResult(Data.OnInterval[i].Item1, Caster, Target);
-                actionTimeline.Item1.ApplyPayload(Caster, Target, payloadResult);
-                actionTimeline.Item2 += Data.OnInterval[i].Item2;
+                var payloadResult = new PayloadResult(Data.OnInterval[i].PayloadData, Caster, Target);
+                payload.Payload.ApplyPayload(Caster, Target, payloadResult);
+                payload.NextTimestamp += Data.OnInterval[i].Interval;
+
+                OnInterval[i] = payload;
             }
         }
         return true;
@@ -162,7 +164,5 @@ public class StatusEffect
         {
             effect.Remove(Data.StatusID, Target);
         }
-
-        Target.RemoveStatusEffect(Data.StatusID);
     }
 }

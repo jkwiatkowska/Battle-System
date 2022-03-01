@@ -202,9 +202,10 @@ public class TriggerData
             list.Add(eConditionType.HasStatus);
 
             bool isPayloadTrigger = triggerType == eTrigger.OnPayloadApplied || triggerType == eTrigger.OnPayloadReceived || 
-                                    triggerType == eTrigger.OnResourceChanged || triggerType == eTrigger.OnDeath || triggerType == eTrigger.OnKill;
+                                    triggerType == eTrigger.OnResourceChanged || triggerType == eTrigger.OnDeath || 
+                                    triggerType == eTrigger.OnKill || triggerType == eTrigger.OnHitMissed;
 
-            bool isActionTrigger = triggerType == eTrigger.OnActionUsed || triggerType == eTrigger.OnHitMissed;
+            bool isActionTrigger = triggerType == eTrigger.OnActionUsed;
 
             bool isStatusTrigger = triggerType == eTrigger.OnStatusApplied || triggerType == eTrigger.OnStatusReceived ||
                                    triggerType == eTrigger.OnStatusClearedOutgoing || triggerType == eTrigger.OnStatusClearedIncoming ||

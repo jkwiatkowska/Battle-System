@@ -13,7 +13,9 @@ public class PayloadData
 
     public TagData Tag;                                 // An entity can be "tagged". This makes it possible for skills to affect this entity specifically without selecting it
 
-    public List<(StatusEffectData Status, int Stacks)> StatusEffects;   // Effects applied to the target entity along with the payload.
+    public List<(string StatusID, int Stacks)> ApplyStatus;             // Effects applied to the target entity along with the payload.
+    public List<(bool StatusGroup, string StatusID)> ClearStatus;       // Effects cleared from the target entity.
+    public List<(string StatusID, int Stacks)> RemoveStatus;            // Status stacks cleared from the target entity
 
     public bool Instakill = false;                      // Used to set an entity's OnDeath trigger.
 

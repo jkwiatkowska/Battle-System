@@ -94,26 +94,13 @@ public abstract class ActionPayload : Action
                 continue;
             }
 
-            // If payload isn't guaranteed to trigger.
-            var chance = Formulae.PayloadSuccessChance(PayloadData, entity, t);
-            if (Random.value > chance)
+            // Apply payload and update result if succesfull. 
+            if (!payload.ApplyPayload(entity, t, result))
             {
-                HUDPopupTextHUD.Instance.DisplayMiss(t);
-                entity.OnHitMissed(this);
-                // On hit avoided - move display there
                 continue;
             }
-
-            // Apply payload and update result.
-            payload.ApplyPayload(entity, t, result);
             actionResults[ActionID].Value += result.Change;
             actionResults[ActionID].Count += 1;
-
-            // Show damage number on HUD
-            if (Mathf.RoundToInt(result.Change) != 0)
-            {
-                HUDPopupTextHUD.Instance.DisplayDamage(t, this, -result.Change, result.Flags);
-            }
         }
 
         actionResults[ActionID].Success = true;

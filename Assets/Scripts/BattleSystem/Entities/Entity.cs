@@ -457,9 +457,11 @@ public class Entity : MonoBehaviour
         OnTrigger(TriggerData.eTrigger.OnPayloadApplied, triggerSource: payloadResult.Caster);
     }
 
-    public virtual void OnHitMissed(Action action)
+    public virtual void OnHitMissed(Entity target, PayloadResult payloadResult)
     {
-        OnTrigger(TriggerData.eTrigger.OnHitMissed, action: action);
+        OnTrigger(TriggerData.eTrigger.OnHitMissed, triggerSource: target, payloadResult: payloadResult);
+
+        HUDPopupTextHUD.Instance.DisplayMiss(target);
     }
 
     public virtual void OnResourceChanged(PayloadResult payloadResult)
@@ -469,6 +471,8 @@ public class Entity : MonoBehaviour
             return;
         }
 
+        HUDPopupTextHUD.Instance.DisplayDamage(this, payloadResult.PayloadData, -payloadResult.Change, payloadResult.Flags);
+
         OnTrigger(TriggerData.eTrigger.OnPayloadApplied, triggerSource: payloadResult.Caster);
     }
 
@@ -477,9 +481,9 @@ public class Entity : MonoBehaviour
         OnTrigger(TriggerData.eTrigger.OnActionUsed, action: action, actionResult: actionResult);
     }
 
-    public virtual void OnStatusApplied(Entity target, string statusName)
+    public virtual void OnStatusApplied(Entity target, string statusID)
     {
-        OnTrigger(TriggerData.eTrigger.OnStatusApplied, triggerSource: target, statusID: statusName);
+        OnTrigger(TriggerData.eTrigger.OnStatusApplied, triggerSource: target, statusID: statusID);
     }
 
     public virtual void OnStatusReceived(StatusEffect statusEffect)
@@ -487,9 +491,9 @@ public class Entity : MonoBehaviour
         OnTrigger(TriggerData.eTrigger.OnStatusReceived, triggerSource: statusEffect.Caster, statusID: statusEffect.Data.StatusID);
     }
 
-    public virtual void OnStatusClearedOutgoing(Entity target, string statusName)
+    public virtual void OnStatusClearedOutgoing(Entity target, string statusID)
     {
-        OnTrigger(TriggerData.eTrigger.OnStatusClearedOutgoing, triggerSource: target, statusID: statusName);
+        OnTrigger(TriggerData.eTrigger.OnStatusClearedOutgoing, triggerSource: target, statusID: statusID);
     }
 
     public virtual void OnStatusClearedIncoming(Entity source, string statusName)
@@ -554,8 +558,16 @@ public class Entity : MonoBehaviour
     #endregion
 
     #region Status Effects
-    public void ApplyStatusEffect(Action action, StatusEffectData statusEffectData, int stacks, Payload sourcePayload)
+    public void ApplyStatusEffect(Entity sourceEntity, Action action, string statusID, int stacks, Payload sourcePayload)
     {
+        if (!GameData.StatusEffectData.ContainsKey(statusID))
+        {
+            Debug.LogError($"Invalid status effect ID: {statusID}");
+            return;
+        }
+
+        var statusEffectData = GameData.StatusEffectData[statusID];
+
         if (!StatusEffects.ContainsKey(statusEffectData.StatusID))
         {
             if (stacks < 0)
@@ -563,16 +575,17 @@ public class Entity : MonoBehaviour
                 return;
             }
 
-            StatusEffects[statusEffectData.StatusID] = new StatusEffect(target: this, sourcePayload.Source, statusEffectData, action, sourcePayload);
+            StatusEffects[statusID] = new StatusEffect(target: this, sourcePayload.Source, statusEffectData, action, sourcePayload);
         }
         else if (sourcePayload.Source.EntityUID != StatusEffects[statusEffectData.StatusID].Caster.EntityUID)
         {
-            StatusEffects[statusEffectData.StatusID].Setup(target: this, sourcePayload.Source, statusEffectData, action, sourcePayload);
+            StatusEffects[statusID].Setup(target: this, sourcePayload.Source, statusEffectData, action, sourcePayload);
         }
 
         StatusEffects[statusEffectData.StatusID].ApplyStacks(stacks);
 
         OnStatusReceived(StatusEffects[statusEffectData.StatusID]);
+        sourceEntity.OnStatusApplied(this, statusID);
     }
 
     public int GetStatusEffectStacks(string statusEffect)
@@ -590,7 +603,22 @@ public class Entity : MonoBehaviour
         if (StatusEffects.ContainsKey(statusID))
         {
             StatusEffects[statusID].ClearStatus();
+            RemoveStatusEffect(statusID);
+
             OnStatusClearedIncoming(source, statusID);
+            source.OnStatusClearedOutgoing(this, statusID);
+        }
+    }
+
+    public void RemoveStatusEffectStacks(Entity source, string statusID, int stacks)
+    {
+        if (StatusEffects.ContainsKey(statusID))
+        {
+            StatusEffects[statusID].RemoveStacks(stacks);
+            if (StatusEffects[statusID].CurrentStacks <= 0)
+            {
+                ClearStatusEffect(source, statusID);
+            }
         }
     }
 

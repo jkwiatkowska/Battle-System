@@ -114,7 +114,58 @@ public static class GameData
 
         StatusEffectGroups = new Dictionary<string, List<string>>();
 
-        StatusEffectData = new Dictionary<string, StatusEffectData>();
+        StatusEffectData = new Dictionary<string, StatusEffectData>()
+        {
+            {
+                "burn",
+                new StatusEffectData()
+                {
+                    StatusID = "burn",
+                    MaxStacks = 1,
+                    Duration = 5.0f,
+                    Effects = new List<Effect>(),
+                    OnStacksGained = new List<(PayloadData, int)>()
+                    {
+                        (new PayloadData()
+                        {
+                            Flags = new List<string>()
+                            {
+                                "ignoreDef"
+                            },
+                            PayloadValue = new Value()
+                            {
+                                new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 50)
+                            },
+                            Categories = new List<string>()
+                            {
+                                "fire"
+                            },
+                            SuccessChance = 1.0f,
+                            ResourceAffected = "hp"
+                        },
+                        1)
+                    },
+                    OnInterval = new List<(PayloadData, float)>()
+                    {
+                        (new PayloadData()
+                        {
+                            Flags = new List<string>()
+                            {
+                                "ignoreDef"
+                            },
+                            PayloadValue = new Value()
+                            {
+                                new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 25)
+                            },
+                            Categories = new List<string>(){},
+                            SuccessChance = 1.0f,
+                            ResourceAffected = "hp"
+                        },
+                        0.2f)
+                    }
+                }
+            }
+        };
 
         PlayerFaction = "Player";
 
@@ -659,7 +710,11 @@ public static class GameData
                                     "fire"
                                 },
                                 SuccessChance = 1.0f,
-                                ResourceAffected = "hp"
+                                ResourceAffected = "hp",
+                                ApplyStatus = new List<(string StatusID, int Stacks)>()
+                                {
+                                    ("burn", 1)
+                                }
                             },
                             ActionConditions = new List<ActionCondition>()
                         }
@@ -721,9 +776,13 @@ public static class GameData
                                     "water"
                                 },
                                 SuccessChance = 1.0f,
-                                ResourceAffected = "hp"
+                                ResourceAffected = "hp",
+                                ClearStatus = new List<(bool StatusGroup, string StatusID)>()
+                                {
+                                    (false, "burn")
+                                }
                             },
-                            ActionConditions = new List<ActionCondition>()
+                            ActionConditions = new List<ActionCondition>(),
                         }
                     },
                     NeedsTarget = true,

@@ -22,14 +22,24 @@ public class Payload
         PayloadValue = payloadData.PayloadValue.OutgoingValues(caster, CasterAttributes, actionResults);
     }
 
-    public void ApplyPayload(Entity caster, Entity target, PayloadResult result)
+    public bool ApplyPayload(Entity caster, Entity target, PayloadResult result)
     {
+        // Chance
+        var chance = Formulae.PayloadSuccessChance(PayloadData, caster, target);
+        if (Random.value > chance)
+        {
+            caster.OnHitMissed(target, result);
+            return false;
+        }
+
+        // Instant death
         if (PayloadData.Instakill)
         {
             target.OnDeath(caster, result);
             caster.OnKill(result);
         }
         
+        // Reverse the change
         result.Change = -PayloadValue.IncomingValue(target);
 
         // Incoming damage can be calculated using target attributes and other variables here.
@@ -45,7 +55,7 @@ public class Payload
         // Only continue if the target is still alive
         if (!target.Alive)
         {
-            return;
+            return true;
         }
 
         // Tag
@@ -55,13 +65,43 @@ public class Payload
         }
 
         // Status effects
-        if (PayloadData.StatusEffects != null)
+        if (PayloadData.ApplyStatus != null)
         {
-            foreach (var status in PayloadData.StatusEffects)
+            foreach (var status in PayloadData.ApplyStatus)
             {
-                target.ApplyStatusEffect(Action, status.Status, status.Stacks, this);
-                caster.OnPayloadApplied(result);
+                target.ApplyStatusEffect(caster, Action, status.StatusID, status.Stacks, this);
             }
         }
+
+        if (PayloadData.ClearStatus != null)
+        {
+            foreach (var status in PayloadData.ClearStatus)
+            {
+                if (status.StatusGroup)
+                {
+                    if (GameData.StatusEffectGroups.ContainsKey(status.StatusID))
+                    {
+                        foreach (var s in GameData.StatusEffectGroups[status.StatusID])
+                        {
+                            target.ClearStatusEffect(caster, s);
+                        }
+                    }
+                }
+                else
+                {
+                    target.ClearStatusEffect(caster, status.StatusID);
+                }
+            }
+        }
+
+        if (PayloadData.RemoveStatus != null)
+        {
+            foreach (var status in PayloadData.RemoveStatus)
+            {
+                target.RemoveStatusEffectStacks(caster, status.StatusID, status.Stacks);
+            }
+        }
+
+        return true;
     }
 }
