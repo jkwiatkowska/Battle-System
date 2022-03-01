@@ -87,12 +87,20 @@ public abstract class ActionPayload : Action
         {
             var result = new PayloadResult(PayloadData, entity, t, SkillID, ActionID);
 
+            var immunity = t.HasImmunityAgainstAction(this);
+            if (immunity != null)
+            {
+                // On hit resisted
+                continue;
+            }
+
             // If payload isn't guaranteed to trigger.
             var chance = Formulae.PayloadSuccessChance(PayloadData, entity, t);
             if (Random.value > chance)
             {
                 HUDPopupTextHUD.Instance.DisplayMiss(t);
-                entity.OnTrigger(TriggerData.eTrigger.OnHitMissed, entity, result);
+                entity.OnHitMissed(this);
+                // On hit avoided - move display there
                 continue;
             }
 
@@ -100,9 +108,6 @@ public abstract class ActionPayload : Action
             payload.ApplyPayload(entity, t, result);
             actionResults[ActionID].Value += result.Change;
             actionResults[ActionID].Count += 1;
-
-            entity.OnTrigger(TriggerData.eTrigger.OnHitOutgoing, entity, result);
-            t.OnTrigger(TriggerData.eTrigger.OnHitIncoming, entity, result);
 
             // Show damage number on HUD
             if (Mathf.RoundToInt(result.Change) != 0)
@@ -112,6 +117,7 @@ public abstract class ActionPayload : Action
         }
 
         actionResults[ActionID].Success = true;
+        entity.OnActionUsed(this, actionResults[ActionID]);
     }
 
     public abstract List<Entity> GetTargetsForAction(Entity entity, Entity target);

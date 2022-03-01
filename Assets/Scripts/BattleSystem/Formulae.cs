@@ -18,14 +18,14 @@ public static class Formulae
         var flags = payloadData.Flags;
         var targetAttributes = target.EntityAttributes(payload.Action.SkillID, payload.Action.ActionID, payload.StatusID, payload.PayloadData.Categories);
 
-        var isCrit = flags.ContainsKey("canCrit") && flags["canCrit"] && payload.CasterAttributes["critChance"] >= Random.value;
+        var isCrit = flags.Contains("canCrit") && payload.CasterAttributes["critChance"] >= Random.value;
         if (isCrit)
         {
             resultFlags.Add("critical");
         }
         var critMultiplier = isCrit ? (1.0f + payload.CasterAttributes["critDamage"]) : 1.0f;
 
-        var defMultiplier = flags.ContainsKey("ignoreDef") && flags["ignoreDef"] ? 1.0f : 1.0f - targetAttributes["def"] / (targetAttributes["def"] + 5 * caster.Level + 500.0f);
+        var defMultiplier = flags.Contains("ignoreDef") ? 1.0f : 1.0f - targetAttributes["def"] / (targetAttributes["def"] + 5 * caster.Level + 500.0f);
         var incomingDamage = rawDamage * critMultiplier * defMultiplier;
 
         return incomingDamage;
@@ -100,6 +100,13 @@ public static class Formulae
         var cooldown = action.Cooldown;
 
         return cooldown;
+    }
+
+    public static float StatusDurationTime(Entity caster, Entity targer, StatusEffectData statusEffect)
+    {
+        var duration = statusEffect.Duration;
+
+        return duration;
     }
 
     public static float PayloadSuccessChance(PayloadData payloadData, Entity caster, Entity target)

@@ -4,12 +4,13 @@ using UnityEngine;
 
 public class StatusEffect
 {
-    StatusEffectData Data;
+    public StatusEffectData Data    { get; private set; }
     Action Action;
-    int CurrentStacks;
+    public int CurrentStacks        { get; private set; }
     Entity Target;
-    public Entity Caster    { get; private set; }
+    public Entity Caster            { get; private set; }
     float StartTime;
+    float EndTime;
     Payload SourcePayload;
 
     public List<(Payload, float)> OnInterval;
@@ -30,6 +31,7 @@ public class StatusEffect
         Target = target;
         Caster = caster;
         StartTime = BattleSystem.Time;
+        EndTime = StartTime + Formulae.StatusDurationTime(Caster, Target, Data);
         SourcePayload = payload;
     }
 
@@ -64,9 +66,7 @@ public class StatusEffect
 
         if (Data.Duration > 0.0f)
         {
-            var end = StartTime + Data.Duration;
-
-            if (end < now)
+            if (EndTime < now)
             {
                 if (OnExpired != null)
                 {
@@ -94,6 +94,8 @@ public class StatusEffect
     public void ApplyStacks(int stacks = 1)
     {
         StartTime = BattleSystem.Time;
+        EndTime = StartTime + Formulae.StatusDurationTime(Caster, Target, Data);
+
         if (Caster != null)
         {
             UpdatePayloads();

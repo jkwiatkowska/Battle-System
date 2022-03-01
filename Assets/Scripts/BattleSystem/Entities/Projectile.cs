@@ -192,7 +192,7 @@ public class Projectile : EntitySummon
         {
             case ActionProjectile.OnCollisionReaction.eReactionType.SelfDestruct:
             {
-                OnTrigger(TriggerData.eTrigger.OnDeath, this);
+                OnDeath();
                 break;
             }
             case ActionProjectile.OnCollisionReaction.eReactionType.Bounce:
@@ -216,7 +216,7 @@ public class Projectile : EntitySummon
         }
     }
 
-    protected override void OnDeath(Entity source = null, PayloadResult payloadResult = null)
+    public override void OnDeath(Entity source = null, PayloadResult payloadResult = null)
     {
         TriggerCollider.enabled = false;
         Movement.GravitationalForce = 0.0f;

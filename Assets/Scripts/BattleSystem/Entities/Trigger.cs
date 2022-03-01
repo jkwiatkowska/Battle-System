@@ -17,16 +17,17 @@ public class Trigger
         ExpireTime = expireTime;
     }
 
-    public Coroutine TryExecute(Entity entity, Entity target, PayloadResult payloadResult, out bool usesLeft)
+    public Coroutine TryExecute(Entity entity, out bool usesLeft, Entity triggerSource = null, PayloadResult payloadResult = null, 
+                                Action action = null, ActionResult actionResult = null, string statusName = "")
     {
         usesLeft = true;
 
-        if (!ConditionsMet(payloadResult))
+        if (!ConditionsMet(entity, triggerSource, payloadResult, action, actionResult, statusName))
         {
             return null;
         }
 
-        return Execute(entity, target, out usesLeft);
+        return Execute(entity, triggerSource, out usesLeft);
     }
 
     public Coroutine Execute(Entity entity, Entity target, out bool usesLeft)
@@ -44,7 +45,7 @@ public class Trigger
         return entity.StartCoroutine(TriggerData.Actions.ExecuteActions(entity, target));
     }
 
-    public bool ConditionsMet(PayloadResult payloadResult)
+    public bool ConditionsMet(Entity entity, Entity triggerSource, PayloadResult payloadResult, Action action, ActionResult actionResult, string statusName)
     {
         if (ExpireTime != 0.0f && ExpireTime < BattleSystem.Time)
         {
@@ -56,41 +57,17 @@ public class Trigger
             return false;
         }
 
-        if (TriggerData.SkillIDs.Count > 0)
-        {
-            if (!TriggerData.SkillIDs.Contains(payloadResult.SkillID))
-            {
-                return false;
-            }
-        }
-
-        if (TriggerData.ResourcesAffected.Count > 0)
-        {
-            if (payloadResult == null || !TriggerData.ResourcesAffected.Contains(payloadResult.PayloadData.ResourceAffected))
-            {
-                return false;
-            }
-        }
-
-        if (TriggerData.Flags.Count > 0)
-        {
-            if (payloadResult == null)
-            {
-                return false; 
-            }
-
-            foreach (var flag in TriggerData.Flags)
-            {
-                if (!payloadResult.Flags.Contains(flag))
-                {
-                    return false;
-                }
-            }
-        }
-
         if (Random.value > TriggerData.TriggerChance)
         {
             return false;
+        }
+
+        foreach (var condition in TriggerData.Conditions)
+        {
+            if (!condition.ConditionMet(entity, triggerSource, payloadResult, action, actionResult, statusName))
+            {
+                return false;
+            }
         }
 
         return true;

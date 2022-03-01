@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,6 +40,7 @@ public class Entity : MonoBehaviour
     protected Dictionary<string, StatusEffect> StatusEffects;
     protected Dictionary<string, Dictionary<string, AttributeChange>> AttributeChanges;
     protected Dictionary<Effect.ePayloadFilter, Dictionary<string, EffectImmunity>> Immunities;
+    protected Dictionary<Effect.ePayloadFilter, Dictionary<string, EffectResistance>> Resistances;
 
     // Triggers
     protected Dictionary<TriggerData.eTrigger, List<Trigger>> Triggers;
@@ -58,6 +60,8 @@ public class Entity : MonoBehaviour
 
     // Connections with other entities
     public Dictionary<string, Dictionary<string, float>> TaggedEntities     { get; protected set; }
+    [Serializable] struct EntityToTag { public string tag; public Entity entity; };
+    [SerializeField] List<EntityToTag> EntitiesToTag;
     protected Dictionary<string, List<string>> TagsAppliedBy;
 
     public Dictionary<string, List<EntitySummon>> SummonedEntities          { get; protected set; }
@@ -80,16 +84,19 @@ public class Entity : MonoBehaviour
             BaseAttributes.Add(attribute, Formulae.EntityBaseAttribute(this, attribute));
         }
 
+        // Status effects
+        StatusEffects = new Dictionary<string, StatusEffect>();
         AttributeChanges = new Dictionary<string, Dictionary<string, AttributeChange>>();
+        Immunities = new Dictionary<Effect.ePayloadFilter, Dictionary<string, EffectImmunity>>();
+        Resistances = new Dictionary<Effect.ePayloadFilter, Dictionary<string, EffectResistance>>();
+
+        // Resources
 
         SetupResourcesMax();
         SetupResourcesStart();
 
         // Skills
         SkillAvailableTime = new Dictionary<string, float>();
-
-        // Status effects
-        StatusEffects = new Dictionary<string, StatusEffect>();
 
         // Triggers
         Triggers = new Dictionary<TriggerData.eTrigger, List<Trigger>>();
@@ -101,6 +108,10 @@ public class Entity : MonoBehaviour
 
         // Connections
         TaggedEntities = new Dictionary<string, Dictionary<string, float>>();
+        foreach (var entity in EntitiesToTag)
+        {
+            TagEntity(entity.tag, entity.entity);
+        }    
         TagsAppliedBy = new Dictionary<string, List<string>>();
         SummonedEntities = new Dictionary<string, List<EntitySummon>>();
 
@@ -197,6 +208,7 @@ public class Entity : MonoBehaviour
 
             foreach (var key in effectsToRemove)
             {
+                OnStatusExpired(StatusEffects[key]);
                 RemoveStatusEffect(key);
             }
         }
@@ -400,126 +412,91 @@ public class Entity : MonoBehaviour
         Triggers[trigger.TriggerData.Trigger].Add(trigger);
     }
 
-    public virtual void OnTrigger(TriggerData.eTrigger trigger, Entity source, PayloadResult payloadResult = null)
+    protected virtual void OnTrigger(TriggerData.eTrigger trigger, Entity triggerSource = null, PayloadResult payloadResult = null, 
+                                     ActionResult actionResult = null, Action action = null, string statusID = "")
     {
-        //var plText = payloadResult != null ? $", action: {payloadResult.ActionID}, target: {payloadResult.Target}" : "";
-        //Debug.Log($"{name} got trigger: {trigger}, source: {source.EntityUID}{plText}, time: {BattleSystem.Time}");
-        // Variable triggers
         if (Triggers.ContainsKey(trigger))
         {
-            var target = Target;
-            if (payloadResult != null)
-            {
-                if (trigger == TriggerData.eTrigger.OnHitIncoming || trigger == TriggerData.eTrigger.OnDamageTaken || 
-                    trigger == TriggerData.eTrigger.OnRecoveryReceived || trigger == TriggerData.eTrigger.OnDeath)
-                {
-                    target = payloadResult.Caster;
-                }
-            }
-
             foreach (var t in Triggers[trigger])
             {
-                t.TryExecute(this, target, payloadResult, out var keep);
+                t.TryExecute(entity: this, out var keep, triggerSource != null ? triggerSource : this, payloadResult, action, actionResult, statusID);
                 if (!keep)
                 {
                     Triggers[trigger].Remove(t);
                 }
             }
         }
+    }
 
-        // Hard coded triggers
-        switch (trigger)
+    public virtual void OnPayloadApplied(PayloadResult payloadResult)
+    {
+        if (payloadResult == null)
         {
-            case TriggerData.eTrigger.OnHitOutgoing:
-            {
-                OnHitOutgoing(payloadResult);
-                break;
-            }
-            case TriggerData.eTrigger.OnHitIncoming:
-            {
-                OnHitIncoming(payloadResult);
-                break;
-            }
-            case TriggerData.eTrigger.OnHitMissed:
-            {
-                OnHitMissed();
-                break;
-            }
-            case TriggerData.eTrigger.OnDamageDealt:
-            {
-                OnDamageDealt(payloadResult);
-                break;
-            }
-            case TriggerData.eTrigger.OnDamageTaken:
-            {
-                OnDamageTaken(payloadResult);
-                break;
-            }
-            case TriggerData.eTrigger.OnRecoveryGiven:
-            {
-                OnRecoveryGiven(payloadResult);
-                break;
-            }
-            case TriggerData.eTrigger.OnRecoveryReceived:
-            {
-                OnRecoveryReceived(payloadResult);
-                break;
-            }
-            case TriggerData.eTrigger.OnDeath:
-            {
-                OnDeath(source, payloadResult);
-                break;
-            }
-            case TriggerData.eTrigger.OnKill:
-            {
-                OnKill(payloadResult);
-                break;
-            }
-            case TriggerData.eTrigger.OnSpawn:
-            {
-                OnSpawn();
-                break;
-            }
+            return;
         }
+
+        OnTrigger(TriggerData.eTrigger.OnPayloadApplied, triggerSource: payloadResult.Target);
     }
 
-    protected virtual void OnHitOutgoing(PayloadResult payloadResult)
+    public virtual void OnPayloadReceived(PayloadResult payloadResult)
     {
+        if (payloadResult == null)
+        {
+            return;
+        }
 
+        OnTrigger(TriggerData.eTrigger.OnPayloadApplied, triggerSource: payloadResult.Caster);
     }
 
-    protected virtual void OnHitIncoming(PayloadResult payloadResult)
+    public virtual void OnHitMissed(Action action)
     {
-
+        OnTrigger(TriggerData.eTrigger.OnHitMissed, action: action);
     }
 
-    protected virtual void OnHitMissed()
+    public virtual void OnResourceChanged(PayloadResult payloadResult)
     {
+        if (payloadResult == null)
+        {
+            return;
+        }
 
+        OnTrigger(TriggerData.eTrigger.OnPayloadApplied, triggerSource: payloadResult.Caster);
     }
 
-    protected virtual void OnDamageDealt(PayloadResult payloadResult)
+    public virtual void OnActionUsed(Action action, ActionResult actionResult)
     {
-
+        OnTrigger(TriggerData.eTrigger.OnActionUsed, action: action, actionResult: actionResult);
     }
 
-    protected virtual void OnDamageTaken(PayloadResult payloadResult)
+    public virtual void OnStatusApplied(Entity target, string statusName)
     {
-
+        OnTrigger(TriggerData.eTrigger.OnStatusApplied, triggerSource: target, statusID: statusName);
     }
 
-    protected virtual void OnRecoveryGiven(PayloadResult payloadResult)
+    public virtual void OnStatusReceived(StatusEffect statusEffect)
     {
-
+        OnTrigger(TriggerData.eTrigger.OnStatusReceived, triggerSource: statusEffect.Caster, statusID: statusEffect.Data.StatusID);
     }
 
-    protected virtual void OnRecoveryReceived(PayloadResult payloadResult)
+    public virtual void OnStatusClearedOutgoing(Entity target, string statusName)
     {
-
+        OnTrigger(TriggerData.eTrigger.OnStatusClearedOutgoing, triggerSource: target, statusID: statusName);
     }
 
-    protected virtual void OnDeath(Entity source = null, PayloadResult payloadResult = null)
+    public virtual void OnStatusClearedIncoming(Entity source, string statusName)
     {
+        OnTrigger(TriggerData.eTrigger.OnStatusClearedIncoming, triggerSource: source, statusID: statusName);
+    }
+
+    public virtual void OnStatusExpired(StatusEffect statusEffect)
+    {
+        OnTrigger(TriggerData.eTrigger.OnStatusExpired, triggerSource: statusEffect.Caster, statusID: statusEffect.Data.StatusID);
+    }
+
+    public virtual void OnDeath(Entity source = null, PayloadResult payloadResult = null)
+    {
+        OnTrigger(TriggerData.eTrigger.OnDeath, triggerSource: source, payloadResult: payloadResult);
+
         EntityState = eEntityState.Dead;
 
         RemoveAllTagsOnSelf();
@@ -531,19 +508,39 @@ public class Entity : MonoBehaviour
         KillLinkedSummons();
     }
 
-    protected virtual void OnKill(PayloadResult payloadResult = null)
+    public virtual void OnKill(PayloadResult payloadResult = null, string statusID = "")
     {
+        if (payloadResult == null)
+        {
+            return;
+        }
 
+        OnTrigger(TriggerData.eTrigger.OnKill, triggerSource: payloadResult.Target, statusID: statusID);
     }
 
     protected virtual void OnSpawn()
     {
+        OnTrigger(TriggerData.eTrigger.OnSpawn);
+    }
 
+    protected virtual void OnCollisionEnemy(Entity entity)
+    {
+        OnTrigger(TriggerData.eTrigger.OnCollisionEnemy, triggerSource: entity);
+    }
+
+    protected virtual void OnCollisionFriend(Entity entity)
+    {
+        OnTrigger(TriggerData.eTrigger.OnCollisionFriend, triggerSource: entity);
+    }
+
+    protected virtual void OnCollisionTerrain(Collision collision)
+    {
+        OnTrigger(TriggerData.eTrigger.OnCollisionTerrain);
     }
 
     protected virtual void OnTargetOutOfRange()
     {
-
+        
     }
     #endregion
 
@@ -565,13 +562,26 @@ public class Entity : MonoBehaviour
         }
 
         StatusEffects[statusEffectData.StatusID].ApplyStacks(stacks);
+
+        OnStatusReceived(StatusEffects[statusEffectData.StatusID]);
     }
 
-    public void ClearStatusEffect(string statusID)
+    public int GetStatusEffectStacks(string statusEffect)
+    {
+        if (StatusEffects.ContainsKey(statusEffect))
+        {
+            return StatusEffects[statusEffect].CurrentStacks;
+        }
+
+        return 0;
+    }
+
+    public void ClearStatusEffect(Entity source, string statusID)
     {
         if (StatusEffects.ContainsKey(statusID))
         {
             StatusEffects[statusID].ClearStatus();
+            OnStatusClearedIncoming(source, statusID);
         }
     }
 
@@ -636,6 +646,116 @@ public class Entity : MonoBehaviour
         Immunities[payloadFilter].Remove(key);
     }
 
+    public EffectImmunity HasImmunityAgainstAction(ActionPayload action)
+    {
+        if (Immunities.ContainsKey(Effect.ePayloadFilter.All) && Immunities[Effect.ePayloadFilter.All].Count > 0)
+        {
+            return Immunities[Effect.ePayloadFilter.All].ElementAt(0).Value;
+        }
+
+        if (Immunities.ContainsKey(Effect.ePayloadFilter.Skill) && Immunities[Effect.ePayloadFilter.Skill].Count > 0)
+        {
+            foreach (var immunity in Immunities[Effect.ePayloadFilter.Skill])
+            {
+                if (immunity.Value.PayloadName == action.SkillID)
+                {
+                    return immunity.Value;
+                }
+            }
+        }
+
+        if (Immunities.ContainsKey(Effect.ePayloadFilter.SkillGroup) && Immunities[Effect.ePayloadFilter.SkillGroup].Count > 0)
+        {
+            foreach (var immunity in Immunities[Effect.ePayloadFilter.SkillGroup])
+            {
+                if (GameData.SkillGroups.ContainsKey(immunity.Value.PayloadName) && GameData.SkillGroups[immunity.Value.PayloadName].Contains(action.SkillID))
+                {
+                    return immunity.Value;
+                }
+            }
+        }
+
+        if (Immunities.ContainsKey(Effect.ePayloadFilter.Action) && Immunities[Effect.ePayloadFilter.Action].Count > 0)
+        {
+            foreach (var immunity in Immunities[Effect.ePayloadFilter.Action])
+            {
+                if (immunity.Value.PayloadName == action.ActionID)
+                {
+                    return immunity.Value;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public EffectImmunity HasImmunityAgainstStatus(string statusID)
+    {
+        if (Immunities.ContainsKey(Effect.ePayloadFilter.All) && Immunities[Effect.ePayloadFilter.All].Count > 0)
+        {
+            return Immunities[Effect.ePayloadFilter.All].ElementAt(0).Value;
+        }
+        else if (Immunities.ContainsKey(Effect.ePayloadFilter.Status) && Immunities[Effect.ePayloadFilter.Status].Count > 0)
+        {
+            foreach (var immunity in Immunities[Effect.ePayloadFilter.Status])
+            {
+                if (immunity.Value.PayloadName == statusID)
+                {
+                    return immunity.Value;
+                }
+            }
+        }
+        else if (Immunities.ContainsKey(Effect.ePayloadFilter.StatusGroup) && Immunities[Effect.ePayloadFilter.StatusGroup].Count > 0)
+        {
+            foreach (var immunity in Immunities[Effect.ePayloadFilter.StatusGroup])
+            {
+                if (GameData.StatusEffectGroups.ContainsKey(immunity.Value.PayloadName) && GameData.StatusEffectGroups[immunity.Value.PayloadName].Contains(statusID))
+                {
+                    return immunity.Value;
+                }
+            }
+        }
+        return null;
+    }
+
+    public EffectImmunity HasImmunityAgainstCategory(string category)
+    {
+        if (Immunities.ContainsKey(Effect.ePayloadFilter.All) && Immunities[Effect.ePayloadFilter.All].Count > 0)
+        {
+            return Immunities[Effect.ePayloadFilter.All].ElementAt(0).Value;
+        }
+        else if (Immunities.ContainsKey(Effect.ePayloadFilter.Category) && Immunities[Effect.ePayloadFilter.Category].Count > 0)
+        {
+            foreach (var immunity in Immunities[Effect.ePayloadFilter.Category])
+            {
+                if (immunity.Value.PayloadName == category)
+                {
+                    return immunity.Value;
+                }
+            }
+        }
+        return null;
+    }
+
+    public void ApplyResistance(EffectResistance resistance, string key)
+    {
+        if (!Immunities.ContainsKey(resistance.PayloadFilter))
+        {
+            Resistances[resistance.PayloadFilter] = new Dictionary<string, EffectResistance>();
+        }
+        Resistances[resistance.PayloadFilter][key] = resistance;
+    }
+
+    public void RemoveResistance(Effect.ePayloadFilter payloadFilter, string key)
+    {
+        if (!Resistances.ContainsKey(payloadFilter) || !Resistances[payloadFilter].ContainsKey(key))
+        {
+            return;
+        }
+
+        Resistances[payloadFilter].Remove(key);
+    }
+
     #endregion
 
     #region Tagging
@@ -667,26 +787,26 @@ public class Entity : MonoBehaviour
         return entities;
     }
 
-    public virtual void TagEntity(TagData tagData, Entity entity)
+    public virtual void TagEntity(string tag, Entity entity, TagData tagData = null)
     {
-        if (!TaggedEntities.ContainsKey(tagData.TagID))
+        if (!TaggedEntities.ContainsKey(tag))
         {
-            TaggedEntities.Add(tagData.TagID, new Dictionary<string, float>());
+            TaggedEntities.Add(tag, new Dictionary<string, float>());
         }
 
-        if (TaggedEntities[tagData.TagID].ContainsKey(entity.EntityUID))
+        if (TaggedEntities[tag].ContainsKey(entity.EntityUID))
         {
-            TaggedEntities[tagData.TagID][entity.EntityUID] = BattleSystem.Time + tagData.TagDuration;
+            TaggedEntities[tag][entity.EntityUID] = BattleSystem.Time + (tagData != null ? tagData.TagDuration : 0);
         }
         else
         {
-            TaggedEntities[tagData.TagID].Add(entity.EntityUID, BattleSystem.Time + tagData.TagDuration);
-            entity.ApplyTag(tagData.TagID, EntityUID);
+            TaggedEntities[tag].Add(entity.EntityUID, BattleSystem.Time + (tagData != null ? tagData.TagDuration : 0));
+            entity.ApplyTag(tag, EntityUID);
 
-            if (TaggedEntities[tagData.TagID].Count > tagData.TagLimit)
+            if (tagData != null && TaggedEntities[tag].Count > tagData.TagLimit)
             {
-                var entityToUntag = BattleSystem.Entities[TaggedEntities[tagData.TagID].Aggregate((l, r) => l.Value < r.Value ? l : r).Key];
-                RemoveTagOnEntity(tagData.TagID, entityToUntag, false);
+                var entityToUntag = BattleSystem.Entities[TaggedEntities[tag].Aggregate((l, r) => l.Value < r.Value ? l : r).Key];
+                RemoveTagOnEntity(tag, entityToUntag, false);
             }
         }
     }
@@ -767,7 +887,7 @@ public class Entity : MonoBehaviour
         while (SummonedEntities[summonAction.EntityID].Count >= summonAction.SummonLimit)
         {
             var entityToRemove = SummonedEntities[summonAction.EntityID][0];
-            entityToRemove.OnTrigger(TriggerData.eTrigger.OnDeath, entity);
+            entityToRemove.OnDeath();
         }
 
         SummonedEntities[summonAction.EntityID].Add(entity);
@@ -797,7 +917,7 @@ public class Entity : MonoBehaviour
 
         foreach (var entity in linkedSummons)
         {
-            entity.OnTrigger(TriggerData.eTrigger.OnDeath, entity);
+            entity.OnDeath(source: this);
         }
     }
     #endregion
@@ -841,22 +961,16 @@ public class Entity : MonoBehaviour
 
             if (setTriggers)
             {
-                if (payloadResult.Change < -Constants.Epsilon)
+                if (payloadResult.Change < -Constants.Epsilon || payloadResult.Change > Constants.Epsilon)
                 {
-                    OnTrigger(TriggerData.eTrigger.OnRecoveryReceived, source, payloadResult);
-                    payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnRecoveryGiven, source, payloadResult);
-                }
-                else if (payloadResult.Change > Constants.Epsilon)
-                {
-                    OnTrigger(TriggerData.eTrigger.OnDamageTaken, source, payloadResult);
-                    payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnDamageDealt, source, payloadResult);
+                    OnResourceChanged(payloadResult);
                 }
             }
 
             if (ResourcesCurrent[resource] <= 0.0f && EntityData.LifeResources.Contains(resource))
             {
-                OnTrigger(TriggerData.eTrigger.OnDeath, source, payloadResult);
-                payloadResult.Caster.OnTrigger(TriggerData.eTrigger.OnKill, source, payloadResult);
+                OnDeath(source, payloadResult);
+                source.OnKill(payloadResult);
             }
         }
         else
@@ -878,7 +992,7 @@ public class Entity : MonoBehaviour
 
             if (ResourcesCurrent[resource] <= 0.0f && EntityData.LifeResources.Contains(resource))
             {
-                OnTrigger(TriggerData.eTrigger.OnDeath, null);
+                OnDeath();
             }
         }
     }

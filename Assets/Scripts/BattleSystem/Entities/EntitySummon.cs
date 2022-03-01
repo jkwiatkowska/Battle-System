@@ -50,64 +50,48 @@ public class EntitySummon : Entity
 
             if (SummonAction != null && SummonAction.SummonDuration > 0 && SummonTime + SummonAction.SummonDuration < BattleSystem.Time)
             {
-                OnTrigger(TriggerData.eTrigger.OnDeath, this);
+                OnDeath();
             }
         }
     }
 
     #region Triggers
-    protected override void OnHitOutgoing(PayloadResult payloadResult)
+    public override void OnPayloadApplied(PayloadResult payloadResult)
     {
-        base.OnHitOutgoing(payloadResult);
-        if (Summoner != null)
-        {
-            Summoner.OnTrigger(TriggerData.eTrigger.OnHitOutgoing, this, payloadResult);
-        }
+        base.OnPayloadApplied(payloadResult);
+        Summoner.OnPayloadApplied(payloadResult);
     }
 
-    protected override void OnHitMissed()
+    public override void OnStatusApplied(Entity target, string statusName)
     {
-        base.OnHitMissed();
-        if (Summoner != null && Summoner.Alive)
-        {
-            Summoner.OnTrigger(TriggerData.eTrigger.OnDamageDealt, this);
-        }
+        base.OnStatusApplied(target, statusName);
+        Summoner.OnStatusApplied(target, statusName);
     }
 
-    protected override void OnDamageDealt(PayloadResult payloadResult)
+    public override void OnStatusClearedOutgoing(Entity target, string statusName)
     {
-        base.OnDamageDealt(payloadResult);
-        if (Summoner != null && Summoner.Alive)
-        {
-            Summoner.OnTrigger(TriggerData.eTrigger.OnDamageDealt, this, payloadResult);
-        }
+        base.OnStatusClearedOutgoing(target, statusName);
+        Summoner.OnStatusClearedOutgoing(target, statusName);
     }
 
-    protected override void OnRecoveryGiven(PayloadResult payloadResult)
+    public override void OnKill(PayloadResult payloadResult = null, string statusID = "")
     {
-        base.OnRecoveryGiven(payloadResult);
-        if (Summoner != null && Summoner.Alive)
-        {
-            Summoner.OnTrigger(TriggerData.eTrigger.OnRecoveryGiven, this, payloadResult);
-        }
+        base.OnKill(payloadResult, statusID);
+        Summoner.OnKill(payloadResult, statusID);
     }
 
-    protected override void OnKill(PayloadResult payloadResult = null)
-    {
-        base.OnKill(payloadResult);
-        if (Summoner != null && Summoner.Alive)
-        {
-            Summoner.OnTrigger(TriggerData.eTrigger.OnKill, this, payloadResult);
-        }
-    }
-
-    protected override void OnDeath(Entity source = null, PayloadResult payloadResult = null)
+    public override void OnDeath(Entity source = null, PayloadResult payloadResult = null)
     {
         base.OnDeath();
         if (Summoner != null)
         {
             Summoner.RemoveSummonedEntity(this);
         }
+    }
+
+    protected override void OnSpawn()
+    {
+        OnTrigger(TriggerData.eTrigger.OnSpawn, triggerSource: Summoner);
     }
     #endregion
 
@@ -124,13 +108,13 @@ public class EntitySummon : Entity
         }
     }
 
-    public override void TagEntity(TagData tagData, Entity entity)
+    public override void TagEntity(string tag, Entity entity, TagData tagData)
     {
-        base.TagEntity(tagData, entity);
+        base.TagEntity(tag, entity, tagData);
 
         if (Summoner != null)
         {
-            Summoner.TagEntity(tagData, entity);
+            Summoner.TagEntity(tag, entity, tagData);
         }
     }
     #endregion

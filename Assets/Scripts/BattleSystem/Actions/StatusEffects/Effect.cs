@@ -8,7 +8,9 @@ public abstract class Effect
     {
         AttributeChange,                                // Target's attributes are modified while the effect is active.
         Convert,                                        // Target's faction is temporarily overriden.
-        Immunity,                                       // Resistance to specific payload types.
+        DamageResistance,                               // Resistance to damage from specific skills, effects and payload types.
+        DamageVulnerability,                            // Increased damage from specific skills, effects and payload types.
+        Immunity,                                       // Full immunity to particular skills, payload types or effects.
         Lock,                                           // Prevents the target from using specific skills or moving.                     
         Trigger,                                        // New triggers are added to an entity for the effect's duration.
     }
@@ -102,6 +104,28 @@ public class EffectImmunity : Effect
     public override void Remove(string statusID, Entity target)
     {
         target.RemoveImmunity(PayloadFilter, Key(statusID));
+    }
+
+    public string Key(string statusID)
+    {
+        return statusID + StacksRequired.ToString() + PayloadFilter + PayloadName;
+    }
+}
+
+public class EffectResistance : Effect
+{
+    public ePayloadFilter PayloadFilter;                // Resistance can be to all damage or to a specific type of skills or actions.
+    public string PayloadName;                          // Name or ID of the above.
+    public float Resisted;                              // Amount of resisted damage. If 1 a skill or effect isn't applied at all. The amount stacks.
+
+    public override void Apply(string statusID, Entity target, Entity caster, Payload payload)
+    {
+        //target.ApplyResitance(this, Key(statusID));
+    }
+
+    public override void Remove(string statusID, Entity target)
+    {
+        //target.RemoveResistance(PayloadFilter, Key(statusID));
     }
 
     public string Key(string statusID)

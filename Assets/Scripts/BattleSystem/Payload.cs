@@ -24,6 +24,12 @@ public class Payload
 
     public void ApplyPayload(Entity caster, Entity target, PayloadResult result)
     {
+        if (PayloadData.Instakill)
+        {
+            target.OnDeath(caster, result);
+            caster.OnKill(result);
+        }
+        
         result.Change = -PayloadValue.IncomingValue(target);
 
         // Incoming damage can be calculated using target attributes and other variables here.
@@ -33,20 +39,28 @@ public class Payload
             target.ApplyChangeToResource(PayloadData.ResourceAffected, result);
         }
 
-        // Only perform other actions if the target is still alive
-        if (target.Alive)
-        {
-            if (PayloadData.Tag != null)
-            {
-                caster.TagEntity(PayloadData.Tag, target);
-            }
+        caster.OnPayloadApplied(result);
+        target.OnPayloadReceived(result);
 
-            if (PayloadData.Triggers != null)
+        // Only continue if the target is still alive
+        if (!target.Alive)
+        {
+            return;
+        }
+
+        // Tag
+        if (PayloadData.Tag != null)
+        {
+            caster.TagEntity(PayloadData.Tag.TagID, target, PayloadData.Tag);
+        }
+
+        // Status effects
+        if (PayloadData.StatusEffects != null)
+        {
+            foreach (var status in PayloadData.StatusEffects)
             {
-                foreach (var trigger in PayloadData.Triggers)
-                {
-                    target.OnTrigger(trigger, caster, result);
-                }
+                target.ApplyStatusEffect(Action, status.Status, status.Stacks, this);
+                caster.OnPayloadApplied(result);
             }
         }
     }

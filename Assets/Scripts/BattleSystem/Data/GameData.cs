@@ -176,9 +176,7 @@ public static class GameData
                                     Timestamp = 0.01f,
                                 }
                             },
-                            SkillIDs = new List<string>(),
-                            ResourcesAffected = new List<string>(),
-                            Flags = new List<string>()
+                            Conditions = new List<TriggerData.TriggerCondition>()
                         }
                     },
                     MovementSpeed = 4.0f,
@@ -226,9 +224,7 @@ public static class GameData
                                     Timestamp = 2.0f,
                                 }
                             },
-                            SkillIDs = new List<string>(),
-                            ResourcesAffected = new List<string>(),
-                            Flags = new List<string>()
+                            Conditions = new List<TriggerData.TriggerCondition>()
                         }
                     }
                 }
@@ -325,10 +321,9 @@ public static class GameData
                                     },
                                     PayloadData = new PayloadData()
                                     {
-                                        Flags = new Dictionary<string, bool>()
+                                        Flags = new List<string>()
                                         {
-                                            { "ignoreDef", false },
-                                            { "canCrit", true }
+                                            "ignoreDef", "canCrit"
                                         },
                                         PayloadValue = new Value()
                                         {
@@ -350,9 +345,7 @@ public static class GameData
                                     Timestamp = 2.0f,
                                 }
                             },
-                            SkillIDs = new List<string>(),
-                            ResourcesAffected = new List<string>(),
-                            Flags = new List<string>()
+                            Conditions = new List<TriggerData.TriggerCondition>()
                         }
                     }
                 }
@@ -399,10 +392,9 @@ public static class GameData
                             Target = ActionPayload.eTarget.EnemyEntities,
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", false },
-                                    { "canCrit", true }
+                                    "ignoreDef", "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -469,10 +461,9 @@ public static class GameData
                             Target = ActionPayload.eTarget.EnemyEntities,
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", false },
-                                    { "canCrit", true }
+                                    "ignoreDef", "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -525,10 +516,9 @@ public static class GameData
                             Target = ActionPayload.eTarget.EnemyEntities,
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", false },
-                                    { "canCrit", true }
+                                    "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -564,10 +554,9 @@ public static class GameData
                             Target = ActionPayload.eTarget.EnemyEntities,
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", true },
-                                    { "canCrit", false }
+                                    "ignoreDef"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -641,10 +630,9 @@ public static class GameData
                             },
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", false },
-                                    { "canCrit", true }
+                                    "ignoreDef", "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -683,10 +671,9 @@ public static class GameData
                             },
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", false },
-                                    { "canCrit", true }
+                                    "ignoreDef", "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -725,10 +712,9 @@ public static class GameData
                             },
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", false },
-                                    { "canCrit", true }
+                                    "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -767,10 +753,9 @@ public static class GameData
                             },
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", false },
-                                    { "canCrit", true }
+                                    "ignoreDef", "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -843,10 +828,9 @@ public static class GameData
                             },
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", false },
-                                    { "canCrit", true }
+                                    "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -885,10 +869,9 @@ public static class GameData
                             },
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", false },
-                                    { "canCrit", true }
+                                    "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -927,10 +910,9 @@ public static class GameData
                             },
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", false },
-                                    { "canCrit", true }
+                                    "ignoreDef", "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -969,10 +951,9 @@ public static class GameData
                             },
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", false },
-                                    { "canCrit", true }
+                                    "ignoreDef", "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -1045,10 +1026,9 @@ public static class GameData
                             },
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", false },
-                                    { "canCrit", true }
+                                    "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -1087,10 +1067,9 @@ public static class GameData
                             },
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", false },
-                                    { "canCrit", true }
+                                    "ignoreDef", "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -1129,10 +1108,9 @@ public static class GameData
                             },
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", false },
-                                    { "canCrit", true }
+                                    "ignoreDef", "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -1171,10 +1149,9 @@ public static class GameData
                             },
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", false },
-                                    { "canCrit", true }
+                                    "ignoreDef", "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -1260,10 +1237,9 @@ public static class GameData
                             Target = ActionPayload.eTarget.EnemyEntities,
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", true },
-                                    { "canCrit", false }
+                                    "ignoreDef", "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -1297,10 +1273,9 @@ public static class GameData
                             Target = ActionPayload.eTarget.EnemyEntities,
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", true },
-                                    { "canCrit", false }
+                                    "ignoreDef", "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -1351,10 +1326,9 @@ public static class GameData
                             Target = ActionPayload.eTarget.EnemyEntities,
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", true },
-                                    { "canCrit", false }
+                                    "ignoreDef", "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -1411,10 +1385,9 @@ public static class GameData
                             Target = ActionPayload.eTarget.AllEntities,
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", true },
-                                    { "canCrit", false }
+                                    "ignoreDef", "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -1441,10 +1414,9 @@ public static class GameData
                             Target = ActionPayload.eTarget.AllEntities,
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", true },
-                                    { "canCrit", false }
+                                    "ignoreDef", "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -1471,10 +1443,9 @@ public static class GameData
                             Target = ActionPayload.eTarget.AllEntities,
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", true },
-                                    { "canCrit", false }
+                                    "ignoreDef", "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -1501,10 +1472,9 @@ public static class GameData
                             Target = ActionPayload.eTarget.AllEntities,
                             PayloadData = new PayloadData()
                             {
-                                Flags = new Dictionary<string, bool>()
+                                Flags = new List<string>()
                                 {
-                                    { "ignoreDef", true },
-                                    { "canCrit", false }
+                                    "ignoreDef", "canCrit"
                                 },
                                 PayloadValue = new Value()
                                 {
@@ -1636,10 +1606,9 @@ public static class GameData
                                             Target = ActionPayload.eTarget.EnemyEntities,
                                             PayloadData = new PayloadData()
                                             {
-                                                Flags = new Dictionary<string, bool>()
+                                                Flags = new List<string>()
                                                 {
-                                                    { "ignoreDef", false },
-                                                    { "canCrit", true }
+                                                    "ignoreDef", "canCrit"
                                                 },
                                                 PayloadValue = new Value()
                                                 {
@@ -1666,12 +1635,9 @@ public static class GameData
                                             {
                                                 Categories = new List<string>(),
                                                 PayloadValue = new Value(),
-                                                Flags = new Dictionary<string, bool>(),
-                                                SuccessChance = 1.0f,
-                                                Triggers = new List<TriggerData.eTrigger>()
-                                                {
-                                                    TriggerData.eTrigger.OnDeath
-                                                }
+                                                Flags = new List<string>(),
+                                                Instakill = true,
+                                                SuccessChance = 1.0f
                                             }
                                         }
                                     }
@@ -1791,10 +1757,9 @@ public static class GameData
                                             Target = ActionPayload.eTarget.FriendlyEntities,
                                             PayloadData = new PayloadData()
                                             {
-                                                Flags = new Dictionary<string, bool>()
+                                                Flags = new List<string>()
                                                 {
-                                                    { "ignoreDef", false },
-                                                    { "canCrit", true }
+                                                    "ignoreDef", "canCrit"
                                                 },
                                                 PayloadValue = new Value()
                                                 {
@@ -1927,10 +1892,9 @@ public static class GameData
                                             Target = ActionPayload.eTarget.EnemyEntities,
                                             PayloadData = new PayloadData()
                                             {
-                                                Flags = new Dictionary<string, bool>()
+                                                Flags = new List<string>()
                                                 {
-                                                    { "ignoreDef", false },
-                                                    { "canCrit", true }
+                                                    "ignoreDef", "canCrit"
                                                 },
                                                 PayloadValue = new Value()
                                                 {
