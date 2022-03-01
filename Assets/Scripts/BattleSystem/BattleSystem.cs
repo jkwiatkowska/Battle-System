@@ -81,21 +81,14 @@ public class BattleSystem : MonoBehaviour
         TargetableEntities.Remove(entity);
     }
 
-    public static bool IsFriendly(string entityUID, string targetUID)
+    public static bool IsFriendly(string entityFaction, string targetFaction)
     {
-        if (entityUID == targetUID)
+        if (entityFaction == targetFaction)
         {
             return true;
         }
 
-        var entity = Entities[entityUID];
-        var targetEntity = Entities[targetUID];
-
-        if (entity.Faction == targetEntity.Faction)
-        {
-            return true;
-        }
-        if (GameData.GetFactionData(entity.Faction).FriendlyFactions.Contains(targetEntity.Faction))
+        if (GameData.GetFactionData(entityFaction).FriendlyFactions.Contains(targetFaction))
         {
             return true;
         }
@@ -103,21 +96,14 @@ public class BattleSystem : MonoBehaviour
         return false;
     }
 
-    public static bool IsEnemy(string entityUID, string targetUID)
+    public static bool IsEnemy(string entityFaction, string targetFaction)
     {
-        if (entityUID == targetUID)
+        if (entityFaction == targetFaction)
         {
             return false;
         }
 
-        var entity = Entities[entityUID];
-        var targetEntity = Entities[targetUID];
-
-        if (entity.Faction == targetEntity.Faction)
-        {
-            return false;
-        }
-        if (GameData.GetFactionData(entity.Faction).EnemyFactions.Contains(targetEntity.Faction))
+        if (GameData.GetFactionData(entityFaction).EnemyFactions.Contains(targetFaction))
         {
             return true;
         }

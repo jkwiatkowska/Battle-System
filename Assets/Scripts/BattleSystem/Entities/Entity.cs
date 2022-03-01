@@ -54,7 +54,7 @@ public class Entity : MonoBehaviour
     // State
     public eEntityState EntityState                                         { get; protected set; }
     public bool IsTargetable                                                { get; protected set; }
-    protected string EntityFaction;
+    public string Faction                                                   { get; protected set; }
     protected string FactionOverride;
     protected bool SetupComplete;
 
@@ -75,7 +75,7 @@ public class Entity : MonoBehaviour
         EntityState = eEntityState.Idle;
         name = EntityUID;
         EntityData = GameData.GetEntityData(entityID);
-        EntityFaction = EntityData.Faction;
+        Faction = EntityData.Faction;
 
         // Attributes
         BaseAttributes = new Dictionary<string, float>();
@@ -152,6 +152,15 @@ public class Entity : MonoBehaviour
 
         SetupComplete = true;
         OnTrigger(TriggerData.eTrigger.OnSpawn, source == null ? this : source);
+
+        StartCoroutine(LateSetupCoroutine());
+    }
+
+    protected IEnumerator LateSetupCoroutine()
+    {
+        yield return null;
+
+        TargetingSystem.UpdateEntityLists();
     }
 
     protected virtual void Start()
@@ -1007,7 +1016,7 @@ public class Entity : MonoBehaviour
     #region Getters and Checks
     public int Level => EntityLevel;
     public virtual Entity SummoningEntity => this;
-    public string Faction => string.IsNullOrEmpty(FactionOverride) ? EntityFaction : FactionOverride;
+    public string CurrentFaction => string.IsNullOrEmpty(FactionOverride) ? Faction : FactionOverride;
     public TargetingSystem TargetingSystem => EntityTargetingSystem;
     public bool Alive => EntityState != eEntityState.Dead;
 
@@ -1248,6 +1257,16 @@ public class Entity : MonoBehaviour
         }
 
         return true;
+    }
+
+    public virtual bool IsEnemy(string targetFaction)
+    {
+        return (BattleSystem.IsEnemy(CurrentFaction, targetFaction));
+    }
+
+    public virtual bool IsFriendly(string targetFaction)
+    {
+        return (BattleSystem.IsFriendly(CurrentFaction, targetFaction));
     }
     #endregion
 }

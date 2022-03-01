@@ -233,14 +233,14 @@ public class Projectile : EntitySummon
         {
             if (entityHit.IsTargetable)
             {
-                if (BattleSystem.IsEnemy(EntityUID, entityHit.EntityUID))
+                if (IsEnemy(entityHit.Faction))
                 {
                     foreach (var reaction in ProjectileData.OnEnemyHit)
                     {
                         ProjectileReaction(reaction, entityHit);
                     }
                 }
-                else if (BattleSystem.IsFriendly(EntityUID, entityHit.EntityUID))
+                else if (IsFriendly(entityHit.Faction))
                 {
                     foreach (var reaction in ProjectileData.OnFriendHit)
                     {

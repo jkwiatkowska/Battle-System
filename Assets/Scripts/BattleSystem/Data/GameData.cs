@@ -28,7 +28,10 @@ public static class GameData
         {
             "physical",
             "magic",
-            "healing"
+            "healing",
+            "neutral",
+            "fire",
+            "water"
         };
 
         EntityResources = new Dictionary<string, Value>()
@@ -103,6 +106,15 @@ public static class GameData
                 }
             }
         };
+
+        SkillGroups = new Dictionary<string, List<string>>()
+        {
+            { "elemental", new List<string>() { "fireAttack", "waterAttack"} }
+        };
+
+        StatusEffectGroups = new Dictionary<string, List<string>>();
+
+        StatusEffectData = new Dictionary<string, StatusEffectData>();
 
         PlayerFaction = "Player";
 
@@ -267,7 +279,7 @@ public static class GameData
                                     SkillID = "",
                                     ActionType = Action.eActionType.Message,
                                     Timestamp = 0.0f,
-                                    MessageString = "Bomb explosion in 3.",
+                                    MessageString = "Fire trigger. Bomb explosion in 3.",
                                     MessageColor = Color.red
                                 },
                                 new ActionMessage()
@@ -331,6 +343,139 @@ public static class GameData
                                         },
                                         Categories = new List<string>()
                                         {
+                                            "fire"
+                                        },
+                                        SuccessChance = 1.0f,
+                                        ResourceAffected = "hp"
+                                    }
+                                },
+                                new ActionDestroySelf()
+                                {
+                                    ActionID = "deathAction",
+                                    SkillID = "",
+                                    ActionType = Action.eActionType.DestroySelf,
+                                    Timestamp = 2.0f,
+                                }
+                            },
+                            Conditions = new List<TriggerData.TriggerCondition>()
+                            {
+                                new TriggerData.TriggerCondition()
+                                {
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.Category,
+                                    StringValue = "fire",
+                                    DesiredOutcome = true
+                                },
+                                new TriggerData.TriggerCondition()
+                                {
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.Skill,
+                                    StringValue = "fireAttack",
+                                    DesiredOutcome = true
+                                },
+                                new TriggerData.TriggerCondition()
+                                {
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.SkillGroup,
+                                    StringValue = "elemental",
+                                    DesiredOutcome = true
+                                },
+                                new TriggerData.TriggerCondition()
+                                {
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.Action,
+                                    StringValue = "fireAttackAction",
+                                    DesiredOutcome = true
+                                },
+                                new TriggerData.TriggerCondition()
+                                {
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.EntityResource,
+                                    StringValue = "hp",
+                                    FloatValue = 0.1f,
+                                    DesiredOutcome = false
+                                },
+                                new TriggerData.TriggerCondition()
+                                {
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.TriggerSourceResourceRatio,
+                                    StringValue = "hp",
+                                    FloatValue = 0.5f,
+                                    DesiredOutcome = true
+                                }
+                            }
+                        },
+                        new TriggerData()
+                        {
+                            Trigger = TriggerData.eTrigger.OnDeath,
+                            Cooldown = 0,
+                            Limit = 0,
+                            Actions = new ActionTimeline()
+                            {
+                                new ActionMessage()
+                                {
+                                    ActionID = "message",
+                                    SkillID = "",
+                                    ActionType = Action.eActionType.Message,
+                                    Timestamp = 0.0f,
+                                    MessageString = "Neutral trigger. Bomb explosion in 3.",
+                                    MessageColor = Color.red
+                                },
+                                new ActionMessage()
+                                {
+                                    ActionID = "message",
+                                    SkillID = "",
+                                    ActionType = Action.eActionType.Message,
+                                    Timestamp = 0.5f,
+                                    MessageString = "Bomb explosion in 2.",
+                                    MessageColor = Color.red
+                                },
+                                new ActionMessage()
+                                {
+                                    ActionID = "message",
+                                    SkillID = "",
+                                    ActionType = Action.eActionType.Message,
+                                    Timestamp = 1.0f,
+                                    MessageString = "Bomb explosion in 1.",
+                                    MessageColor = Color.red
+                                },
+                                new ActionMessage()
+                                {
+                                    ActionID = "message",
+                                    SkillID = "",
+                                    ActionType = Action.eActionType.Message,
+                                    Timestamp = 1.5f,
+                                    MessageString = "Boom.",
+                                    MessageColor = Color.red
+                                },
+                                new ActionPayloadArea()
+                                {
+                                    ActionID = "explode",
+                                    SkillID = "",
+                                    ActionType = Action.eActionType.PayloadArea,
+                                    Timestamp = 1.5f,
+                                    TargetPriority = ActionPayload.eTargetPriority.Random,
+                                    TargetLimit = 50,
+                                    Target = ActionPayload.eTarget.EnemyEntities,
+                                    AreasAffected = new List<ActionPayloadArea.Area>()
+                                    {
+                                        new ActionPayloadArea.Area()
+                                        {
+                                            Shape = ActionPayloadArea.Area.eShape.Sphere,
+                                            Dimensions = new Vector3(1.5f, 360.0f, 1.0f),
+                                            InnerDimensions = new Vector2(0.0f, 0.0f),
+                                            AreaTransform = new TransformData()
+                                            {
+                                                PositionOrigin = TransformData.ePositionOrigin.CasterPosition
+                                            }
+                                        }
+                                    },
+                                    PayloadData = new PayloadData()
+                                    {
+                                        Flags = new List<string>()
+                                        {
+                                            
+                                        },
+                                        PayloadValue = new Value()
+                                        {
+                                            new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 1.0f, "atk")
+                                        },
+                                        Categories = new List<string>()
+                                        {
                                             "physical"
                                         },
                                         SuccessChance = 1.0f,
@@ -346,14 +491,247 @@ public static class GameData
                                 }
                             },
                             Conditions = new List<TriggerData.TriggerCondition>()
+                            {
+                                new TriggerData.TriggerCondition()
+                                {
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.Category,
+                                    StringValue = "fire",
+                                    DesiredOutcome = false
+                                },
+                                new TriggerData.TriggerCondition()
+                                {
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.Category,
+                                    StringValue = "water",
+                                    DesiredOutcome = false
+                                }
+                            }
+                        },
+                        new TriggerData()
+                        {
+                            Trigger = TriggerData.eTrigger.OnDeath,
+                            Cooldown = 0,
+                            Limit = 0,
+                            Actions = new ActionTimeline()
+                            {
+                                new ActionMessage()
+                                {
+                                    ActionID = "message",
+                                    SkillID = "",
+                                    ActionType = Action.eActionType.Message,
+                                    Timestamp = 0.0f,
+                                    MessageString = "Water trigger. Bomb extinguished.",
+                                    MessageColor = Color.red
+                                },
+                                new ActionDestroySelf()
+                                {
+                                    ActionID = "deathAction",
+                                    SkillID = "",
+                                    ActionType = Action.eActionType.DestroySelf,
+                                    Timestamp = 1.0f,
+                                }
+                            },
+                            Conditions = new List<TriggerData.TriggerCondition>()
+                            {
+                                new TriggerData.TriggerCondition()
+                                {
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.Category,
+                                    StringValue = "water",
+                                    DesiredOutcome = true
+                                }
+                            }
                         }
                     }
                 }
             }
         };
-
         SkillData = new Dictionary<string, SkillData>()
         {
+            {
+                "neutralAttack",
+                new SkillData()
+                {
+                    SkillID = "neutralAttack",
+                    SkillTimeline = new ActionTimeline()
+                    {
+                        new ActionMessage()
+                        {
+                            ActionID = "message",
+                            SkillID = "neutralAttack",
+                            ActionType = Action.eActionType.Message,
+                            Timestamp = 0.0f,
+                            MessageString = "Neutral attack.",
+                            MessageColor = Color.white
+                        },
+                        new ActionCooldown()
+                        {
+                            ActionID = "cd",
+                            SkillID = "neutralAttack",
+                            ActionType = Action.eActionType.ApplyCooldown,
+                            Timestamp = 0.3f,
+                            Cooldown = 0.8f,
+                            CooldownTarget = ActionCooldown.eCooldownTarget.Skill,
+                            CooldownTargetName = "neutralAttack"
+                        },
+                        new ActionPayloadDirect()
+                        {
+                            ActionID = "neutralAttackAction",
+                            SkillID = "neutralAttack",
+                            ActionType = Action.eActionType.PayloadDirect,
+                            Timestamp = 0.5f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.SelectedEntity,
+                            TargetLimit = 1,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            PayloadData = new PayloadData()
+                            {
+                                Flags = new List<string>()
+                                {
+                                    "canCrit"
+                                },
+                                PayloadValue = new Value()
+                                {
+                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 0.8f, "atk")
+                                },
+                                Categories = new List<string>()
+                                {
+                                    "neutral"
+                                },
+                                SuccessChance = 1.0f,
+                                ResourceAffected = "hp"
+                            },
+                            ActionConditions = new List<ActionCondition>()
+                        }
+                    },
+                    NeedsTarget = true,
+                    PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
+                    Range = 9.0f,
+                    CasterState = global::SkillData.eCasterState.Any
+                }
+            },
+            {
+                "fireAttack",
+                new SkillData()
+                {
+                    SkillID = "fireAttack",
+                    SkillTimeline = new ActionTimeline()
+                    {
+                        new ActionMessage()
+                        {
+                            ActionID = "message",
+                            SkillID = "fireAttack",
+                            ActionType = Action.eActionType.Message,
+                            Timestamp = 0.0f,
+                            MessageString = "Fire attack.",
+                            MessageColor = Color.white
+                        },
+                        new ActionCooldown()
+                        {
+                            ActionID = "cd",
+                            SkillID = "fireAttack",
+                            ActionType = Action.eActionType.ApplyCooldown,
+                            Timestamp = 0.3f,
+                            Cooldown = 0.8f,
+                            CooldownTarget = ActionCooldown.eCooldownTarget.Skill,
+                            CooldownTargetName = "fireAttackAttack"
+                        },
+                        new ActionPayloadDirect()
+                        {
+                            ActionID = "fireAttackAction",
+                            SkillID = "fireAttack",
+                            ActionType = Action.eActionType.PayloadDirect,
+                            Timestamp = 0.5f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.SelectedEntity,
+                            TargetLimit = 1,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            PayloadData = new PayloadData()
+                            {
+                                Flags = new List<string>()
+                                {
+                                    "canCrit"
+                                },
+                                PayloadValue = new Value()
+                                {
+                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 0.8f, "atk")
+                                },
+                                Categories = new List<string>()
+                                {
+                                    "fire"
+                                },
+                                SuccessChance = 1.0f,
+                                ResourceAffected = "hp"
+                            },
+                            ActionConditions = new List<ActionCondition>()
+                        }
+                    },
+                    NeedsTarget = true,
+                    PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
+                    Range = 9.0f,
+                    CasterState = global::SkillData.eCasterState.Any
+                }
+            },
+            {
+                "waterAttack",
+                new SkillData()
+                {
+                    SkillID = "waterAttack",
+                    SkillTimeline = new ActionTimeline()
+                    {
+                        new ActionMessage()
+                        {
+                            ActionID = "message",
+                            SkillID = "waterAttack",
+                            ActionType = Action.eActionType.Message,
+                            Timestamp = 0.0f,
+                            MessageString = "Water attack.",
+                            MessageColor = Color.white
+                        },
+                        new ActionCooldown()
+                        {
+                            ActionID = "cd",
+                            SkillID = "waterAttack",
+                            ActionType = Action.eActionType.ApplyCooldown,
+                            Timestamp = 0.3f,
+                            Cooldown = 0.8f,
+                            CooldownTarget = ActionCooldown.eCooldownTarget.Skill,
+                            CooldownTargetName = "waterAttack"
+                        },
+                        new ActionPayloadDirect()
+                        {
+                            ActionID = "waterAttackAction",
+                            SkillID = "waterAttack",
+                            ActionType = Action.eActionType.PayloadDirect,
+                            Timestamp = 0.5f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.SelectedEntity,
+                            TargetLimit = 1,
+                            Target = ActionPayload.eTarget.EnemyEntities,
+                            PayloadData = new PayloadData()
+                            {
+                                Flags = new List<string>()
+                                {
+                                    "canCrit"
+                                },
+                                PayloadValue = new Value()
+                                {
+                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 0.8f, "atk")
+                                },
+                                Categories = new List<string>()
+                                {
+                                    "water"
+                                },
+                                SuccessChance = 1.0f,
+                                ResourceAffected = "hp"
+                            },
+                            ActionConditions = new List<ActionCondition>()
+                        }
+                    },
+                    NeedsTarget = true,
+                    PreferredTarget = global::SkillData.eTargetPreferrence.Enemy,
+                    Range = 9.0f,
+                    CasterState = global::SkillData.eCasterState.Any
+                }
+            },
             {
                 "singleTargetAttack",
                 new SkillData()

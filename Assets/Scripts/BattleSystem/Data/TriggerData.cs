@@ -18,22 +18,25 @@ public class TriggerData
             Status,                             // For status triggers, used to specify the status.
             StatusGroup,                        // A status belonging to this group.
             ResourceAffected,                   // Particular resource was affected by a payload.
-            EntityResource,                     // Resource of this entity must be within a specified range.
-            TriggerSourceResource,              // Resource of the entity that caused the trigger must be within a specified range.
+            EntityResource,                     // Resource of this entity must be bigger than the float value.
+            TriggerSourceResource,              // Resource of the entity that caused the trigger must be bigger than the float value.
             EntityResourceRatio,                // Ratio of current resource to max resource.
             TriggerSourceResourceRatio,         // Ratio of current resource to max resource of the entity that caused the trigger.
             PayloadResult,                      // How much a resource has been depleted as a result of a payload being applied.
             ActionResult,                       // How much resources of all targets have been affected as a result of a payload being applied.
             NumTargetsAffected,                 // For triggers caused by outgoing payload actions. 
-            HasStatus,                          // Trigger can only go off if the entity has this status. Stacks can be specified.
-            TriggerSourceHasStatus,             // Trigger goes off if the entity that caused it has this status.
+            HasStatus,                          // Trigger can only go off if the entity has this status. Min stacks can be specified.
+            TriggerSourceHasStatus,             // Trigger can go off if the entity that caused it has this status.
+            TriggerSourceIsEnemy,               // Condition succeeds if the entity that triggered it is an enemy.
+            TriggerSourceIsFriend,              // Condition succeeds if the entity that triggered it is a friend.
         }
 
         public eConditionType ConditionType;
+        public bool DesiredOutcome;             // If false the check must fail for the condition to be met.
         
         public string StringValue;              // Name or ID.            
-        public Vector2 FloatRange;              // Resource value/change.
-        public Vector2Int IntRange;             // Count or status stacks.
+        public float FloatValue;                // Resource value/change.
+        public float IntValue;                  // Count or status stacks.
 
         public TriggerCondition OrCondition;    // Alternate conditions can be chained this way. If this condition fails, the next condition will be tried.
 
@@ -64,7 +67,7 @@ public class TriggerData
                     else
                     {
                         var skillName = payloadResult != null ? payloadResult.SkillID : action.SkillID;
-                        conditionMet = payloadResult != null && GameData.SkillGroups.ContainsKey(StringValue) &&
+                        conditionMet = GameData.SkillGroups.ContainsKey(StringValue) &&
                                        GameData.SkillGroups[StringValue].Contains(skillName);
                     }
                     break;
@@ -78,8 +81,7 @@ public class TriggerData
                     else
                     {
                         var actionName = payloadResult != null ? payloadResult.ActionID : action.ActionID;
-                        conditionMet = payloadResult != null && GameData.SkillGroups.ContainsKey(StringValue) &&
-                                       GameData.SkillGroups[StringValue].Contains(actionName);
+                        conditionMet = actionName == StringValue;
                     }
                     break;
                 }
@@ -116,58 +118,63 @@ public class TriggerData
                 }
                 case eConditionType.EntityResource:
                 {
-                    conditionMet = entity != null && entity.ResourcesCurrent.ContainsKey(StringValue) && 
-                                   entity.ResourcesCurrent[StringValue] >= FloatRange.x && 
-                                   entity.ResourcesCurrent[StringValue] <= FloatRange.y;
+                    conditionMet = entity != null && entity.ResourcesCurrent.ContainsKey(StringValue) &&
+                                   entity.ResourcesCurrent[StringValue] >= FloatValue;
                     break;
                 }
                 case eConditionType.TriggerSourceResource:
                 {
                     conditionMet = triggerSource != null && triggerSource.ResourcesCurrent.ContainsKey(StringValue) &&
-                                   triggerSource.ResourcesCurrent[StringValue] >= FloatRange.x &&
-                                   triggerSource.ResourcesCurrent[StringValue] <= FloatRange.y;
+                                   triggerSource.ResourcesCurrent[StringValue] >= FloatValue;
                     break;
                 }
                 case eConditionType.EntityResourceRatio:
                 {
                     conditionMet = entity != null && entity.ResourcesCurrent.ContainsKey(StringValue) &&
-                                   entity.ResourceRatio(StringValue) >= FloatRange.x &&
-                                   entity.ResourceRatio(StringValue) <= FloatRange.y;
+                                   entity.ResourceRatio(StringValue) >= FloatValue;
                     break;
                 }
                 case eConditionType.TriggerSourceResourceRatio:
                 {
                     conditionMet = triggerSource != null && triggerSource.ResourcesCurrent.ContainsKey(StringValue) &&
-                                   triggerSource.ResourceRatio(StringValue) >= FloatRange.x &&
-                                   triggerSource.ResourceRatio(StringValue) <= FloatRange.y;
+                                   triggerSource.ResourceRatio(StringValue) >= FloatValue;
                     break;
                 }
                 case eConditionType.PayloadResult:
                 {
-                    conditionMet = payloadResult != null && payloadResult.Change >= FloatRange.x && payloadResult.Change <= FloatRange.y;
+                    conditionMet = payloadResult != null && payloadResult.Change >= FloatValue;
                     break;
                 }
                 case eConditionType.ActionResult:
                 {
-                    conditionMet = actionResult != null && actionResult.Value >= FloatRange.x && actionResult.Value <= FloatRange.y;
+                    conditionMet = actionResult != null && actionResult.Value >= FloatValue;
                     break;
                 }
                 case eConditionType.NumTargetsAffected:
                 {
-                    conditionMet = actionResult != null && actionResult.Count >= IntRange.x 
-                                   && actionResult.Count <= IntRange.y;
+                    conditionMet = actionResult != null && actionResult.Count >= IntValue;
                     break;
                 }
                 case eConditionType.HasStatus:
                 {
                     var stacks = entity != null ? entity.GetStatusEffectStacks(StringValue) : 0;
-                    conditionMet = stacks <= IntRange.x && stacks >= IntRange.y; 
+                    conditionMet = stacks >= IntValue;
                     break;
                 }
                 case eConditionType.TriggerSourceHasStatus:
                 {
                     var stacks = triggerSource != null ? triggerSource.GetStatusEffectStacks(StringValue) : 0;
-                    conditionMet = stacks <= IntRange.x && stacks >= IntRange.y;
+                    conditionMet = stacks >= IntValue;
+                    break;
+                }
+                case eConditionType.TriggerSourceIsEnemy:
+                {
+                    conditionMet = entity != null && triggerSource != null && entity.IsEnemy(triggerSource.Faction);
+                    break;
+                }
+                case eConditionType.TriggerSourceIsFriend:
+                {
+                    conditionMet = entity != null && triggerSource != null && entity.IsFriendly(triggerSource.Faction);
                     break;
                 }
                 default:
@@ -178,12 +185,12 @@ public class TriggerData
                 }
             }
 
-            if (!conditionMet && OrCondition != null)
+            if (conditionMet != DesiredOutcome && OrCondition != null)
             {
                 conditionMet = OrCondition.ConditionMet(entity, triggerSource, payloadResult, action, actionResult, statusID);
             }
 
-            return conditionMet;
+            return conditionMet == DesiredOutcome;
         }
 
         public List<eConditionType> AvailableConditions(eTrigger triggerType)
@@ -218,6 +225,8 @@ public class TriggerData
                 list.Add(eConditionType.TriggerSourceResource);
                 list.Add(eConditionType.TriggerSourceResourceRatio);
                 list.Add(eConditionType.TriggerSourceHasStatus);
+                list.Add(eConditionType.TriggerSourceIsEnemy);
+                list.Add(eConditionType.TriggerSourceIsFriend);
             }
 
             if (isPayloadTrigger)

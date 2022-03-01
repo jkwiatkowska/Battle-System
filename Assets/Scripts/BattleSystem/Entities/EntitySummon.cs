@@ -5,7 +5,8 @@ using UnityEngine;
 public class EntitySummon : Entity
 {
     public ActionSummon SummonAction { get; private set; }
-    public Entity Summoner { get; private set; }
+    public Entity Summoner           { get; private set; }
+    string SummonerFaction;
     public override Entity SummoningEntity => Summoner.SummoningEntity;
 
     float SummonTime;
@@ -22,11 +23,12 @@ public class EntitySummon : Entity
     {
         SummonAction = action;
         Summoner = summoner;
+        SummonerFaction = summoner.Faction;
         SummonTime = BattleSystem.Time;
 
         if (SummonAction.InheritFaction)
         {
-            EntityFaction = Summoner.Faction;
+            Faction = Summoner.Faction;
         }
 
         foreach (var attribute in GameData.EntityAttributes)
@@ -82,7 +84,7 @@ public class EntitySummon : Entity
 
     public override void OnDeath(Entity source = null, PayloadResult payloadResult = null)
     {
-        base.OnDeath();
+        base.OnDeath(source, payloadResult);
         if (Summoner != null)
         {
             Summoner.RemoveSummonedEntity(this);
@@ -116,6 +118,18 @@ public class EntitySummon : Entity
         {
             Summoner.TagEntity(tag, entity, tagData);
         }
+    }
+
+    public override bool IsEnemy(string targetFaction)
+    {
+        var faction = Summoner != null ? Summoner.CurrentFaction : SummonerFaction;
+        return BattleSystem.IsEnemy(faction, targetFaction);
+    }
+
+    public override bool IsFriendly(string targetFaction)
+    {
+        var faction = Summoner != null ? Summoner.CurrentFaction : SummonerFaction;
+        return BattleSystem.IsFriendly(faction, targetFaction);
     }
     #endregion
 }

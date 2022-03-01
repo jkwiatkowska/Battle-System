@@ -39,7 +39,7 @@ public class ActionPayloadDirect : ActionPayload
 
                 if (Target == eTarget.FriendlyEntities)
                 {
-                    if (BattleSystem.IsFriendly(entity.EntityUID, target.EntityUID))
+                    if (entity.IsFriendly(target.Faction))
                     {
                         if (CheckTargetableState(target))
                         {
@@ -56,7 +56,7 @@ public class ActionPayloadDirect : ActionPayload
                 }
                 else if (Target == eTarget.EnemyEntities)
                 {
-                    if (BattleSystem.IsEnemy(entity.EntityUID, target.EntityUID))
+                    if (entity.IsEnemy(target.Faction))
                     {
                         if (CheckTargetableState(target))
                         {

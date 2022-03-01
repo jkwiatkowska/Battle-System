@@ -133,11 +133,11 @@ public class TargetingSystem : MonoBehaviour
         // Go through all entities and add them to the lists
         foreach(var target in AllEntities)
         {
-            if (BattleSystem.IsEnemy(Parent.EntityUID, target.EntityUID))
+            if (Parent.IsEnemy(target.Faction))
             {
                 EnemyEntities.Add(target);
             }
-            else if (BattleSystem.IsFriendly(Parent.EntityUID, target.EntityUID))
+            else if (Parent.IsFriendly(target.Faction))
             {
                 FriendlyEntities.Add(target);
             }
@@ -167,7 +167,7 @@ public class TargetingSystem : MonoBehaviour
                 return false;
             }
 
-            return BattleSystem.IsFriendly(Parent.EntityUID, SelectedTarget.EntityUID);
+            return Parent.IsFriendly(SelectedTarget.Faction);
         }
     }
     public bool EnemySelected
@@ -179,7 +179,7 @@ public class TargetingSystem : MonoBehaviour
                 return false;
             }
 
-            return BattleSystem.IsEnemy(Parent.EntityUID, SelectedTarget.EntityUID);
+            return Parent.IsEnemy(SelectedTarget.Faction);
         }
     }
 }

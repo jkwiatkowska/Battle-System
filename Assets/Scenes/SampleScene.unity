@@ -7258,6 +7258,17 @@ MonoBehaviour:
   RequiredChargeBar: {fileID: 1294417902}
   SkillNameText: {fileID: 746156771}
   TimeProgressText: {fileID: 1344162500}
+--- !u!114 &1043928583 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6934705420198072595, guid: 22ba455e1b6e410428cfc56a12e926a9, type: 3}
+  m_PrefabInstance: {fileID: 1484139716}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 202e67203bb371f44a3448441e2ec9c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1049219857
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13350,6 +13361,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6934705420198072599, guid: 22ba455e1b6e410428cfc56a12e926a9, type: 3}
   m_PrefabInstance: {fileID: 1721951366}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1755391295 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6934705420198072595, guid: 22ba455e1b6e410428cfc56a12e926a9, type: 3}
+  m_PrefabInstance: {fileID: 1073487951}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 202e67203bb371f44a3448441e2ec9c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1755577228
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16305,6 +16327,26 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8711827123449261809, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
+      propertyPath: EntitiesToTag.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8711827123449261809, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
+      propertyPath: EntitiesToTag.Array.data[0].tag
+      value: tag
+      objectReference: {fileID: 0}
+    - target: {fileID: 8711827123449261809, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
+      propertyPath: EntitiesToTag.Array.data[1].tag
+      value: tag
+      objectReference: {fileID: 0}
+    - target: {fileID: 8711827123449261809, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
+      propertyPath: EntitiesToTag.Array.data[0].entity
+      value: 
+      objectReference: {fileID: 1043928583}
+    - target: {fileID: 8711827123449261809, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
+      propertyPath: EntitiesToTag.Array.data[1].entity
+      value: 
+      objectReference: {fileID: 1755391295}
     - target: {fileID: 8799224500772272392, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
