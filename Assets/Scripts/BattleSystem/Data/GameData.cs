@@ -40,14 +40,14 @@ public static class GameData
                 "hp", 
                 new Value()
                 {
-                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 1.0f, "hp")
+                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 1.0f, "hp")
                 }
             },
             {
                 "mp",
                 new Value()
                 {
-                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 1.0f, "mp")
+                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 1.0f, "mp")
                 }
             }
         };
@@ -162,6 +162,54 @@ public static class GameData
                             ResourceAffected = "hp"
                         },
                         0.2f)
+                    }
+                }
+            },
+            {
+                "neutralBuff",
+                new StatusEffectData()
+                {
+                    StatusID = "neutralBuff",
+                    MaxStacks = 3,
+                    Duration = 7.0f,
+                    Effects = new List<Effect>()
+                    {
+                        new EffectAttributeChange()
+                        {
+                            EffectType = Effect.eEffectType.AttributeChange,
+                            Attribute = "atk",
+                            Value = new Value()
+                            {
+                                new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 15.0f)
+                            },
+                            StacksRequired = new Vector2Int(1, 2),
+                            PayloadTargetType = Effect.ePayloadFilter.All,
+                            PayloadTarget = "neutral"
+                        },
+                        new EffectAttributeChange()
+                        {
+                            EffectType = Effect.eEffectType.AttributeChange,
+                            Attribute = "atk",
+                            Value = new Value()
+                            {
+                                new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 25.0f)
+                            },
+                            StacksRequired = new Vector2Int(2, 2),
+                            PayloadTargetType = Effect.ePayloadFilter.Category,
+                            PayloadTarget = "neutral"
+                        },
+                        new EffectAttributeChange()
+                        {
+                            EffectType = Effect.eEffectType.AttributeChange,
+                            Attribute = "atk",
+                            Value = new Value()
+                            {
+                                new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 70.0f)
+                            },
+                            StacksRequired = new Vector2Int(3, 3),
+                            PayloadTargetType = Effect.ePayloadFilter.Category,
+                            PayloadTarget = "neutral"
+                        }
                     }
                 }
             }
@@ -386,11 +434,11 @@ public static class GameData
                                     {
                                         Flags = new List<string>()
                                         {
-                                            "ignoreDef", "canCrit"
+                                            "ignoreDef"
                                         },
                                         PayloadValue = new Value()
                                         {
-                                            new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 3.0f, "atk")
+                                            new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 3.0f, "atk")
                                         },
                                         Categories = new List<string>()
                                         {
@@ -523,7 +571,7 @@ public static class GameData
                                         },
                                         PayloadValue = new Value()
                                         {
-                                            new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 1.0f, "atk")
+                                            new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 1.0f, "atk")
                                         },
                                         Categories = new List<string>()
                                         {
@@ -610,7 +658,7 @@ public static class GameData
                             SkillID = "neutralAttack",
                             ActionType = Action.eActionType.Message,
                             Timestamp = 0.0f,
-                            MessageString = "Neutral attack.",
+                            MessageString = "Neutral attack + buff.",
                             MessageColor = Color.white
                         },
                         new ActionCooldown()
@@ -635,13 +683,10 @@ public static class GameData
                             Target = ActionPayload.eTarget.EnemyEntities,
                             PayloadData = new PayloadData()
                             {
-                                Flags = new List<string>()
-                                {
-                                    "canCrit"
-                                },
+                                Flags = new List<string>(),
                                 PayloadValue = new Value()
                                 {
-                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 0.8f, "atk")
+                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 0.8f, "atk")
                                 },
                                 Categories = new List<string>()
                                 {
@@ -651,6 +696,40 @@ public static class GameData
                                 ResourceAffected = "hp"
                             },
                             ActionConditions = new List<ActionCondition>()
+                        },
+                        new ActionPayloadDirect()
+                        {
+                            ActionID = "neutralAttackBuff",
+                            SkillID = "neutralAttack",
+                            ActionType = Action.eActionType.PayloadDirect,
+                            Timestamp = 0.5f,
+                            TargetPriority = ActionPayload.eTargetPriority.Random,
+                            ActionTargets = ActionPayloadDirect.eDirectActionTargets.Self,
+                            TargetLimit = 1,
+                            Target = ActionPayload.eTarget.FriendlyEntities,
+                            PayloadData = new PayloadData()
+                            {
+                                Flags = new List<string>(),
+                                PayloadValue = new Value(),
+                                Categories = new List<string>()
+                                {
+                                    "buff"
+                                },
+                                SuccessChance = 1.0f,
+                                ResourceAffected = "",
+                                ApplyStatus = new List<(string StatusID, int Stacks)>()
+                                {
+                                    ("neutralBuff", 1)
+                                }
+                            },
+                            ActionConditions = new List<ActionCondition>()
+                            {
+                                new ActionCondition()
+                                {
+                                    Condition = ActionCondition.eActionCondition.OnActionSuccess,
+                                    ConditionTarget = "neutralAttackAction"
+                                }
+                            }
                         }
                     },
                     NeedsTarget = true,
@@ -672,7 +751,7 @@ public static class GameData
                             SkillID = "fireAttack",
                             ActionType = Action.eActionType.Message,
                             Timestamp = 0.0f,
-                            MessageString = "Fire attack.",
+                            MessageString = "Fire attack + burn.",
                             MessageColor = Color.white
                         },
                         new ActionCooldown()
@@ -683,7 +762,7 @@ public static class GameData
                             Timestamp = 0.3f,
                             Cooldown = 0.8f,
                             CooldownTarget = ActionCooldown.eCooldownTarget.Skill,
-                            CooldownTargetName = "fireAttackAttack"
+                            CooldownTargetName = "fireAttack"
                         },
                         new ActionPayloadDirect()
                         {
@@ -703,7 +782,7 @@ public static class GameData
                                 },
                                 PayloadValue = new Value()
                                 {
-                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 0.8f, "atk")
+                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 0.8f, "atk")
                                 },
                                 Categories = new List<string>()
                                 {
@@ -738,7 +817,7 @@ public static class GameData
                             SkillID = "waterAttack",
                             ActionType = Action.eActionType.Message,
                             Timestamp = 0.0f,
-                            MessageString = "Water attack.",
+                            MessageString = "Water attack + extinguish.",
                             MessageColor = Color.white
                         },
                         new ActionCooldown()
@@ -769,7 +848,7 @@ public static class GameData
                                 },
                                 PayloadValue = new Value()
                                 {
-                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 0.8f, "atk")
+                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 0.8f, "atk")
                                 },
                                 Categories = new List<string>()
                                 {
@@ -836,7 +915,7 @@ public static class GameData
                                 PayloadValue = new Value()
                                 {
                                     new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 15),
-                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 0.8f, "atk")
+                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 0.8f, "atk")
                                 },
                                 Categories = new List<string>()
                                 {
@@ -2049,7 +2128,7 @@ public static class GameData
                                                 },
                                                 PayloadValue = new Value()
                                                 {
-                                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 1.0f, "atk")
+                                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 1.0f, "atk")
                                                 },
                                                 Categories = new List<string>()
                                                 {
@@ -2200,7 +2279,7 @@ public static class GameData
                                                 },
                                                 PayloadValue = new Value()
                                                 {
-                                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, -1.0f, "atk")
+                                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, -1.0f, "atk")
                                                 },
                                                 Categories = new List<string>()
                                                 {
@@ -2335,7 +2414,7 @@ public static class GameData
                                                 },
                                                 PayloadValue = new Value()
                                                 {
-                                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttribute, 1.0f, "atk")
+                                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 1.0f, "atk")
                                                 },
                                                 Categories = new List<string>()
                                                 {

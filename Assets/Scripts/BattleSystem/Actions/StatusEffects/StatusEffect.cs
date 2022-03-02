@@ -38,15 +38,21 @@ public class StatusEffect
     void UpdatePayloads()
     {
         OnInterval = new List<(Payload Payload, float NextTimestamp)>();
-        foreach (var payload in Data.OnInterval)
+        if (Data.OnInterval != null)
         {
-            OnInterval.Add((Payload: new Payload(Caster, payloadData: payload.PayloadData, Action, Data.StatusID), NextTimestamp: BattleSystem.Time + payload.Interval));
+            foreach (var payload in Data.OnInterval)
+            {
+                OnInterval.Add((Payload: new Payload(Caster, payloadData: payload.PayloadData, Action, Data.StatusID), NextTimestamp: BattleSystem.Time + payload.Interval));
+            }
         }
 
         OnStacksGained = new List<(Payload, int)>();
-        foreach (var payload in Data.OnStacksGained)
+        if (Data.OnStacksGained != null)
         {
-            OnStacksGained.Add((Payload: new Payload(Caster, payloadData: payload.PayloadData, Action, Data.StatusID), Stacks: payload.Stacks));
+            foreach (var payload in Data.OnStacksGained)
+            {
+                OnStacksGained.Add((Payload: new Payload(Caster, payloadData: payload.PayloadData, Action, Data.StatusID), Stacks: payload.Stacks));
+            }
         }
 
         if (Data.OnCleared != null)
@@ -123,14 +129,31 @@ public class StatusEffect
 
         foreach (var effect in Data.Effects)
         {
-            if (effect.StacksRequired.x > stacksBefore && effect.StacksRequired.y <= stacksBefore)
+            if (change > 0)
             {
-                effect.Remove(Data.StatusID, Target);
-            }
+                if (effect.StacksRequired.y < CurrentStacks)
+                {
+                    effect.Remove(Data.StatusID, Target);
+                }
 
-            if (effect.StacksRequired.x > CurrentStacks && effect.StacksRequired.y <= CurrentStacks)
+                if (effect.StacksRequired.x > stacksBefore && effect.StacksRequired.x <= CurrentStacks && 
+                    effect.StacksRequired.y >= CurrentStacks)
+                {
+                    effect.Apply(Data.StatusID, Target, Caster, SourcePayload);
+                }
+            }
+            else if (change < 0)
             {
-                effect.Apply(Data.StatusID, Target, Caster, SourcePayload);
+                if (effect.StacksRequired.x > CurrentStacks)
+                {
+                    effect.Remove(Data.StatusID, Target);
+                }
+
+                if (effect.StacksRequired.y < stacksBefore && effect.StacksRequired.x <= CurrentStacks &&
+                    effect.StacksRequired.y >= CurrentStacks)
+                {
+                    effect.Apply(Data.StatusID, Target, Caster, SourcePayload);
+                }
             }
         }
 
@@ -139,10 +162,10 @@ public class StatusEffect
             for (int i = 0; i < OnStacksGained.Count; i++)
             {
                 var payload = OnStacksGained[i];
-                if (payload.Item2 > stacksBefore && payload.Item2 <= CurrentStacks)
+                if (payload.Stacks > stacksBefore && payload.Stacks <= CurrentStacks)
                 {
-                    var payloadResult = new PayloadResult(Data.OnStacksGained[i].Item1, Caster, Target);
-                    payload.Item1.ApplyPayload(Caster, Target, payloadResult);
+                    var payloadResult = new PayloadResult(Data.OnStacksGained[i].PayloadData, Caster, Target);
+                    payload.Payload.ApplyPayload(Caster, Target, payloadResult);
                 }
             }
         }

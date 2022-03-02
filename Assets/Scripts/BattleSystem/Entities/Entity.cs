@@ -1056,7 +1056,6 @@ public class Entity : MonoBehaviour
         }
         else
         {
-            Debug.LogError($"Entity {EntityID} doesn't have a [{attribute}] attribute.");
             return 0.0f;
         }
     }

@@ -7,7 +7,8 @@ public class ValueComponent
     public enum eValueComponentType
     {
         FlatValue,
-        CasterAttribute,
+        CasterAttributeBase,
+        CasterAttributeCurrent,
         CasterResourceMax,
         CasterResourceCurrent,
         TargetResourceMax,
@@ -30,7 +31,7 @@ public class ValueComponent
     {
         switch (ComponentType)
         {
-            case eValueComponentType.CasterAttribute:
+            case eValueComponentType.CasterAttributeCurrent:
             {
                 if (entityAttributes == null || !entityAttributes.ContainsKey(Attribute))
                 {
@@ -59,7 +60,7 @@ public class ValueComponent
             {
                 return Potency;
             }
-            case eValueComponentType.CasterAttribute:
+            case eValueComponentType.CasterAttributeCurrent:
             {
                 if (casterAttributes == null || !casterAttributes.ContainsKey(Attribute))
                 {
@@ -67,6 +68,15 @@ public class ValueComponent
                     return 0.0f;
                 }
                 return Potency * casterAttributes[Attribute];
+            }
+            case eValueComponentType.CasterAttributeBase:
+            {
+                if (caster == null)
+                {
+                    Debug.LogError($"Invalid attribute [{Attribute}].");
+                    return 0.0f;
+                }
+                return Potency * caster.BaseAttribute(Attribute);
             }
             case eValueComponentType.CasterResourceMax:
             {
