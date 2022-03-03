@@ -37,9 +37,9 @@ public class Entity : MonoBehaviour
     public float SkillChargeRatio                                           { get; protected set; }
 
     // Status effects
-    protected Dictionary<string, StatusEffect> StatusEffects;
-    protected Dictionary<string, Dictionary<string, AttributeChange>> AttributeChanges;
-    protected Dictionary<Effect.ePayloadFilter, Dictionary<string, EffectImmunity>> Immunities;
+    protected Dictionary<string, StatusEffect> StatusEffects; // Key - Status ID
+    protected Dictionary<string, Dictionary<string, AttributeChange>> AttributeChanges; // Key - Attribute affected
+    protected Dictionary<Effect.ePayloadFilter, Dictionary<string, Immunity>> Immunities;
     protected Dictionary<Effect.ePayloadFilter, Dictionary<string, EffectResistance>> Resistances;
 
     // Triggers
@@ -87,7 +87,7 @@ public class Entity : MonoBehaviour
         // Status effects
         StatusEffects = new Dictionary<string, StatusEffect>();
         AttributeChanges = new Dictionary<string, Dictionary<string, AttributeChange>>();
-        Immunities = new Dictionary<Effect.ePayloadFilter, Dictionary<string, EffectImmunity>>();
+        Immunities = new Dictionary<Effect.ePayloadFilter, Dictionary<string, Immunity>>();
         Resistances = new Dictionary<Effect.ePayloadFilter, Dictionary<string, EffectResistance>>();
 
         // Resources
@@ -551,9 +551,14 @@ public class Entity : MonoBehaviour
         OnTrigger(TriggerData.eTrigger.OnCollisionTerrain);
     }
 
+    public virtual void OnImmune(Entity source = null, PayloadResult payloadResult = null)
+    {
+        OnTrigger(TriggerData.eTrigger.OnImmune, source, payloadResult);
+        HUDPopupTextHUD.Instance.DisplayImmune(this);
+    }
+
     protected virtual void OnTargetOutOfRange()
     {
-        
     }
     #endregion
 
@@ -664,13 +669,13 @@ public class Entity : MonoBehaviour
         FactionOverride = "";
     }
 
-    public void ApplyImmunity(EffectImmunity immunity, string key)
+    public void ApplyImmunity(Immunity immunity, string key)
     {
-        if (!Immunities.ContainsKey(immunity.PayloadFilter))
+        if (!Immunities.ContainsKey(immunity.Data.PayloadFilter))
         {
-            Immunities[immunity.PayloadFilter] = new Dictionary<string, EffectImmunity>();
+            Immunities[immunity.Data.PayloadFilter] = new Dictionary<string, Immunity>();
         }
-        Immunities[immunity.PayloadFilter][key] = immunity;
+        Immunities[immunity.Data.PayloadFilter][key] = immunity;
     }
 
     public void RemoveImmunity(Effect.ePayloadFilter payloadFilter, string key)
@@ -685,42 +690,53 @@ public class Entity : MonoBehaviour
 
     public EffectImmunity HasImmunityAgainstAction(ActionPayload action)
     {
+        Immunity immunity = null;
+
         if (Immunities.ContainsKey(Effect.ePayloadFilter.All) && Immunities[Effect.ePayloadFilter.All].Count > 0)
         {
-            return Immunities[Effect.ePayloadFilter.All].ElementAt(0).Value;
+            immunity = Immunities[Effect.ePayloadFilter.All].ElementAt(0).Value;
         }
 
         if (Immunities.ContainsKey(Effect.ePayloadFilter.Skill) && Immunities[Effect.ePayloadFilter.Skill].Count > 0)
         {
-            foreach (var immunity in Immunities[Effect.ePayloadFilter.Skill])
+            foreach (var i in Immunities[Effect.ePayloadFilter.Skill])
             {
-                if (immunity.Value.PayloadName == action.SkillID)
+                if (i.Value.Data.PayloadName == action.SkillID)
                 {
-                    return immunity.Value;
+                    immunity = i.Value;
+                    break;
                 }
             }
         }
 
         if (Immunities.ContainsKey(Effect.ePayloadFilter.SkillGroup) && Immunities[Effect.ePayloadFilter.SkillGroup].Count > 0)
         {
-            foreach (var immunity in Immunities[Effect.ePayloadFilter.SkillGroup])
+            foreach (var i in Immunities[Effect.ePayloadFilter.SkillGroup])
             {
-                if (GameData.SkillGroups.ContainsKey(immunity.Value.PayloadName) && GameData.SkillGroups[immunity.Value.PayloadName].Contains(action.SkillID))
+                if (GameData.SkillGroups.ContainsKey(i.Value.Data.PayloadName) && GameData.SkillGroups[i.Value.Data.PayloadName].Contains(action.SkillID))
                 {
-                    return immunity.Value;
+                    immunity = i.Value;
+                    break;
                 }
             }
         }
 
         if (Immunities.ContainsKey(Effect.ePayloadFilter.Action) && Immunities[Effect.ePayloadFilter.Action].Count > 0)
         {
-            foreach (var immunity in Immunities[Effect.ePayloadFilter.Action])
+            foreach (var i in Immunities[Effect.ePayloadFilter.Action])
             {
-                if (immunity.Value.PayloadName == action.ActionID)
+                if (i.Value.Data.PayloadName == action.ActionID)
                 {
-                    return immunity.Value;
+                    immunity = i.Value;
+                    break;
                 }
             }
+        }
+
+        if (immunity != null)
+        {
+            immunity.Use(this);
+            return immunity.Data;
         }
 
         return null;
@@ -728,49 +744,69 @@ public class Entity : MonoBehaviour
 
     public EffectImmunity HasImmunityAgainstStatus(string statusID)
     {
+        Immunity immunity = null;
+
         if (Immunities.ContainsKey(Effect.ePayloadFilter.All) && Immunities[Effect.ePayloadFilter.All].Count > 0)
         {
-            return Immunities[Effect.ePayloadFilter.All].ElementAt(0).Value;
+            immunity = Immunities[Effect.ePayloadFilter.All].ElementAt(0).Value;
         }
         else if (Immunities.ContainsKey(Effect.ePayloadFilter.Status) && Immunities[Effect.ePayloadFilter.Status].Count > 0)
         {
-            foreach (var immunity in Immunities[Effect.ePayloadFilter.Status])
+            foreach (var i in Immunities[Effect.ePayloadFilter.Status])
             {
-                if (immunity.Value.PayloadName == statusID)
+                if (i.Value.Data.PayloadName == statusID)
                 {
-                    return immunity.Value;
+                    immunity = i.Value;
+                    break;
                 }
             }
         }
         else if (Immunities.ContainsKey(Effect.ePayloadFilter.StatusGroup) && Immunities[Effect.ePayloadFilter.StatusGroup].Count > 0)
         {
-            foreach (var immunity in Immunities[Effect.ePayloadFilter.StatusGroup])
+            foreach (var i in Immunities[Effect.ePayloadFilter.StatusGroup])
             {
-                if (GameData.StatusEffectGroups.ContainsKey(immunity.Value.PayloadName) && GameData.StatusEffectGroups[immunity.Value.PayloadName].Contains(statusID))
+                if (GameData.StatusEffectGroups.ContainsKey(i.Value.Data.PayloadName) && GameData.StatusEffectGroups[i.Value.Data.PayloadName].Contains(statusID))
                 {
-                    return immunity.Value;
+                    immunity = i.Value;
+                    break;
                 }
             }
         }
+
+        if (immunity != null)
+        {
+            immunity.Use(this);
+            return immunity.Data;
+        }
+
         return null;
     }
 
     public EffectImmunity HasImmunityAgainstCategory(string category)
     {
+        Immunity immunity = null;
+
         if (Immunities.ContainsKey(Effect.ePayloadFilter.All) && Immunities[Effect.ePayloadFilter.All].Count > 0)
         {
-            return Immunities[Effect.ePayloadFilter.All].ElementAt(0).Value;
+            immunity = Immunities[Effect.ePayloadFilter.All].ElementAt(0).Value;
         }
         else if (Immunities.ContainsKey(Effect.ePayloadFilter.Category) && Immunities[Effect.ePayloadFilter.Category].Count > 0)
         {
-            foreach (var immunity in Immunities[Effect.ePayloadFilter.Category])
+            foreach (var i in Immunities[Effect.ePayloadFilter.Category])
             {
-                if (immunity.Value.PayloadName == category)
+                if (i.Value.Data.PayloadName == category)
                 {
-                    return immunity.Value;
+                    immunity = i.Value;
                 }
             }
         }
+
+        if (immunity != null)
+        {
+            immunity.Use(this);
+            return immunity.Data;
+        }
+
         return null;
     }
 

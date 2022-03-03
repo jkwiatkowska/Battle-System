@@ -41,6 +41,13 @@ public class HUDPopupTextHUD : MonoBehaviour
         DisplayText(target, text, color);
     }
 
+    public void DisplayImmune(Entity target)
+    {
+        string text = NamesAndText.ImmuneText(out var color);
+
+        DisplayText(target, text, color);
+    }
+
     public void DisplayText(Entity target, string text, Color color)
     {
         var popupTextObject = PopupPool.GetFromPool();

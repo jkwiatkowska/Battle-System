@@ -70,7 +70,7 @@ public class StatusEffect
     {
         var now = BattleSystem.Time;
 
-        if (Data.Duration > 0.0f)
+        if (Data.Duration > Constants.Epsilon)
         {
             if (EndTime < now)
             {

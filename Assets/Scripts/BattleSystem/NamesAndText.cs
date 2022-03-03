@@ -72,6 +72,15 @@ public static class NamesAndText
         return text;
     }
 
+    public static string ImmuneText(out Color color)
+    {
+        var text = "Immune";
+
+        color = Color.grey;
+
+        return text;
+    }
+
     public static string SkillChargeProgressText(float elapsedTime, float fullTime)
     {
         var text = (fullTime - elapsedTime).ToString("0.00") + 's';

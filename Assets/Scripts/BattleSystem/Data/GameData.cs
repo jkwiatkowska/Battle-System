@@ -166,6 +166,29 @@ public static class GameData
                 }
             },
             {
+                "waterImmune",
+                new StatusEffectData()
+                {
+                    StatusID = "waterImmune",
+                    MaxStacks = 1,
+                    Duration = 15.0f,
+                    Effects = new List<Effect>()
+                    {
+                        new EffectImmunity()
+                        {
+                            PayloadFilter = Effect.ePayloadFilter.Category,
+                            PayloadName = "water",
+                            Limit = 3,
+                            EndStatusOnEffectEnd = true,
+                            StacksRequired = new Vector2Int(1, 1),
+                            EffectType = Effect.eEffectType.Immunity
+                        }
+                    },
+                    OnStacksGained = new List<(PayloadData, int)>(),
+                    OnInterval = new List<(PayloadData, float)>()
+                }
+            },
+            {
                 "neutralBuff",
                 new StatusEffectData()
                 {
@@ -856,6 +879,10 @@ public static class GameData
                                 },
                                 SuccessChance = 1.0f,
                                 ResourceAffected = "hp",
+                                ApplyStatus = new List<(string StatusID, int Stacks)>()
+                                {
+                                    (StatusID: "waterImmune", Stacks: 1)
+                                },
                                 ClearStatus = new List<(bool StatusGroup, string StatusID)>()
                                 {
                                     (false, "burn")

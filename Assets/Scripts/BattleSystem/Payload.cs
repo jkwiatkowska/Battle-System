@@ -32,6 +32,17 @@ public class Payload
             return false;
         }
 
+        // Immunity
+        foreach (var category in PayloadData.Categories)
+        {
+            var immunity = target.HasImmunityAgainstCategory(category);
+            if (immunity != null)
+            {
+                target.OnImmune(caster, result);
+                return false;
+            }
+        }
+
         // Instant death
         if (PayloadData.Instakill)
         {
@@ -69,6 +80,11 @@ public class Payload
         {
             foreach (var status in PayloadData.ApplyStatus)
             {
+                var immunity = target.HasImmunityAgainstStatus(status.StatusID);
+                if (immunity != null)
+                {
+                    continue;
+                }
                 target.ApplyStatusEffect(caster, Action, status.StatusID, status.Stacks, this);
             }
         }

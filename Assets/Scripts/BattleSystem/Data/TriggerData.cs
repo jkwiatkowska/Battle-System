@@ -38,6 +38,7 @@ public class TriggerData
         public float FloatValue;                // Resource value/change.
         public float IntValue;                  // Count or status stacks.
 
+        public TriggerCondition AndCondition;   // Both this condition and the and condition must pass for the condition to be met. 
         public TriggerCondition OrCondition;    // Alternate conditions can be chained this way. If this condition fails, the next condition will be tried.
 
         public bool ConditionMet(Entity entity, Entity triggerSource, PayloadResult payloadResult, Action action, ActionResult actionResult, string statusID)
@@ -185,9 +186,14 @@ public class TriggerData
                 }
             }
 
+            if (conditionMet == DesiredOutcome && AndCondition != null)
+            {
+                conditionMet = AndCondition.ConditionMet(entity, triggerSource, payloadResult, action, actionResult, statusID);
+            }
+
             if (conditionMet != DesiredOutcome && OrCondition != null)
             {
-                conditionMet = OrCondition.ConditionMet(entity, triggerSource, payloadResult, action, actionResult, statusID);
+                return OrCondition.ConditionMet(entity, triggerSource, payloadResult, action, actionResult, statusID);
             }
 
             return conditionMet == DesiredOutcome;
@@ -203,7 +209,7 @@ public class TriggerData
 
             bool isPayloadTrigger = triggerType == eTrigger.OnPayloadApplied || triggerType == eTrigger.OnPayloadReceived || 
                                     triggerType == eTrigger.OnResourceChanged || triggerType == eTrigger.OnDeath || 
-                                    triggerType == eTrigger.OnKill || triggerType == eTrigger.OnHitMissed;
+                                    triggerType == eTrigger.OnKill || triggerType == eTrigger.OnHitMissed || triggerType == eTrigger.OnImmune;
 
             bool isActionTrigger = triggerType == eTrigger.OnActionUsed;
 
@@ -259,6 +265,7 @@ public class TriggerData
         OnPayloadApplied,           // Succesfully using a payload action.
         OnPayloadReceived,          // Having payload applied.
         OnHitMissed,                // Failing to apply a payload action.
+        OnImmune,              // Immunity status effect.
         OnResourceChanged,          // Damage or recovery of a resource.
         OnActionUsed,               // Use of an action.
         OnStatusApplied,            // Status applied to another entity.

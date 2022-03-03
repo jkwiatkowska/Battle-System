@@ -91,6 +91,7 @@ public abstract class ActionPayload : Action
             if (immunity != null)
             {
                 // On hit resisted
+                t.OnImmune(entity, result);
                 continue;
             }
 
