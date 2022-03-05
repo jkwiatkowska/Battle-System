@@ -74,12 +74,26 @@ public class EntityCanvas : MonoBehaviour
         SkillChargeDisplay.Remove(display);
     }
 
+    public void SetupResourceDisplay(string resourceName)
+    {
+        if (ResourceDisplay.ContainsKey(resourceName) && ResourceDisplay[resourceName].Count > 0)
+        {
+            var current = Entity.ResourcesCurrent.ContainsKey(resourceName) ? Entity.ResourcesCurrent[resourceName] : 0.0f;
+            var max = Entity.ResourcesMax.ContainsKey(resourceName) ? Entity.ResourcesMax[resourceName] : 0.0f;
+
+            foreach (var display in ResourceDisplay[resourceName])
+            {
+                display.SetValues(current, max);
+            }
+        }
+    }
+
     public void UpdateResourceDisplay(string resourceName)
     {
         if (ResourceDisplay.ContainsKey(resourceName) && ResourceDisplay[resourceName].Count > 0)
         {
-            var current = Entity.ResourcesCurrent[resourceName];
-            var max = Entity.ResourcesMax[resourceName];
+            var current = Entity.ResourcesCurrent.ContainsKey(resourceName) ? Entity.ResourcesCurrent[resourceName] : 0.0f;
+            var max = Entity.ResourcesMax.ContainsKey(resourceName) ? Entity.ResourcesMax[resourceName] : 0.0f;
 
             foreach (var display in ResourceDisplay[resourceName])
             {
@@ -96,8 +110,8 @@ public class EntityCanvas : MonoBehaviour
         }
         ResourceDisplay[display.ResourceName].Add(display);
 
-        var current = Entity.ResourcesCurrent[display.ResourceName];
-        var max = Entity.ResourcesMax[display.ResourceName];
+        var current = Entity.ResourcesCurrent.ContainsKey(display.ResourceName) ? Entity.ResourcesCurrent[display.ResourceName] : 0.0f;
+        var max = Entity.ResourcesMax.ContainsKey(display.ResourceName) ? Entity.ResourcesMax[display.ResourceName] : 0.0f;
 
         display.SetValues(current, max);
     }

@@ -36,6 +36,27 @@ public abstract class Effect
     public abstract void Remove(string statusID, Entity target, bool endStatus = false);
 }
 
+public class LimitedEffect<T> where T:Effect
+{
+    public T Data;
+    public string StatusID;
+    public int UsesLeft;
+
+    public virtual void Use(Entity entity)
+    {
+        if (UsesLeft > 0)
+        {
+            UsesLeft--;
+
+            if (UsesLeft <= 0)
+            {
+                Data.Remove(StatusID, entity, true);
+            }
+        }
+    }
+}
+
+#region Attribute Change
 public class EffectAttributeChange : Effect
 {
     public string Attribute;                            // Affected attribute.
@@ -79,7 +100,9 @@ public class AttributeChange
     public Effect.ePayloadFilter PayloadFilter;         // An attribute can be affected directly or only when specific skills and actions are used.
     public string Requirement;                          // Name or ID of the above.
 }
+#endregion
 
+#region Convert
 public class EffectConvert : Effect
 {
     public override void Apply(string statusID, Entity target, Entity caster, Payload payload)
@@ -93,11 +116,13 @@ public class EffectConvert : Effect
 
         if (endStatus & EndStatusOnEffectEnd)
         {
-            target.RemoveStatusEffect(statusID);
+            target.DelayedStatusEffectRemoval(statusID);
         }
     }
 }
+#endregion
 
+#region Immunity
 public class EffectImmunity : Effect
 {
     public ePayloadFilter PayloadFilter;                // Resistance can be to all damage or to a specific type of skills or actions.
@@ -123,7 +148,7 @@ public class EffectImmunity : Effect
 
         if (endStatus & EndStatusOnEffectEnd)
         {
-            target.RemoveStatusEffect(statusID);
+            target.DelayedStatusEffectRemoval(statusID);
         }
     }
 
@@ -133,26 +158,13 @@ public class EffectImmunity : Effect
     }
 }
 
-public class Immunity
+public class Immunity : LimitedEffect<EffectImmunity>
 {
-    public EffectImmunity Data;
-    public string StatusID;
-    public int UsesLeft;
 
-    public void Use(Entity entity)
-    {
-        if (UsesLeft > 0)
-        {
-            UsesLeft--;
-
-            if (UsesLeft <= 0)
-            {
-                Data.Remove(StatusID, entity, true);
-            }
-        }
-    }
 }
+#endregion
 
+#region Resistance
 public class EffectResistance : Effect
 {
     public ePayloadFilter PayloadFilter;                // Resistance can be to all damage or to a specific type of skills or actions.
@@ -179,3 +191,77 @@ public class EffectResistance : Effect
         return statusID + StacksRequired.ToString() + PayloadFilter + PayloadName;
     }
 }
+#endregion
+
+#region Shield
+public class EffectShield : Effect
+{
+    public string ShieldResource;                           // Damage is funneled into this resource.
+    public string ShieldedResource;                         // This resource does not take damage while a shield is active.
+
+    public Value ShieldResourceToGrant;                     // When the effect is granted, this much of the shield resource is granted to the entity.   
+    public Value MaxDamageAbsorbed;                         // Limit to how much damage the shield can absorb. 0 for no limit.
+    public bool SetMaxShieldResource;                       // If the shield resource is unique to this shield, it needs a max value set for any UI display. 
+
+    public float DamageMultiplier;                          // The damage to the shield resource can be lowered (less than 1) or increased (more than 1) through this.
+    public Dictionary<string, float> CategoryMultipliers;   // The multiplier can be different for specified categories.
+
+    public int Priority;                                    // If multiple shields are protecting the same resource, the shield with the higher priority will take damage.
+
+    public int Limit;                                       // How many times a shield can be struck before being removed. 0 for no limit. 
+    public bool RemoveShieldResourceOnEffectEnd;            // If true, all of the resource used to shield will be drained when the effect ends.
+
+    public override void Apply(string statusID, Entity target, Entity caster, Payload payload)
+    {
+        var casterAttributes = caster.EntityAttributes(payload.Action.SkillID,
+                               payload.Action.ActionID, statusID, payload.PayloadData.Categories);
+        var shield = new Shield()
+        {
+            Data = this,
+            StatusID = statusID,
+            UsesLeft = Limit,
+            AbsorbtionLeft = MaxDamageAbsorbed.OutgoingValues(caster, casterAttributes, null).IncomingValue(target),
+        };
+
+        var shieldResourceGranted = ShieldResourceToGrant.OutgoingValues(caster, casterAttributes, null).IncomingValue(target);
+
+        target.ApplyShield(shield, Key(statusID), shieldResourceGranted);
+    }
+
+    public override void Remove(string statusID, Entity target, bool endStatus = false)
+    {
+        target.RemoveShield(this, Key(statusID));
+
+        if (endStatus & EndStatusOnEffectEnd)
+        {
+            target.DelayedStatusEffectRemoval(statusID);
+        }
+    }
+
+    public string Key(string statusID)
+    {
+        return statusID + StacksRequired.ToString() + ShieldResource + ShieldedResource + Priority;
+    }
+}
+
+public class Shield : LimitedEffect<EffectShield>
+{
+    public float AbsorbtionLeft;
+
+    public void UseShield(Entity entity, float damageAbsorbed)
+    {
+        if (AbsorbtionLeft > Constants.Epsilon)
+        {
+            AbsorbtionLeft -= damageAbsorbed;
+
+            if (AbsorbtionLeft <= -Constants.Epsilon)
+            {
+                Data.Remove(StatusID, entity, true);
+                return;
+            }
+        }
+
+        base.Use(entity);
+    }
+}
+#endregion

@@ -18,6 +18,8 @@ public class StatusEffect
     public Payload OnCleared;
     public Payload OnExpired;
 
+    public bool RemoveEffect;
+
     public StatusEffect (Entity target, Entity caster, StatusEffectData statusEffectData, Action action, Payload payload)
     {
         Setup(target, caster, statusEffectData, action, payload);
@@ -33,6 +35,7 @@ public class StatusEffect
         StartTime = BattleSystem.Time;
         EndTime = StartTime + Formulae.StatusDurationTime(Caster, Target, Data);
         SourcePayload = payload;
+        RemoveEffect = false;
     }
 
     void UpdatePayloads()
@@ -68,6 +71,11 @@ public class StatusEffect
 
     public bool Update()
     {
+        if (RemoveEffect)
+        {
+            return false;
+        }
+
         var now = BattleSystem.Time;
 
         if (Data.Duration > Constants.Epsilon)

@@ -23,7 +23,7 @@ public class Entity : MonoBehaviour
     static int EntityCount = 0;
 
     // Attributes
-    protected Dictionary<string, float> BaseAttributes;
+    public Dictionary<string, float> BaseAttributes                         { get; protected set; }
     public Dictionary<string, float> ResourcesCurrent                       { get; protected set; }
     public Dictionary<string, float> ResourcesMax                           { get; protected set; }
 
@@ -37,10 +37,11 @@ public class Entity : MonoBehaviour
     public float SkillChargeRatio                                           { get; protected set; }
 
     // Status effects
-    protected Dictionary<string, StatusEffect> StatusEffects; // Key - Status ID
-    protected Dictionary<string, Dictionary<string, AttributeChange>> AttributeChanges; // Key - Attribute affected
+    protected Dictionary<string, StatusEffect> StatusEffects;                                       // Key: Status ID
+    protected Dictionary<string, Dictionary<string, AttributeChange>> AttributeChanges;             // Key: Attribute affected, key 2: generated key
     protected Dictionary<Effect.ePayloadFilter, Dictionary<string, Immunity>> Immunities;
     protected Dictionary<Effect.ePayloadFilter, Dictionary<string, EffectResistance>> Resistances;
+    protected Dictionary<string, Dictionary<string, Shield>> Shields;                               // Key: attribute protected, key 2: generated key
 
     // Triggers
     protected Dictionary<TriggerData.eTrigger, List<Trigger>> Triggers;
@@ -89,6 +90,7 @@ public class Entity : MonoBehaviour
         AttributeChanges = new Dictionary<string, Dictionary<string, AttributeChange>>();
         Immunities = new Dictionary<Effect.ePayloadFilter, Dictionary<string, Immunity>>();
         Resistances = new Dictionary<Effect.ePayloadFilter, Dictionary<string, EffectResistance>>();
+        Shields = new Dictionary<string, Dictionary<string, Shield>>();
 
         // Resources
 
@@ -627,6 +629,14 @@ public class Entity : MonoBehaviour
         }
     }
 
+    public void DelayedStatusEffectRemoval(string statusID)
+    {
+        if (StatusEffects.ContainsKey(statusID))
+        {
+            StatusEffects[statusID].RemoveEffect = true;
+        }
+    }
+
     public void RemoveStatusEffect(string statusID)
     {
         if (StatusEffects.ContainsKey(statusID))
@@ -829,6 +839,49 @@ public class Entity : MonoBehaviour
         Resistances[payloadFilter].Remove(key);
     }
 
+    public void ApplyShield(Shield shield, string key, float resourceGranted)
+    {
+        if (!Shields.ContainsKey(shield.Data.ShieldedResource))
+        {
+            Shields.Add(shield.Data.ShieldedResource, new Dictionary<string, Shield>());
+        }
+
+        Shields[shield.Data.ShieldedResource][key] = shield;
+        if (resourceGranted > Constants.Epsilon)
+        {
+            if (!ResourcesMax.ContainsKey(shield.Data.ShieldResource) || shield.Data.SetMaxShieldResource)
+            {
+                ResourcesMax[shield.Data.ShieldResource] = resourceGranted;
+            }
+
+            if (!ResourcesCurrent.ContainsKey(shield.Data.ShieldResource))
+            {
+                ResourcesCurrent.Add(shield.Data.ShieldResource, resourceGranted);
+            }
+            else
+            {
+                ApplyChangeToResource(shield.Data.ShieldResource, resourceGranted);
+            }
+
+            EntityCanvas.SetupResourceDisplay(shield.Data.ShieldResource);
+        }
+    }
+
+    public void RemoveShield(EffectShield shieldData, string key)
+    {
+        if (!Shields.ContainsKey(shieldData.ShieldedResource) || !Shields[shieldData.ShieldedResource].ContainsKey(key))
+        {
+            return;
+        }
+
+        if (shieldData.RemoveShieldResourceOnEffectEnd)
+        {
+            ResourcesCurrent[shieldData.ShieldResource] = 0.0f;
+            EntityCanvas.UpdateResourceDisplay(shieldData.ShieldResource);
+        }
+        Shields[shieldData.ShieldedResource].Remove(key);
+    }
+
     #endregion
 
     #region Tagging
@@ -1020,16 +1073,62 @@ public class Entity : MonoBehaviour
 
     public void ApplyChangeToResource(string resource, PayloadResult payloadResult, bool setTriggers = true)
     {
-        var previous = ResourcesCurrent[resource];
-        ResourcesCurrent[resource] = Mathf.Clamp(ResourcesCurrent[resource] + payloadResult.Change, 0.0f, ResourcesMax[resource]);
-        if (previous != ResourcesCurrent[resource])
+        var change = payloadResult.Change;
+        var resourceAffected = resource;
+
+        if (change < 0.0f && Shields.ContainsKey(resource) && Shields[resource].Count > 0)
+        {
+            Shield shield = null;
+            int best = -1;
+
+            foreach (var s in Shields[resource])
+            {
+                if (best == -1 || best < s.Value.Data.Priority)
+                {
+                    best = s.Value.Data.Priority;
+                    shield = s.Value;
+                }
+            }
+
+            var multiplier = 1.0f;
+            var multipliers = new List<float>();
+            foreach (var m in shield.Data.CategoryMultipliers)
+            {
+                if (payloadResult.PayloadData.Categories.Contains(m.Key))
+                {
+                    multipliers.Add(m.Value);
+                }
+            }
+            if (multipliers.Count > 0)
+            {
+                foreach (var m in multipliers)
+                {
+                    multiplier *= m;
+                }
+            }
+            else
+            {
+                multiplier = shield.Data.DamageMultiplier;
+            }
+
+            change *= multiplier;
+
+            resourceAffected = shield.Data.ShieldResource;
+
+            shield.UseShield(this, -change);
+        }
+
+        var previous = ResourcesCurrent[resourceAffected];
+        ResourcesCurrent[resourceAffected] = Mathf.Clamp(ResourcesCurrent[resourceAffected] + change, 0.0f, ResourcesMax[resourceAffected]);
+
+        if (previous != ResourcesCurrent[resourceAffected])
         {
             if (EntityCanvas != null)
             {
-                EntityCanvas.UpdateResourceDisplay(resource);
+                EntityCanvas.UpdateResourceDisplay(resourceAffected);
             }
 
-            payloadResult.Change = previous - ResourcesCurrent[resource];
+            payloadResult.Change = previous - ResourcesCurrent[resourceAffected];
             var source = payloadResult.Caster;
 
             if (setTriggers)
@@ -1040,7 +1139,7 @@ public class Entity : MonoBehaviour
                 }
             }
 
-            if (ResourcesCurrent[resource] <= 0.0f && EntityData.LifeResources.Contains(resource))
+            if (ResourcesCurrent[resourceAffected] <= 0.0f && EntityData.LifeResources.Contains(resourceAffected))
             {
                 OnDeath(source, payloadResult);
                 source.OnKill(payloadResult);

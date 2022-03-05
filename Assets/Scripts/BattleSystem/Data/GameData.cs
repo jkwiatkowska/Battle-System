@@ -157,7 +157,10 @@ public static class GameData
                             {
                                 new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 25)
                             },
-                            Categories = new List<string>(){},
+                            Categories = new List<string>()
+                            {
+                                "fire"
+                            },
                             SuccessChance = 1.0f,
                             ResourceAffected = "hp"
                         },
@@ -182,6 +185,45 @@ public static class GameData
                             EndStatusOnEffectEnd = true,
                             StacksRequired = new Vector2Int(1, 1),
                             EffectType = Effect.eEffectType.Immunity
+                        }
+                    },
+                    OnStacksGained = new List<(PayloadData, int)>(),
+                    OnInterval = new List<(PayloadData, float)>()
+                }
+            },
+            {
+                "shield",
+                new StatusEffectData()
+                {
+                    StatusID = "shield",
+                    MaxStacks = 1,
+                    Duration = 15.0f,
+                    Effects = new List<Effect>()
+                    {
+                        new EffectShield()
+                        {
+                            Limit = 20,
+                            EndStatusOnEffectEnd = true,
+                            StacksRequired = new Vector2Int(1, 1),
+                            EffectType = Effect.eEffectType.Shield,
+                            ShieldResource = "shield",
+                            ShieldedResource = "hp",
+                            SetMaxShieldResource = true,
+                            ShieldResourceToGrant = new Value()
+                            {
+                                new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 300)
+                            },
+                            RemoveShieldResourceOnEffectEnd = true,
+                            MaxDamageAbsorbed = new Value()
+                            {
+                                new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 300)
+                            },
+                            DamageMultiplier = 1.0f,
+                            CategoryMultipliers = new Dictionary<string, float>()
+                            {
+                                { "fire", 1.5f },
+                                { "neutral", 0.5f }
+                            }
                         }
                     },
                     OnStacksGained = new List<(PayloadData, int)>(),
@@ -718,7 +760,7 @@ public static class GameData
                                 SuccessChance = 1.0f,
                                 ResourceAffected = "hp"
                             },
-                            ActionConditions = new List<ActionCondition>()
+                            ActionConditions = new List<ActionCondition>(),
                         },
                         new ActionPayloadDirect()
                         {
@@ -881,7 +923,8 @@ public static class GameData
                                 ResourceAffected = "hp",
                                 ApplyStatus = new List<(string StatusID, int Stacks)>()
                                 {
-                                    (StatusID: "waterImmune", Stacks: 1)
+                                    (StatusID: "waterImmune", Stacks: 1),
+                                    (StatusID: "shield", Stacks: 1),
                                 },
                                 ClearStatus = new List<(bool StatusGroup, string StatusID)>()
                                 {
