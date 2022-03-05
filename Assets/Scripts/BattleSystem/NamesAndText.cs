@@ -42,7 +42,7 @@ public static class NamesAndText
         return name;
     }
 
-    public static string DamageText(PayloadData payloadData, float value, List<string> flags, out Color color)
+    public static string DamageText(PayloadData payloadData, string resourceAffected, float value, List<string> flags, out Color color)
     {
         var text = "";
         color = Color.red;
@@ -53,7 +53,7 @@ public static class NamesAndText
             color = Color.green;
         }
 
-        text += $"{Mathf.Round(value)} {ResourceName(payloadData.ResourceAffected)}";
+        text += $"{Mathf.Round(value)} {ResourceName(resourceAffected)}";
 
         if (flags.Contains("critical"))
         {

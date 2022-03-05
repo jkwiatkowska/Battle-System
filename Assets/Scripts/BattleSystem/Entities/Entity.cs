@@ -473,7 +473,7 @@ public class Entity : MonoBehaviour
             return;
         }
 
-        HUDPopupTextHUD.Instance.DisplayDamage(this, payloadResult.PayloadData, -payloadResult.Change, payloadResult.Flags);
+        HUDPopupTextHUD.Instance.DisplayDamage(payloadResult);
 
         OnTrigger(TriggerData.eTrigger.OnPayloadApplied, triggerSource: payloadResult.Caster);
     }
@@ -1129,6 +1129,7 @@ public class Entity : MonoBehaviour
             }
 
             payloadResult.Change = previous - ResourcesCurrent[resourceAffected];
+            payloadResult.ResourceChanged = resourceAffected;
             var source = payloadResult.Caster;
 
             if (setTriggers)

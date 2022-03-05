@@ -11,6 +11,7 @@ public class PayloadResult
     public string SkillID;
     public string ActionID;
     public float Change;
+    public string ResourceChanged;
     public List<string> Flags;
 
     public PayloadResult(PayloadData payloadData, Entity caster, Entity target, string skillID = "", string actionID = "")

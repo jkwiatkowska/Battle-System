@@ -27,11 +27,11 @@ public class HUDPopupTextHUD : MonoBehaviour
         }
     }
 
-    public void DisplayDamage(Entity target, PayloadData payloadData, float change, List<string> flags)
+    public void DisplayDamage(PayloadResult payloadResult)
     {
-        string text = NamesAndText.DamageText(payloadData, change, flags, out var color);
+        string text = NamesAndText.DamageText(payloadResult.PayloadData, payloadResult.ResourceChanged, -payloadResult.Change, payloadResult.Flags, out var color);
 
-        DisplayText(target, text, color);
+        DisplayText(payloadResult.Target, text, color);
     }
 
     public void DisplayMiss(Entity target)
