@@ -92,6 +92,11 @@ public abstract class ActionPayload : Action
                     continue;
                 }
 
+                if (payloadData.PayloadCondition != null && !payloadData.PayloadCondition.CheckCondition(entity, t))
+                {
+                    continue;
+                }
+
                 var result = new PayloadResult(payloadData, entity, t, SkillID, ActionID);
 
                 var immunity = t.HasImmunityAgainstAction(this);

@@ -6,10 +6,11 @@ public class ActionCondition
 {
     public enum eActionCondition
     {
-        OnActionSuccess,            // Only execute if the condition action was executed succesfully.
-        OnActionFail,               // Only execute if the condition action failed to execute.
-        OnValueBelow,               // Checks if a certain value is low enough.
-        OnValueAbove                // Checks if a calue is high enough
+        ActionSuccess,              // Only execute if the condition action was executed succesfully.
+        ActionFail,                 // Only execute if the condition action failed to execute.
+        ValueBelow,                 // Checks if a certain value is low enough.
+        ValueAbove,                 // Checks if a value is high enough
+        HasStatus,                  // Checks if the caster has the specified status.
     }
 
     // Used by OnMinValue condition
@@ -24,13 +25,14 @@ public class ActionCondition
     public eActionCondition Condition;
     public eConditionValueType ConditionValueType;
     public float ConditionValueBoundary;            // Minimum or maximum value to compare against
-    public string ConditionTarget;                  // Name of resource if using resource ratio, or action if onActionSuccess/Fail
+    public string ConditionTarget;                  // Name of resource if using resource ratio, action if ActionSuccess/Fail or status ID
+    public int MinStatusStacks;                     // For the HasStatus condition.
 
     public virtual bool ConditionMet(Entity entity, string actionID, Dictionary<string, ActionResult> actionResults)
     {
         switch (Condition)
         {
-            case eActionCondition.OnActionSuccess:
+            case eActionCondition.ActionSuccess:
             {
                 if (actionResults.ContainsKey(ConditionTarget))
                 {
@@ -42,7 +44,7 @@ public class ActionCondition
                     return false;
                 }
             }
-            case eActionCondition.OnActionFail:
+            case eActionCondition.ActionFail:
             {
                 if (actionResults.ContainsKey(ConditionTarget))
                 {
@@ -54,7 +56,7 @@ public class ActionCondition
                     return false;
                 }
             }
-            case eActionCondition.OnValueAbove:
+            case eActionCondition.ValueAbove:
             {
                 switch (ConditionValueType)
                 {
@@ -81,7 +83,7 @@ public class ActionCondition
                     }
                 }
             }
-            case eActionCondition.OnValueBelow:
+            case eActionCondition.ValueBelow:
             {
                 switch (ConditionValueType)
                 {
@@ -107,6 +109,10 @@ public class ActionCondition
                         return false;
                     }
                 }
+            }
+            case eActionCondition.HasStatus:
+            {
+                return entity.GetStatusEffectStacks(ConditionTarget) > MinStatusStacks;
             }
             default:
             {

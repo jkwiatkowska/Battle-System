@@ -21,10 +21,10 @@ public class PayloadData
 
     public float SuccessChance;
 
+    public PayloadCondition PayloadCondition;           // Condition for the payload to be applied.
+
     // TO DO:
-    // - Status effects (DoT, HoT, buff, debuff, passive effect, stun, apply skill, grant immunity), apply and remove lists by status name
-    // - Force applied
-    // - Consider conditional passives that apply to payload
+    // - Force applied to target.
 
     public PayloadData()
     {
@@ -32,5 +32,151 @@ public class PayloadData
         PayloadValue = new Value();
         Flags = new List<string>();
         SuccessChance = 1.0f;
+    }
+}
+
+public abstract class PayloadCondition
+{
+    public enum ePayloadConditionType
+    {
+        TargetHasStatus,
+        TargetWithinDistance,
+        TargetResourceInRange,
+        AngleBetweenDirections,
+    }
+
+    public ePayloadConditionType ConditionType;
+
+    public bool ExpectedResult;             // If false, the check must fail for the condition to be met.
+    public PayloadCondition AndCondition;   // Both conditions must succeed for the condtion to be met.
+    public PayloadCondition OrCondition;    // If this check fails, another can be made with a different condition.
+
+    public bool CheckCondition(Entity caster, Entity target)
+    {
+        if (ConditionMet(caster, target) == ExpectedResult)
+        {
+            if (AndCondition != null)
+            {
+                return AndCondition.CheckCondition(caster, target);
+            }
+
+            return true;
+        }
+        else
+        {
+            return OrCondition != null && OrCondition.CheckCondition(caster, target);
+        }
+    }
+
+    protected abstract bool ConditionMet(Entity caster, Entity target);
+}
+
+public class PayloadConditionStatus : PayloadCondition
+{
+    public string StatusID;
+    public int MinStatusStacks;
+
+    protected override bool ConditionMet(Entity caster, Entity target)
+    {
+        return target.GetStatusEffectStacks(StatusID) > MinStatusStacks;
+    }
+}
+
+public abstract class PayloadConditionRange : PayloadCondition
+{
+    public Vector2 Range;
+
+    protected override bool ConditionMet(Entity caster, Entity target)
+    {
+        var value = GetValue(caster, target);
+
+        return value >= Range.x - Constants.Epsilon && value <= Range.y + Constants.Epsilon;
+    }
+
+    protected abstract float GetValue(Entity caster, Entity target);
+}
+
+public class PayloadConditionDistance : PayloadConditionRange
+{
+    protected override bool ConditionMet(Entity caster, Entity target)
+    {
+        var value = GetValue(caster, target);
+
+        return value >= (Range.x * Range.x) - Constants.Epsilon && value <= (Range.y * Range.y) + Constants.Epsilon;
+    }
+
+    protected override float GetValue(Entity caster, Entity target)
+    {
+        return (target.transform.position - caster.transform.position).sqrMagnitude;
+    }
+}
+
+public class PayloadConditionResource : PayloadConditionRange
+{
+    public string Resource;
+
+    protected override float GetValue(Entity caster, Entity target)
+    {
+        return (target.ResourcesCurrent.ContainsKey(Resource) ? target.ResourcesCurrent[Resource] : 0.0f);
+    }
+}
+
+public class PayloadConditionAngle : PayloadConditionRange
+{
+    public enum eDirection
+    {
+        CasterToTarget,
+        TargetToCaster,
+        CasterForward,
+        TargetForward,
+        CasterRight,
+        TargetRight,
+    }
+
+    public eDirection Direction1;
+    public eDirection Direction2;
+
+    protected override float GetValue(Entity caster, Entity target)
+    {
+        var dir1 = Direction(Direction1, caster, target);
+        var dir2 = Direction(Direction2, caster, target);
+
+        return Vector3.Angle(dir1, dir2);
+    }
+
+    Vector3 Direction(eDirection direction, Entity caster, Entity target)
+    {
+        switch (direction)
+        {
+            case eDirection.CasterToTarget:
+            {
+                return (target.transform.position - caster.transform.position).normalized;
+            }
+            case eDirection.TargetToCaster:
+            {
+                return (caster.transform.position - target.transform.position).normalized;
+            }
+            case eDirection.CasterForward:
+            {
+                return caster.transform.forward;
+            }
+            case eDirection.TargetForward:
+            {
+                return target.transform.forward;
+            }
+            case eDirection.CasterRight:
+            {
+                return caster.transform.right;
+            }
+            case eDirection.TargetRight:
+            {
+                return target.transform.right;
+            }
+            default:
+            {
+                Debug.LogError($"Invalid direction type: {direction}");
+                return Vector3.one;
+            }
+        }
     }
 }

@@ -202,7 +202,7 @@ public static class GameData
                     {
                         new EffectResourceGuard()
                         {
-                            Limit = 2,
+                            Limit = 0,
                             EndStatusOnEffectEnd = true,
                             StacksRequired = new Vector2Int(1, 1),
                             EffectType = Effect.eEffectType.ResourceGuard,
@@ -900,7 +900,7 @@ public static class GameData
                             {
                                 new ActionCondition()
                                 {
-                                    Condition = ActionCondition.eActionCondition.OnActionSuccess,
+                                    Condition = ActionCondition.eActionCondition.ActionSuccess,
                                     ConditionTarget = "neutralAttackAction"
                                 }
                             }
