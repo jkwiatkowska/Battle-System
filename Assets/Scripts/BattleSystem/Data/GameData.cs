@@ -192,6 +192,36 @@ public static class GameData
                 }
             },
             {
+                "hpGuard",
+                new StatusEffectData()
+                {
+                    StatusID = "hpGuard",
+                    MaxStacks = 1,
+                    Duration = 15.0f,
+                    Effects = new List<Effect>()
+                    {
+                        new EffectResourceGuard()
+                        {
+                            Limit = 2,
+                            EndStatusOnEffectEnd = true,
+                            StacksRequired = new Vector2Int(1, 1),
+                            EffectType = Effect.eEffectType.ResourceGuard,
+                            Resource = "hp",
+                            MinValue = new Value()
+                            {
+                                new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 1.0f)
+                            },
+                            MaxValue = new Value()
+                            {
+                                new ValueComponent(ValueComponent.eValueComponentType.TargetResourceMax, 0.2f, "hp")
+                            },
+                        }
+                    },
+                    OnStacksGained = new List<(PayloadData, int)>(),
+                    OnInterval = new List<(PayloadData, float)>()
+                }
+            },
+            {
                 "skillLock",
                 new StatusEffectData()
                 {
@@ -935,7 +965,8 @@ public static class GameData
                                 ResourceAffected = "hp",
                                 ApplyStatus = new List<(string StatusID, int Stacks)>()
                                 {
-                                    ("explodeTrigger", 1)
+                                    ("explodeTrigger", 1),
+                                    ("hpGuard", 1)
                                 }
                             },
                             ActionConditions = new List<ActionCondition>(),

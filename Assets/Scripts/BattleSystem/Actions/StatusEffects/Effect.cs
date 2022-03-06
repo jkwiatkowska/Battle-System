@@ -12,6 +12,7 @@ public abstract class Effect
         DamageVulnerability,                            // Increased damage from specific skills, effects and payload types.
         Immunity,                                       // Full immunity to particular skills, payload types or effects.
         Lock,                                           // Prevents the target from using specific skills or moving.
+        ResourceGuard,                                  // Prevents a resource from going below a specified amount.
         Shield,                                         // A resource can be substituted with another by a shield.
         Trigger,                                        // New triggers are added to an entity for the effect's duration.
     }
@@ -160,6 +161,34 @@ public class Immunity : LimitedEffect<EffectImmunity>
 }
 #endregion
 
+#region Lock
+public class EffectLock : Effect
+{
+    public enum eLockType
+    {
+        SkillsAll,
+        SkillsGroup,
+        Skill,
+        Movement,
+        Jump
+    }
+
+    public eLockType LockType;
+    public string Skill;        // Name of the skill or skill group locked.
+
+    public override void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload)
+    {
+        target.ApplyLock(this, Key(statusID, effectIndex));
+    }
+
+    public override void Remove(string statusID, int effectIndex, Entity target, bool endStatus = false)
+    {
+        target.RemoveLock(this, Key(statusID, effectIndex));
+    }
+}
+
+#endregion
+
 #region Resistance
 public class EffectResistance : Effect
 {
@@ -182,6 +211,81 @@ public class EffectResistance : Effect
         }
     }
 }
+#endregion
+
+#region Resource Guard
+public class EffectResourceGuard : Effect
+{
+    public string Resource; // Guarded resource.
+
+    public Value MinValue;  // If not null or empty, the resource cannot be lower than this value.
+    public Value MaxValue;  // If not null or empty, the resource cannot be higher than this value.
+
+    public int Limit;       // If not zero, the guard will disappear after it's used this number of times.
+
+    public override void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload)
+    {
+        var casterAttributes = caster.EntityAttributes(payload.Action.SkillID,
+                               payload.Action.ActionID, statusID, payload.PayloadData.Categories);
+
+        var resourceGuard = new ResourceGuard()
+        {
+            Data = this,
+            MinValue = MinValue.OutgoingValues(caster, casterAttributes, null),
+            MaxValue = MaxValue.OutgoingValues(caster, casterAttributes, null),
+            UsesLeft = Limit,
+            StatusID = statusID,
+            EffectIndex = effectIndex
+        };
+
+        target.ApplyResourceGuard(resourceGuard, Key(statusID, effectIndex));
+    }
+
+    public override void Remove(string statusID, int effectIndex, Entity target, bool endStatus = false)
+    {
+        target.RemoveResourceGuard(Resource, Key(statusID, effectIndex));
+
+        if (endStatus & EndStatusOnEffectEnd)
+        {
+            target.DelayedStatusEffectRemoval(statusID);
+        }
+    }
+}
+
+public class ResourceGuard : LimitedEffect<EffectResourceGuard>
+{
+    public Value MinValue;
+    public Value MaxValue;
+
+    public bool Guard(Entity entity, float resourceValue, out float resourceGuarded)
+    {
+        resourceGuarded = resourceValue;
+
+        if (MinValue != null && MinValue.Count > 0)
+        {
+            var min = MinValue.IncomingValue(entity);
+            if (resourceValue < min)
+            {
+                resourceGuarded = min;
+                return true;
+            }
+        }
+
+        if (MaxValue != null && MaxValue.Count > 0)
+        {
+            var max = MaxValue.IncomingValue(entity);
+
+            if (resourceValue > max)
+            {
+                resourceGuarded = max;
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
 #endregion
 
 #region Shield
@@ -250,35 +354,12 @@ public class Shield : LimitedEffect<EffectShield>
 
         base.Use(entity);
     }
-}
-#endregion
 
-#region Lock
-public class EffectLock : Effect
-{
-    public enum eLockType
+    public void RemoveShield(Entity entity)
     {
-        SkillsAll,
-        SkillsGroup,
-        Skill,
-        Movement,
-        Jump
-    }
-
-    public eLockType LockType;
-    public string Skill;        // Name of the skill or skill group locked.
-
-    public override void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload)
-    {
-        target.ApplyLock(this, Key(statusID, effectIndex));
-    }
-
-    public override void Remove(string statusID, int effectIndex, Entity target, bool endStatus = false)
-    {
-        target.RemoveLock(this, Key(statusID, effectIndex));
+        Data.Remove(StatusID, EffectIndex, entity, true);
     }
 }
-
 #endregion
 
 #region Trigger

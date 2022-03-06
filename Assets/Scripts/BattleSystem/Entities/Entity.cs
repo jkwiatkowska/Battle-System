@@ -37,13 +37,14 @@ public class Entity : MonoBehaviour
     public float SkillChargeRatio                                           { get; protected set; }
 
     // Status effects
-    protected Dictionary<string, StatusEffect> StatusEffects;                                       // Key: Status ID
-    protected Dictionary<string, Dictionary<string, AttributeChange>> AttributeChanges;             // Key: Attribute affected, key 2: generated key
-    protected Dictionary<Effect.ePayloadFilter, Dictionary<string, Immunity>> Immunities;
-    protected Dictionary<Effect.ePayloadFilter, Dictionary<string, EffectResistance>> Resistances;
-    protected Dictionary<string, Dictionary<string, Shield>> Shields;                               // Key: attribute protected, key 2: generated key
-    protected Dictionary<EffectLock.eLockType, Dictionary<string, EffectLock>> Locks;               // Key: lock type, key 2: generated key.
-    protected Dictionary<TriggerData.eTrigger, Dictionary<string, Trigger>> EffectTriggers;         // Key: trigger type, Key2: trigger ID.
+    protected Dictionary<string, StatusEffect> StatusEffects;                                       // Key: Status ID.
+    protected Dictionary<string, Dictionary<string, AttributeChange>> AttributeChanges;             // Key: Attribute affected, key 2: generated key.
+    protected Dictionary<Effect.ePayloadFilter, Dictionary<string, Immunity>> Immunities;           // Key: Payload filter, key2: generated key.
+    protected Dictionary<EffectLock.eLockType, Dictionary<string, EffectLock>> Locks;               // Key: Lock type, key 2: generated key.
+    protected Dictionary<Effect.ePayloadFilter, Dictionary<string, EffectResistance>> Resistances;  // Not implemented.
+    protected Dictionary<string, Dictionary<string, ResourceGuard>> ResourceGuards;                 // Key: Guarded resource, key2: generated key.
+    protected Dictionary<string, Dictionary<string, Shield>> Shields;                               // Key: Attribute protected, key 2: generated key.
+    protected Dictionary<TriggerData.eTrigger, Dictionary<string, Trigger>> EffectTriggers;         // Key: Trigger type, Key2: trigger ID.
 
     // Triggers
     protected Dictionary<TriggerData.eTrigger, List<Trigger>> Triggers;
@@ -88,13 +89,14 @@ public class Entity : MonoBehaviour
         }
 
         // Status effects
-        StatusEffects = new Dictionary<string, StatusEffect>();
-        AttributeChanges = new Dictionary<string, Dictionary<string, AttributeChange>>();
-        Immunities = new Dictionary<Effect.ePayloadFilter, Dictionary<string, Immunity>>();
-        Resistances = new Dictionary<Effect.ePayloadFilter, Dictionary<string, EffectResistance>>();
-        Shields = new Dictionary<string, Dictionary<string, Shield>>();
-        Locks = new Dictionary<EffectLock.eLockType, Dictionary<string, EffectLock>>();
-        EffectTriggers = new Dictionary<TriggerData.eTrigger, Dictionary<string, Trigger>>();
+        StatusEffects       = new Dictionary<string, StatusEffect>();
+        AttributeChanges    = new Dictionary<string, Dictionary<string, AttributeChange>>();
+        Immunities          = new Dictionary<Effect.ePayloadFilter, Dictionary<string, Immunity>>();
+        Locks               = new Dictionary<EffectLock.eLockType, Dictionary<string, EffectLock>>();
+        Resistances         = new Dictionary<Effect.ePayloadFilter, Dictionary<string, EffectResistance>>();
+        ResourceGuards      = new Dictionary<string, Dictionary<string, ResourceGuard>>();
+        Shields             = new Dictionary<string, Dictionary<string, Shield>>();
+        EffectTriggers      = new Dictionary<TriggerData.eTrigger, Dictionary<string, Trigger>>();
 
         // Resources
 
@@ -843,72 +845,6 @@ public class Entity : MonoBehaviour
     }
     #endregion
 
-    #region Resistance
-    public void ApplyResistance(EffectResistance resistance, string key)
-    {
-        if (!Immunities.ContainsKey(resistance.PayloadFilter))
-        {
-            Resistances[resistance.PayloadFilter] = new Dictionary<string, EffectResistance>();
-        }
-        Resistances[resistance.PayloadFilter][key] = resistance;
-    }
-
-    public void RemoveResistance(Effect.ePayloadFilter payloadFilter, string key)
-    {
-        if (!Resistances.ContainsKey(payloadFilter) || !Resistances[payloadFilter].ContainsKey(key))
-        {
-            return;
-        }
-
-        Resistances[payloadFilter].Remove(key);
-    }
-    #endregion
-
-    #region Shield
-    public void ApplyShield(Shield shield, string key, float resourceGranted)
-    {
-        if (!Shields.ContainsKey(shield.Data.ShieldedResource))
-        {
-            Shields.Add(shield.Data.ShieldedResource, new Dictionary<string, Shield>());
-        }
-
-        Shields[shield.Data.ShieldedResource][key] = shield;
-        if (resourceGranted > Constants.Epsilon)
-        {
-            if (!ResourcesMax.ContainsKey(shield.Data.ShieldResource) || shield.Data.SetMaxShieldResource)
-            {
-                ResourcesMax[shield.Data.ShieldResource] = resourceGranted;
-            }
-
-            if (!ResourcesCurrent.ContainsKey(shield.Data.ShieldResource))
-            {
-                ResourcesCurrent.Add(shield.Data.ShieldResource, resourceGranted);
-            }
-            else
-            {
-                ApplyChangeToResource(shield.Data.ShieldResource, resourceGranted);
-            }
-
-            EntityCanvas.SetupResourceDisplay(shield.Data.ShieldResource);
-        }
-    }
-
-    public void RemoveShield(EffectShield shieldData, string key)
-    {
-        if (!Shields.ContainsKey(shieldData.ShieldedResource) || !Shields[shieldData.ShieldedResource].ContainsKey(key))
-        {
-            return;
-        }
-
-        if (shieldData.RemoveShieldResourceOnEffectEnd)
-        {
-            ResourcesCurrent[shieldData.ShieldResource] = 0.0f;
-            EntityCanvas.UpdateResourceDisplay(shieldData.ShieldResource);
-        }
-        Shields[shieldData.ShieldedResource].Remove(key);
-    }
-    #endregion
-
     #region Locks
 
     public void ApplyLock(EffectLock lockData, string key)
@@ -965,6 +901,94 @@ public class Entity : MonoBehaviour
 
     public bool IsJumpingLocked => Locks.ContainsKey(EffectLock.eLockType.Jump) && Locks[EffectLock.eLockType.Jump].Count > 0;
 
+    #endregion
+
+    #region Resistance
+    public void ApplyResistance(EffectResistance resistance, string key)
+    {
+        if (!Immunities.ContainsKey(resistance.PayloadFilter))
+        {
+            Resistances[resistance.PayloadFilter] = new Dictionary<string, EffectResistance>();
+        }
+        Resistances[resistance.PayloadFilter][key] = resistance;
+    }
+
+    public void RemoveResistance(Effect.ePayloadFilter payloadFilter, string key)
+    {
+        if (!Resistances.ContainsKey(payloadFilter) || !Resistances[payloadFilter].ContainsKey(key))
+        {
+            return;
+        }
+
+        Resistances[payloadFilter].Remove(key);
+    }
+    #endregion
+
+    #region ResourceGuard
+    public void ApplyResourceGuard(ResourceGuard resourceGuard, string key)
+    {
+        if (!ResourceGuards.ContainsKey(resourceGuard.Data.Resource))
+        {
+            ResourceGuards[resourceGuard.Data.Resource] = new Dictionary<string, ResourceGuard>();
+        }
+        ResourceGuards[resourceGuard.Data.Resource][key] = resourceGuard;
+    }
+
+    public void RemoveResourceGuard(string resource, string key)
+    {
+        if (!ResourceGuards.ContainsKey(resource) || !ResourceGuards[resource].ContainsKey(key))
+        {
+            return;
+        }
+
+        ResourceGuards[resource].Remove(key);
+    }
+
+    #endregion
+
+    #region Shield
+    public void ApplyShield(Shield shield, string key, float resourceGranted)
+    {
+        if (!Shields.ContainsKey(shield.Data.ShieldedResource))
+        {
+            Shields.Add(shield.Data.ShieldedResource, new Dictionary<string, Shield>());
+        }
+
+        Shields[shield.Data.ShieldedResource][key] = shield;
+        if (resourceGranted > Constants.Epsilon)
+        {
+            if (!ResourcesMax.ContainsKey(shield.Data.ShieldResource) || shield.Data.SetMaxShieldResource)
+            {
+                ResourcesMax[shield.Data.ShieldResource] = resourceGranted;
+            }
+
+            if (!ResourcesCurrent.ContainsKey(shield.Data.ShieldResource))
+            {
+                ResourcesCurrent.Add(shield.Data.ShieldResource, resourceGranted);
+            }
+            else
+            {
+                ApplyChangeToResource(shield.Data.ShieldResource, resourceGranted);
+            }
+
+            EntityCanvas.SetupResourceDisplay(shield.Data.ShieldResource);
+        }
+    }
+
+    public void RemoveShield(EffectShield shieldData, string key)
+    {
+        if (!Shields.ContainsKey(shieldData.ShieldedResource) || !Shields[shieldData.ShieldedResource].ContainsKey(key))
+        {
+            return;
+        }
+
+        if (shieldData.RemoveShieldResourceOnEffectEnd)
+        {
+            ResourcesCurrent[shieldData.ShieldResource] = 0.0f;
+            EntityCanvas.UpdateResourceDisplay(shieldData.ShieldResource);
+        }
+        Shields[shieldData.ShieldedResource].Remove(key);
+    }
     #endregion
 
     #endregion
@@ -1156,14 +1180,16 @@ public class Entity : MonoBehaviour
         }
     }
 
+    // Payload resource change.
     public void ApplyChangeToResource(string resource, PayloadResult payloadResult, bool setTriggers = true)
     {
         var change = payloadResult.Change;
         var resourceAffected = resource;
 
+        // Replace the resource and update change if it's being shielded
+        Shield shield = null;
         if (change < 0.0f && Shields.ContainsKey(resource) && Shields[resource].Count > 0)
         {
-            Shield shield = null;
             int best = -1;
 
             foreach (var s in Shields[resource])
@@ -1199,23 +1225,73 @@ public class Entity : MonoBehaviour
             change *= multiplier;
 
             resourceAffected = shield.Data.ShieldResource;
-
-            shield.UseShield(this, -change);
         }
 
+        // Remove shield if there is one and it ran out.
+        if (shield != null)
+        {
+            if (change >= ResourcesCurrent[resourceAffected])
+            {
+                shield.RemoveShield(this);
+            }
+            else
+            {
+                shield.UseShield(this, -change);
+            }
+        }
+
+        // Apply change
         var previous = ResourcesCurrent[resourceAffected];
         ResourcesCurrent[resourceAffected] = Mathf.Clamp(ResourcesCurrent[resourceAffected] + change, 0.0f, ResourcesMax[resourceAffected]);
 
+        // Resource guards
+        if (ResourceGuards.ContainsKey(resourceAffected) && ResourceGuards[resourceAffected].Count > 0)
+        {
+            var resourceNow = ResourcesCurrent[resourceAffected];
+            ResourceGuard min = null;
+            ResourceGuard max = null;
+
+            // Go through all guards. Use the most extreme ones applied.
+            foreach (var guard in ResourceGuards[resourceAffected])
+            {
+                if (guard.Value.Guard(this, resourceNow, out var changedResource))
+                {
+                    if (changedResource > resourceNow)
+                    {
+                        min = guard.Value;
+                    }
+                    else if (changedResource < resourceNow)
+                    {
+                        max = guard.Value;
+                    }
+
+                    resourceNow = changedResource;
+                }
+            }
+
+            if (min != null)
+            {
+                min.Use(this);
+            }
+            if (max != null)
+            {
+                max.Use(this);
+            }
+
+            ResourcesCurrent[resourceAffected] = resourceNow;
+        }
+
+        // Update payload result.
+        payloadResult.Change = previous - ResourcesCurrent[resourceAffected];
+        payloadResult.ResourceChanged = resourceAffected;
+
+        // Update display and set any related triggers.
         if (previous != ResourcesCurrent[resourceAffected])
         {
             if (EntityCanvas != null)
             {
                 EntityCanvas.UpdateResourceDisplay(resourceAffected);
             }
-
-            payloadResult.Change = previous - ResourcesCurrent[resourceAffected];
-            payloadResult.ResourceChanged = resourceAffected;
-            var source = payloadResult.Caster;
 
             if (setTriggers)
             {
@@ -1227,8 +1303,8 @@ public class Entity : MonoBehaviour
 
             if (ResourcesCurrent[resourceAffected] <= 0.0f && EntityData.LifeResources.Contains(resourceAffected))
             {
-                OnDeath(source, payloadResult);
-                source.OnKill(payloadResult);
+                OnDeath(payloadResult.Caster, payloadResult);
+                payloadResult.Caster.OnKill(payloadResult);
             }
         }
         else
@@ -1237,10 +1313,30 @@ public class Entity : MonoBehaviour
         }
     }
 
+    // Passive and cost resource change.
     public void ApplyChangeToResource(string resource, float change)
     {
+        // Apply change.
         var previous = ResourcesCurrent[resource];
         ResourcesCurrent[resource] = Mathf.Clamp(ResourcesCurrent[resource] + change, 0.0f, ResourcesMax[resource]);
+
+        // Resource guards
+        if (ResourceGuards.ContainsKey(resource) && ResourceGuards[resource].Count > 0)
+        {
+            var resourceNow = ResourcesCurrent[resource];
+
+            foreach (var guard in ResourceGuards[resource])
+            {
+                if (guard.Value.Guard(this, resourceNow, out var changedResource))
+                {
+                    resourceNow = changedResource;
+                }
+            }
+
+            ResourcesCurrent[resource] = resourceNow;
+        }
+
+        // Canvas and death trigger
         if (previous != ResourcesCurrent[resource])
         {
             if (EntityCanvas != null)
