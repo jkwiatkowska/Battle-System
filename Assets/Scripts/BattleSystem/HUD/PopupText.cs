@@ -8,12 +8,14 @@ public class PopupText : MonoBehaviour
     [SerializeField] Vector2 PositionOffsetPerSecond;
     [SerializeField] float FadePerSecond;
     [SerializeField] float ScaleChangePerSecond;
+    [SerializeField] Vector2 RandomOffset;
     Text Text;
     Vector3 Scale;
 
     Canvas Canvas;
     Vector3 WorldPosition;
     float StartTime;
+    Vector2 Offset;
 
     void Awake()
     {
@@ -25,6 +27,7 @@ public class PopupText : MonoBehaviour
     {
         WorldPosition = worldPosition;
         Canvas = canvas;
+        Offset = new Vector2(Random.Range(-RandomOffset.x, RandomOffset.x), Random.Range(-RandomOffset.y, RandomOffset.y));
 
         Setup(text, color);
     }
@@ -45,7 +48,7 @@ public class PopupText : MonoBehaviour
         {
             var timeSinceStart = BattleSystem.Time - StartTime;
 
-            var offset = PositionOffsetPerSecond * timeSinceStart;
+            var offset = Offset + PositionOffsetPerSecond * timeSinceStart;
 
             if (Canvas != null && WorldPosition != null)
             {

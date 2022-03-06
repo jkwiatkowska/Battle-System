@@ -65,8 +65,7 @@ public class HUDPopupTextHUD : MonoBehaviour
 
         Popups.Enqueue((popup, BattleSystem.Time + PopupDisplayTime));
 
-        var position = target.transform.position;
-        position.y += target.EntityData.Height;
+        var position = target.Origin;
 
         popup.Setup(position, HUD, text, color);
         popup.gameObject.SetActive(true);
