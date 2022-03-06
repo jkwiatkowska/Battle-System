@@ -27,7 +27,7 @@ public abstract class ActionPayload : Action
 
     public eTarget Target;                  // Which entities the payload affects
     public eTargetState TargetState;        // What state the target has to be in to be affected
-    public PayloadData PayloadData;
+    public List<PayloadData> PayloadData;
 
     public int TargetLimit;                 // Targets can be limited for actions that affect multiple targets
     public eTargetPriority TargetPriority;  // If there's a target limit, targets can be prioritised based on specified criteria
@@ -82,26 +82,34 @@ public abstract class ActionPayload : Action
             }
         }
 
-        var payload = new Payload(entity, PayloadData, action: this, statusID: null, actionResults);
-        foreach (var t in targets)
+        foreach (var payloadData in PayloadData)
         {
-            var result = new PayloadResult(PayloadData, entity, t, SkillID, ActionID);
-
-            var immunity = t.HasImmunityAgainstAction(this);
-            if (immunity != null)
+            var payload = new Payload(entity, payloadData, action: this, statusID: null, actionResults);
+            foreach (var t in targets)
             {
-                // On hit resisted
-                t.OnImmune(entity, result);
-                continue;
-            }
+                if (t == null || !t.Alive)
+                {
+                    continue;
+                }
 
-            // Apply payload and update result if succesfull. 
-            if (!payload.ApplyPayload(entity, t, result))
-            {
-                continue;
+                var result = new PayloadResult(payloadData, entity, t, SkillID, ActionID);
+
+                var immunity = t.HasImmunityAgainstAction(this);
+                if (immunity != null)
+                {
+                    // On hit resisted
+                    t.OnImmune(entity, result);
+                    continue;
+                }
+
+                // Apply payload and update result if succesfull. 
+                if (!payload.ApplyPayload(entity, t, result))
+                {
+                    continue;
+                }
+                actionResults[ActionID].Value += result.Change;
+                actionResults[ActionID].Count += 1;
             }
-            actionResults[ActionID].Value += result.Change;
-            actionResults[ActionID].Count += 1;
         }
 
         actionResults[ActionID].Success = true;
