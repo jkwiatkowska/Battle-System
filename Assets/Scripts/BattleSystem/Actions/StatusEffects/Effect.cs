@@ -32,14 +32,20 @@ public abstract class Effect
 
     public bool EndStatusOnEffectEnd;                   // If an effect can run out before the status ends, it can cause it to end early.
 
-    public abstract void Apply(string statusID, Entity target, Entity caster, Payload payload);
-    public abstract void Remove(string statusID, Entity target, bool endStatus = false);
+    public abstract void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload);
+    public abstract void Remove(string statusID, int effectIndex, Entity target, bool endStatus = false);
+
+    protected string Key(string statusID, int effectIndex)
+    {
+        return statusID + effectIndex.ToString();
+    }
 }
 
 public class LimitedEffect<T> where T:Effect
 {
     public T Data;
     public string StatusID;
+    public int EffectIndex;
     public int UsesLeft;
 
     public virtual void Use(Entity entity)
@@ -50,7 +56,7 @@ public class LimitedEffect<T> where T:Effect
 
             if (UsesLeft <= 0)
             {
-                Data.Remove(StatusID, entity, true);
+                Data.Remove(StatusID, EffectIndex, entity, true);
             }
         }
     }
@@ -66,12 +72,12 @@ public class EffectAttributeChange : Effect
     public ePayloadFilter PayloadTargetType;            // An attribute can be affected directly or only when specific skills and actions are used.
     public string PayloadTarget;                        // Name or ID of the above.
 
-    public override void Apply(string statusID, Entity target, Entity caster, Payload payload)
+    public override void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload)
     {
         var attributeChange = new AttributeChange
         {
             Attribute = Attribute,
-            Key = Key(statusID),
+            Key = Key(statusID, effectIndex),
             Value = Value.OutgoingValues(caster, caster.EntityAttributes(payload.Action.SkillID, 
                                         payload.Action.ActionID, statusID, payload.PayloadData.Categories), null),
             PayloadFilter = PayloadTargetType,
@@ -81,14 +87,9 @@ public class EffectAttributeChange : Effect
         target.ApplyAttributeChange(attributeChange);
     }
 
-    public override void Remove(string statusID, Entity target, bool endStatus = false)
+    public override void Remove(string statusID, int effectIndex, Entity target, bool endStatus = false)
     {
-        target.RemoveAttributeChange(Attribute, Key(statusID));
-    }
-
-    public string Key(string statusID)
-    {
-        return statusID + StacksRequired.ToString() + PayloadTargetType + PayloadTarget;
+        target.RemoveAttributeChange(Attribute, Key(statusID, effectIndex));
     }
 }
 public class AttributeChange
@@ -105,12 +106,12 @@ public class AttributeChange
 #region Convert
 public class EffectConvert : Effect
 {
-    public override void Apply(string statusID, Entity target, Entity caster, Payload payload)
+    public override void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload)
     {
         target.Convert(caster.Faction);
     }
 
-    public override void Remove(string statusID, Entity target, bool endStatus = false)
+    public override void Remove(string statusID, int effectIndex, Entity target, bool endStatus = false)
     {
         target.RemoveConversion();
 
@@ -130,7 +131,7 @@ public class EffectImmunity : Effect
 
     public int Limit;                                   // If not zero, the effect will only work a set number of times.
 
-    public override void Apply(string statusID, Entity target, Entity caster, Payload payload)
+    public override void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload)
     {
         var immunity = new Immunity()
         {
@@ -139,22 +140,17 @@ public class EffectImmunity : Effect
             UsesLeft = Limit
         };
 
-        target.ApplyImmunity(immunity, Key(statusID));
+        target.ApplyImmunity(immunity, Key(statusID, effectIndex));
     }
 
-    public override void Remove(string statusID, Entity target, bool endStatus = false)
+    public override void Remove(string statusID, int effectIndex, Entity target, bool endStatus = false)
     {
-        target.RemoveImmunity(PayloadFilter, Key(statusID));
+        target.RemoveImmunity(PayloadFilter, Key(statusID, effectIndex));
 
         if (endStatus & EndStatusOnEffectEnd)
         {
             target.DelayedStatusEffectRemoval(statusID);
         }
-    }
-
-    public string Key(string statusID)
-    {
-        return statusID + StacksRequired.ToString() + PayloadFilter + PayloadName;
     }
 }
 
@@ -171,24 +167,19 @@ public class EffectResistance : Effect
     public string PayloadName;                          // Name or ID of the above.
     public float Resisted;                              // Amount of resisted damage. If 1 a skill or effect isn't applied at all. The amount stacks.
 
-    public override void Apply(string statusID, Entity target, Entity caster, Payload payload)
+    public override void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload)
     {
-        target.ApplyResistance(this, Key(statusID));
+        target.ApplyResistance(this, Key(statusID, effectIndex));
     }
 
-    public override void Remove(string statusID, Entity target, bool endStatus = false)
+    public override void Remove(string statusID, int effectIndex, Entity target, bool endStatus = false)
     {
-        target.RemoveResistance(PayloadFilter, Key(statusID));
+        target.RemoveResistance(PayloadFilter, Key(statusID, effectIndex));
 
         if (endStatus & EndStatusOnEffectEnd)
         {
             target.RemoveStatusEffect(statusID);
         }
-    }
-
-    public string Key(string statusID)
-    {
-        return statusID + StacksRequired.ToString() + PayloadFilter + PayloadName;
     }
 }
 #endregion
@@ -211,13 +202,14 @@ public class EffectShield : Effect
     public int Limit;                                       // How many times a shield can be struck before being removed. 0 for no limit. 
     public bool RemoveShieldResourceOnEffectEnd;            // If true, all of the resource used to shield will be drained when the effect ends.
 
-    public override void Apply(string statusID, Entity target, Entity caster, Payload payload)
+    public override void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload)
     {
         var casterAttributes = caster.EntityAttributes(payload.Action.SkillID,
                                payload.Action.ActionID, statusID, payload.PayloadData.Categories);
         var shield = new Shield()
         {
             Data = this,
+            EffectIndex = effectIndex,
             StatusID = statusID,
             UsesLeft = Limit,
             AbsorbtionLeft = MaxDamageAbsorbed.OutgoingValues(caster, casterAttributes, null).IncomingValue(target),
@@ -225,22 +217,17 @@ public class EffectShield : Effect
 
         var shieldResourceGranted = ShieldResourceToGrant.OutgoingValues(caster, casterAttributes, null).IncomingValue(target);
 
-        target.ApplyShield(shield, Key(statusID), shieldResourceGranted);
+        target.ApplyShield(shield, Key(statusID, effectIndex), shieldResourceGranted);
     }
 
-    public override void Remove(string statusID, Entity target, bool endStatus = false)
+    public override void Remove(string statusID, int effectIndex, Entity target, bool endStatus = false)
     {
-        target.RemoveShield(this, Key(statusID));
+        target.RemoveShield(this, Key(statusID, effectIndex));
 
         if (endStatus & EndStatusOnEffectEnd)
         {
             target.DelayedStatusEffectRemoval(statusID);
         }
-    }
-
-    public string Key(string statusID)
-    {
-        return statusID + StacksRequired.ToString() + ShieldResource + ShieldedResource + Priority;
     }
 }
 
@@ -256,7 +243,7 @@ public class Shield : LimitedEffect<EffectShield>
 
             if (AbsorbtionLeft <= -Constants.Epsilon)
             {
-                Data.Remove(StatusID, entity, true);
+                Data.Remove(StatusID, EffectIndex, entity, true);
                 return;
             }
         }
@@ -264,4 +251,49 @@ public class Shield : LimitedEffect<EffectShield>
         base.Use(entity);
     }
 }
+#endregion
+
+#region Lock
+public class EffectLock : Effect
+{
+    public enum eLockType
+    {
+        SkillsAll,
+        SkillsGroup,
+        Skill,
+        Movement,
+        Jump
+    }
+
+    public eLockType LockType;
+    public string Skill;        // Name of the skill or skill group locked.
+
+    public override void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload)
+    {
+        target.ApplyLock(this, Key(statusID, effectIndex));
+    }
+
+    public override void Remove(string statusID, int effectIndex, Entity target, bool endStatus = false)
+    {
+        target.RemoveLock(this, Key(statusID, effectIndex));
+    }
+}
+
+#endregion
+
+#region Trigger
+public class EffectTrigger : Effect
+{
+    public TriggerData TriggerData;
+    public override void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload)
+    {
+        target.AddTrigger(new Trigger(TriggerData), Key(statusID, effectIndex));
+    }
+
+    public override void Remove(string statusID, int effectIndex, Entity target, bool endStatus = false)
+    {
+        target.RemoveTrigger(TriggerData, Key(statusID, effectIndex));
+    }
+}
+
 #endregion

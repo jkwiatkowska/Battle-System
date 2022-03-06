@@ -8,6 +8,7 @@ public class Trigger
     public float LastUsedTime;
     public float ExpireTime;        // If a trigger is only added temporarily, it will only work until this time. 
     public int UsesLeft;
+    public string TriggerKey;       // For triggers from statuses.
 
     public Trigger(TriggerData triggerData, float expireTime = 0.0f)
     {

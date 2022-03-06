@@ -192,6 +192,180 @@ public static class GameData
                 }
             },
             {
+                "skillLock",
+                new StatusEffectData()
+                {
+                    StatusID = "skillLock",
+                    MaxStacks = 1,
+                    Duration = 5.0f,
+                    Effects = new List<Effect>()
+                    {
+                        new EffectLock()
+                        {
+                            EffectType = Effect.eEffectType.Lock,
+                            LockType = EffectLock.eLockType.SkillsAll,
+                            StacksRequired = new Vector2Int(1, 1)
+                        }
+                    },
+                    OnStacksGained = new List<(PayloadData, int)>(),
+                    OnInterval = new List<(PayloadData, float)>()
+                }
+            },
+            {
+                "jumpLock",
+                new StatusEffectData()
+                {
+                    StatusID = "jumpLock",
+                    MaxStacks = 1,
+                    Duration = 5.0f,
+                    Effects = new List<Effect>()
+                    {
+                        new EffectLock()
+                        {
+                            EffectType = Effect.eEffectType.Lock,
+                            LockType = EffectLock.eLockType.Jump,
+                            StacksRequired = new Vector2Int(1, 1)
+                        }
+                    },
+                    OnStacksGained = new List<(PayloadData, int)>(),
+                    OnInterval = new List<(PayloadData, float)>()
+                }
+            },
+            {
+                "moveLock",
+                new StatusEffectData()
+                {
+                    StatusID = "moveLock",
+                    MaxStacks = 1,
+                    Duration = 5.0f,
+                    Effects = new List<Effect>()
+                    {
+                        new EffectLock()
+                        {
+                            EffectType = Effect.eEffectType.Lock,
+                            LockType = EffectLock.eLockType.Movement,
+                            StacksRequired = new Vector2Int(1, 1)
+                        }
+                    },
+                    OnStacksGained = new List<(PayloadData, int)>(),
+                    OnInterval = new List<(PayloadData, float)>()
+                }
+            },
+            {
+                "explodeTrigger",
+                new StatusEffectData()
+                {
+                    StatusID = "explodeTrigger",
+                    MaxStacks = 1,
+                    Duration = 15.0f,
+                    Effects = new List<Effect>()
+                    {
+                        new EffectTrigger()
+                        {
+                            EffectType = Effect.eEffectType.Trigger,
+                            StacksRequired = new Vector2Int(1, 1),
+                            TriggerData = new TriggerData()
+                            {
+                                Trigger = TriggerData.eTrigger.OnDeath,
+                                Cooldown = 0,
+                                Limit = 0,
+                                Actions = new ActionTimeline()
+                                {
+                                    new ActionMessage()
+                                    {
+                                        ActionID = "message",
+                                        SkillID = "",
+                                        ActionType = Action.eActionType.Message,
+                                        Timestamp = 0.0f,
+                                        MessageString = "Neutral trigger. Bomb explosion in 3.",
+                                        MessageColor = Color.red
+                                    },
+                                    new ActionMessage()
+                                    {
+                                        ActionID = "message",
+                                        SkillID = "",
+                                        ActionType = Action.eActionType.Message,
+                                        Timestamp = 0.5f,
+                                        MessageString = "Bomb explosion in 2.",
+                                        MessageColor = Color.red
+                                    },
+                                    new ActionMessage()
+                                    {
+                                        ActionID = "message",
+                                        SkillID = "",
+                                        ActionType = Action.eActionType.Message,
+                                        Timestamp = 1.0f,
+                                        MessageString = "Bomb explosion in 1.",
+                                        MessageColor = Color.red
+                                    },
+                                    new ActionMessage()
+                                    {
+                                        ActionID = "message",
+                                        SkillID = "",
+                                        ActionType = Action.eActionType.Message,
+                                        Timestamp = 1.5f,
+                                        MessageString = "Boom.",
+                                        MessageColor = Color.red
+                                    },
+                                    new ActionPayloadArea()
+                                    {
+                                        ActionID = "explode",
+                                        SkillID = "",
+                                        ActionType = Action.eActionType.PayloadArea,
+                                        Timestamp = 1.5f,
+                                        TargetPriority = ActionPayload.eTargetPriority.Random,
+                                        TargetLimit = 50,
+                                        Target = ActionPayload.eTarget.AllEntities,
+                                        AreasAffected = new List<ActionPayloadArea.Area>()
+                                        {
+                                            new ActionPayloadArea.Area()
+                                            {
+                                                Shape = ActionPayloadArea.Area.eShape.Sphere,
+                                                Dimensions = new Vector3(1.5f, 360.0f, 1.0f),
+                                                InnerDimensions = new Vector2(0.0f, 0.0f),
+                                                AreaTransform = new TransformData()
+                                                {
+                                                    PositionOrigin = TransformData.ePositionOrigin.CasterPosition
+                                                }
+                                            }
+                                        },
+                                        PayloadData = new PayloadData()
+                                        {
+                                            Flags = new List<string>()
+                                            {
+
+                                            },
+                                            PayloadValue = new Value()
+                                            {
+                                                new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 1.0f, "atk")
+                                            },
+                                            Categories = new List<string>()
+                                            {
+                                                "physical"
+                                            },
+                                            SuccessChance = 1.0f,
+                                            ResourceAffected = "hp"
+                                        }
+                                    },
+                                    new ActionDestroySelf()
+                                    {
+                                        ActionID = "deathAction",
+                                        SkillID = "",
+                                        ActionType = Action.eActionType.DestroySelf,
+                                        Timestamp = 2.0f,
+                                    }
+                                },
+                                Conditions = new List<TriggerData.TriggerCondition>()
+                                {
+                                }
+                            }
+                        }
+                    },
+                    OnStacksGained = new List<(PayloadData, int)>(),
+                    OnInterval = new List<(PayloadData, float)>()
+                }
+            },
+            {
                 "shield",
                 new StatusEffectData()
                 {
@@ -751,14 +925,18 @@ public static class GameData
                                 Flags = new List<string>(),
                                 PayloadValue = new Value()
                                 {
-                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 0.8f, "atk")
+                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 4.8f, "atk")
                                 },
                                 Categories = new List<string>()
                                 {
                                     "neutral"
                                 },
                                 SuccessChance = 1.0f,
-                                ResourceAffected = "hp"
+                                ResourceAffected = "hp",
+                                ApplyStatus = new List<(string StatusID, int Stacks)>()
+                                {
+                                    ("explodeTrigger", 1)
+                                }
                             },
                             ActionConditions = new List<ActionCondition>(),
                         },
@@ -778,13 +956,16 @@ public static class GameData
                                 PayloadValue = new Value(),
                                 Categories = new List<string>()
                                 {
-                                    "buff"
+                                    "buff",
                                 },
                                 SuccessChance = 1.0f,
                                 ResourceAffected = "",
                                 ApplyStatus = new List<(string StatusID, int Stacks)>()
                                 {
-                                    ("neutralBuff", 1)
+                                    ("neutralBuff", 1),
+                                    //("skillLock", 1),
+                                    //("jumpLock", 1),
+                                    //("moveLock", 1)
                                 }
                             },
                             ActionConditions = new List<ActionCondition>()
@@ -847,7 +1028,7 @@ public static class GameData
                                 },
                                 PayloadValue = new Value()
                                 {
-                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 0.8f, "atk")
+                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 4.8f, "atk")
                                 },
                                 Categories = new List<string>()
                                 {
@@ -913,7 +1094,7 @@ public static class GameData
                                 },
                                 PayloadValue = new Value()
                                 {
-                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 0.8f, "atk")
+                                    new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 4.8f, "atk")
                                 },
                                 Categories = new List<string>()
                                 {

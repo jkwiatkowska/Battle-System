@@ -15,7 +15,7 @@ public class MovementPlayer : MovementEntity
     public virtual void MovePlayer(Vector2 input, float speedMultiplier = 1.0f)
     {
         // To do: Make a player movement class and move this there
-        if (IsMovementLocked)
+        if (Parent.IsMovementLocked)
         {
             return;
         }

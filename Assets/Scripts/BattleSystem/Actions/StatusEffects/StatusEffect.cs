@@ -135,32 +135,33 @@ public class StatusEffect
         var stacksBefore = CurrentStacks;
         CurrentStacks = Mathf.Clamp(CurrentStacks + change, 0, Data.MaxStacks);
 
-        foreach (var effect in Data.Effects)
+        for (int i = 0; i < Data.Effects.Count; i++)
         {
+            var effect = Data.Effects[i];
             if (change > 0)
             {
                 if (effect.StacksRequired.y < CurrentStacks)
                 {
-                    effect.Remove(Data.StatusID, Target);
+                    effect.Remove(Data.StatusID, i, Target);
                 }
 
                 if (effect.StacksRequired.x > stacksBefore && effect.StacksRequired.x <= CurrentStacks && 
                     effect.StacksRequired.y >= CurrentStacks)
                 {
-                    effect.Apply(Data.StatusID, Target, Caster, SourcePayload);
+                    effect.Apply(Data.StatusID, i, Target, Caster, SourcePayload);
                 }
             }
             else if (change < 0)
             {
                 if (effect.StacksRequired.x > CurrentStacks)
                 {
-                    effect.Remove(Data.StatusID, Target);
+                    effect.Remove(Data.StatusID, i, Target);
                 }
 
                 if (effect.StacksRequired.y < stacksBefore && effect.StacksRequired.x <= CurrentStacks &&
                     effect.StacksRequired.y >= CurrentStacks)
                 {
-                    effect.Apply(Data.StatusID, Target, Caster, SourcePayload);
+                    effect.Apply(Data.StatusID, i, Target, Caster, SourcePayload);
                 }
             }
         }
@@ -191,9 +192,10 @@ public class StatusEffect
 
     public void RemoveStatus()
     {
-        foreach (var effect in Data.Effects)
+        for (int i = 0; i < Data.Effects.Count; i++)
         {
-            effect.Remove(Data.StatusID, Target);
+            var effect = Data.Effects[i];
+            effect.Remove(Data.StatusID, i, Target);
         }
     }
 }

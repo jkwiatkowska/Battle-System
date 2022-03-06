@@ -42,6 +42,8 @@ public class Entity : MonoBehaviour
     protected Dictionary<Effect.ePayloadFilter, Dictionary<string, Immunity>> Immunities;
     protected Dictionary<Effect.ePayloadFilter, Dictionary<string, EffectResistance>> Resistances;
     protected Dictionary<string, Dictionary<string, Shield>> Shields;                               // Key: attribute protected, key 2: generated key
+    protected Dictionary<EffectLock.eLockType, Dictionary<string, EffectLock>> Locks;               // Key: lock type, key 2: generated key.
+    protected Dictionary<TriggerData.eTrigger, Dictionary<string, Trigger>> EffectTriggers;         // Key: trigger type, Key2: trigger ID.
 
     // Triggers
     protected Dictionary<TriggerData.eTrigger, List<Trigger>> Triggers;
@@ -91,6 +93,8 @@ public class Entity : MonoBehaviour
         Immunities = new Dictionary<Effect.ePayloadFilter, Dictionary<string, Immunity>>();
         Resistances = new Dictionary<Effect.ePayloadFilter, Dictionary<string, EffectResistance>>();
         Shields = new Dictionary<string, Dictionary<string, Shield>>();
+        Locks = new Dictionary<EffectLock.eLockType, Dictionary<string, EffectLock>>();
+        EffectTriggers = new Dictionary<TriggerData.eTrigger, Dictionary<string, Trigger>>();
 
         // Resources
 
@@ -413,14 +417,25 @@ public class Entity : MonoBehaviour
     #endregion
 
     #region Triggers
-    public void AddTrigger(Trigger trigger)
+    public void AddTrigger(Trigger trigger, string key = "")
     {
         if (!Triggers.ContainsKey(trigger.TriggerData.Trigger))
         {
             Triggers[trigger.TriggerData.Trigger] = new List<Trigger>();
         }
 
+        trigger.TriggerKey = key;
         Triggers[trigger.TriggerData.Trigger].Add(trigger);
+    }
+
+    public void RemoveTrigger(TriggerData triggerData, string key)
+    {
+        if (!Triggers.ContainsKey(triggerData.Trigger))
+        {
+            return;
+        }
+
+        Triggers[triggerData.Trigger].RemoveAll(t => t.TriggerKey.Equals(key));
     }
 
     protected virtual void OnTrigger(TriggerData.eTrigger trigger, Entity triggerSource = null, PayloadResult payloadResult = null, 
@@ -565,6 +580,7 @@ public class Entity : MonoBehaviour
     #endregion
 
     #region Status Effects
+    #region Status
     public void ApplyStatusEffect(Entity sourceEntity, Action action, string statusID, int stacks, Payload sourcePayload)
     {
         if (!GameData.StatusEffectData.ContainsKey(statusID))
@@ -645,7 +661,9 @@ public class Entity : MonoBehaviour
             StatusEffects.Remove(statusID);
         }
     }
+    #endregion
 
+    #region Attribute Change
     public void ApplyAttributeChange(AttributeChange attributeChange)
     {
         if (!AttributeChanges.ContainsKey(attributeChange.Attribute))
@@ -668,7 +686,9 @@ public class Entity : MonoBehaviour
 
         SetupResourcesMax();
     }
+    #endregion
 
+    #region Conversion
     public void Convert(string faction)
     {
         FactionOverride = faction;
@@ -678,7 +698,9 @@ public class Entity : MonoBehaviour
     {
         FactionOverride = "";
     }
+    #endregion
 
+    #region Immunity
     public void ApplyImmunity(Immunity immunity, string key)
     {
         if (!Immunities.ContainsKey(immunity.Data.PayloadFilter))
@@ -819,7 +841,9 @@ public class Entity : MonoBehaviour
 
         return null;
     }
+    #endregion
 
+    #region Resistance
     public void ApplyResistance(EffectResistance resistance, string key)
     {
         if (!Immunities.ContainsKey(resistance.PayloadFilter))
@@ -838,7 +862,9 @@ public class Entity : MonoBehaviour
 
         Resistances[payloadFilter].Remove(key);
     }
+    #endregion
 
+    #region Shield
     public void ApplyShield(Shield shield, string key, float resourceGranted)
     {
         if (!Shields.ContainsKey(shield.Data.ShieldedResource))
@@ -881,6 +907,65 @@ public class Entity : MonoBehaviour
         }
         Shields[shieldData.ShieldedResource].Remove(key);
     }
+    #endregion
+
+    #region Locks
+
+    public void ApplyLock(EffectLock lockData, string key)
+    {
+        if (!Locks.ContainsKey(lockData.LockType))
+        {
+            Locks[lockData.LockType] = new Dictionary<string, EffectLock>();
+        }
+
+        Locks[lockData.LockType].Add(key, lockData);
+    }
+
+    public void RemoveLock(EffectLock lockData, string key)
+    {
+        if (Locks.ContainsKey(lockData.LockType) && Locks[lockData.LockType].ContainsKey(key))
+        {
+            Locks[lockData.LockType].Remove(key);
+        }
+    }
+
+    bool IsSkillLocked(string skillID)
+    {
+        if (Locks.ContainsKey(EffectLock.eLockType.SkillsAll) && Locks[EffectLock.eLockType.SkillsAll].Count > 0)
+        {
+            return true;
+        }
+
+        if (Locks.ContainsKey(EffectLock.eLockType.Skill) && Locks[EffectLock.eLockType.Skill].Count > 0)
+        {
+            foreach (var l in Locks[EffectLock.eLockType.Skill])
+            {
+                if (l.Value.Skill == skillID)
+                {
+                    return true;
+                }
+            }
+        }
+
+        if (Locks.ContainsKey(EffectLock.eLockType.SkillsGroup) && Locks[EffectLock.eLockType.SkillsGroup].Count > 0)
+        {
+            foreach (var group in Locks[EffectLock.eLockType.SkillsGroup])
+            {
+                if (GameData.SkillGroups.ContainsKey(group.Value.Skill) && GameData.SkillGroups[group.Value.Skill].Contains(skillID))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public bool IsMovementLocked => Locks.ContainsKey(EffectLock.eLockType.Movement) && Locks[EffectLock.eLockType.Movement].Count > 0;
+
+    public bool IsJumpingLocked => Locks.ContainsKey(EffectLock.eLockType.Jump) && Locks[EffectLock.eLockType.Jump].Count > 0;
+
+    #endregion
 
     #endregion
 
@@ -1408,6 +1493,11 @@ public class Entity : MonoBehaviour
     public virtual bool CanUseSkill(SkillData skillData)
     {
         if (IsSkillOnCooldown(skillData.SkillID))
+        {
+            return false;
+        }
+
+        if (IsSkillLocked(skillData.SkillID))
         {
             return false;
         }

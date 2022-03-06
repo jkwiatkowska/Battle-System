@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class TriggerData
 {
+    #region Conditions
     public class TriggerCondition
     {
         public enum eConditionType
@@ -259,7 +260,7 @@ public class TriggerData
             return list;
         }
     }
-
+    #endregion
     public enum eTrigger
     {
         OnPayloadApplied,           // Succesfully using a payload action.

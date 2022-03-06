@@ -6,14 +6,13 @@ using UnityEngine;
 public class MovementEntity : MonoBehaviour
 {
     [SerializeField] float GroundCheckSphereRadius;
-    Entity Parent;
+    protected Entity Parent;
 
     [NonSerialized] public Vector3 Velocity;
     [NonSerialized] public float GravitationalForce;
     public bool IsGrounded                              { get; protected set; }
     Vector3 GroundCheckSphereOffset;
 
-    float MovementLock;
     public float LastMoved                              { get; protected set; }
     public float LastJumped                             { get; protected set; }
 
@@ -30,22 +29,9 @@ public class MovementEntity : MonoBehaviour
         UpdateVelocity();
     }
 
-    public void LockMovement(float time)
-    {
-        MovementLock = BattleSystem.Time + time;
-    }
-
-    public bool IsMovementLocked
-    {
-        get
-        {
-            return MovementLock > BattleSystem.Time;
-        }
-    }
-
     public virtual Vector3 Move(Vector3 direction, bool updateRotation, float speedMultiplier = 1.0f)
     {
-        if (IsMovementLocked)
+        if (Parent.IsMovementLocked)
         {
             return Vector3.zero;
         }
@@ -70,7 +56,7 @@ public class MovementEntity : MonoBehaviour
 
     public void Jump()
     {
-        if (IsMovementLocked)
+        if (Parent.IsJumpingLocked)
         {
             return;
         }
