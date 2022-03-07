@@ -17,7 +17,7 @@ public class BattleSystem : MonoBehaviour
 
     void Awake()
     {
-        GameData.LoadMockData();
+        BattleData.LoadMockData();
 
         Instance = this;
         Entities = new Dictionary<string, Entity>();
@@ -37,7 +37,7 @@ public class BattleSystem : MonoBehaviour
     {
         EntityPrefabs = new Dictionary<string, GameObject>();
 
-        foreach (var entity in GameData.EntityData)
+        foreach (var entity in BattleData.EntityData)
         {
             var path = $"Entities/{entity.Key}";
             var prefab = Resources.Load<GameObject>(path);
@@ -88,7 +88,7 @@ public class BattleSystem : MonoBehaviour
             return true;
         }
 
-        if (GameData.GetFactionData(entityFaction).FriendlyFactions.Contains(targetFaction))
+        if (BattleData.GetFactionData(entityFaction).FriendlyFactions.Contains(targetFaction))
         {
             return true;
         }
@@ -103,7 +103,7 @@ public class BattleSystem : MonoBehaviour
             return false;
         }
 
-        if (GameData.GetFactionData(entityFaction).EnemyFactions.Contains(targetFaction))
+        if (BattleData.GetFactionData(entityFaction).EnemyFactions.Contains(targetFaction))
         {
             return true;
         }
@@ -113,12 +113,12 @@ public class BattleSystem : MonoBehaviour
 
     public static bool IsOnPlayerSide(string factionID)
     {
-        if (factionID == GameData.PlayerFaction)
+        if (factionID == BattleData.PlayerFaction)
         {
             return true;
         }
 
-        if (GameData.GetFactionData(GameData.PlayerFaction).FriendlyFactions.Contains(factionID))
+        if (BattleData.GetFactionData(BattleData.PlayerFaction).FriendlyFactions.Contains(factionID))
         {
             return true;
         }

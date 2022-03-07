@@ -95,9 +95,9 @@ public class Payload
             {
                 if (status.StatusGroup)
                 {
-                    if (GameData.StatusEffectGroups.ContainsKey(status.StatusID))
+                    if (BattleData.StatusEffectGroups.ContainsKey(status.StatusID))
                     {
-                        foreach (var s in GameData.StatusEffectGroups[status.StatusID])
+                        foreach (var s in BattleData.StatusEffectGroups[status.StatusID])
                         {
                             target.ClearStatusEffect(caster, s);
                         }

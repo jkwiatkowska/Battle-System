@@ -48,13 +48,13 @@ public class ActionCooldown : Action
             }
             case eCooldownTarget.SkillGroup:
             {
-                if (!GameData.SkillGroups.ContainsKey(CooldownTargetName))
+                if (!BattleData.SkillGroups.ContainsKey(CooldownTargetName))
                 {
                     Debug.LogError($"Invalid skill group name: {CooldownTargetName} for action {ActionID}");
                     return;
                 }
 
-                foreach (var skill in GameData.SkillGroups[CooldownTargetName])
+                foreach (var skill in BattleData.SkillGroups[CooldownTargetName])
                 {
                     if (ChangeMode == eChangeMode.Modify)
                     {

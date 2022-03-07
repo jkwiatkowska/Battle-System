@@ -69,8 +69,8 @@ public class TriggerData
                     else
                     {
                         var skillName = payloadResult != null ? payloadResult.SkillID : action.SkillID;
-                        conditionMet = GameData.SkillGroups.ContainsKey(StringValue) &&
-                                       GameData.SkillGroups[StringValue].Contains(skillName);
+                        conditionMet = BattleData.SkillGroups.ContainsKey(StringValue) &&
+                                       BattleData.SkillGroups[StringValue].Contains(skillName);
                     }
                     break;
                 }
@@ -109,8 +109,8 @@ public class TriggerData
                 }
                 case eConditionType.StatusGroup:
                 {
-                    conditionMet = !string.IsNullOrEmpty(statusID) && GameData.StatusEffectGroups.ContainsKey(StringValue) &&
-                                   GameData.StatusEffectGroups[StringValue].Contains(statusID);
+                    conditionMet = !string.IsNullOrEmpty(statusID) && BattleData.StatusEffectGroups.ContainsKey(StringValue) &&
+                                   BattleData.StatusEffectGroups[StringValue].Contains(statusID);
                     break;
                 }
                 case eConditionType.ResourceAffected:

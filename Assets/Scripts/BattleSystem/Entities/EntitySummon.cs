@@ -31,7 +31,7 @@ public class EntitySummon : Entity
             Faction = Summoner.Faction;
         }
 
-        foreach (var attribute in GameData.EntityAttributes)
+        foreach (var attribute in BattleData.EntityAttributes)
         {
             if (SummonAction.SharedAttributes.ContainsKey(attribute))
             {

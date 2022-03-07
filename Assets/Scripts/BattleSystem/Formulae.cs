@@ -42,9 +42,9 @@ public static class Formulae
 
     public static float ResourceMaxValue(Dictionary<string, float> entityAttributes, string resource)
     {
-        if (GameData.EntityResources.ContainsKey(resource))
+        if (BattleData.EntityResources.ContainsKey(resource))
         {
-            return GameData.EntityResources[resource].GetValue(entityAttributes);
+            return BattleData.EntityResources[resource].GetValue(entityAttributes);
         }
 
         Debug.LogError($"Resource {resource} not found in game data.");

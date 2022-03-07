@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class GameData
+public static class BattleData
 {
     public static List<string> Categories;                                  // Damage types and resistances can be calculated using these.
     public static Dictionary<string, Value> EntityResources;                // Values like hit points, mana, stamina, etc and their max values based on entity attributes.

@@ -78,12 +78,12 @@ public class Entity : MonoBehaviour
         EntityLevel = entityLevel;
         EntityState = eEntityState.Idle;
         name = EntityUID;
-        EntityData = GameData.GetEntityData(entityID);
+        EntityData = BattleData.GetEntityData(entityID);
         Faction = EntityData.Faction;
 
         // Attributes
         BaseAttributes = new Dictionary<string, float>();
-        foreach (var attribute in GameData.EntityAttributes)
+        foreach (var attribute in BattleData.EntityAttributes)
         {
             BaseAttributes.Add(attribute, Formulae.EntityBaseAttribute(this, attribute));
         }
@@ -186,7 +186,7 @@ public class Entity : MonoBehaviour
             // Resource recovery
             if (ResourcesCurrent != null)
             {
-                foreach (var resource in GameData.EntityResources)
+                foreach (var resource in BattleData.EntityResources)
                 {
                     if (ResourcesCurrent.ContainsKey(resource.Key))
                     {
@@ -250,7 +250,7 @@ public class Entity : MonoBehaviour
             return false;
         }
 
-        var skillData = GameData.GetSkillData(skillID);
+        var skillData = BattleData.GetSkillData(skillID);
 
         // Make sure the skill isn't on cooldown and any mandatory costs can be afforded. 
         if (!CanUseSkill(skillData))
@@ -585,13 +585,13 @@ public class Entity : MonoBehaviour
     #region Status
     public void ApplyStatusEffect(Entity sourceEntity, Action action, string statusID, int stacks, Payload sourcePayload)
     {
-        if (!GameData.StatusEffectData.ContainsKey(statusID))
+        if (!BattleData.StatusEffectData.ContainsKey(statusID))
         {
             Debug.LogError($"Invalid status effect ID: {statusID}");
             return;
         }
 
-        var statusEffectData = GameData.StatusEffectData[statusID];
+        var statusEffectData = BattleData.StatusEffectData[statusID];
 
         if (!StatusEffects.ContainsKey(statusEffectData.StatusID))
         {
@@ -747,7 +747,7 @@ public class Entity : MonoBehaviour
         {
             foreach (var i in Immunities[Effect.ePayloadFilter.SkillGroup])
             {
-                if (GameData.SkillGroups.ContainsKey(i.Value.Data.PayloadName) && GameData.SkillGroups[i.Value.Data.PayloadName].Contains(action.SkillID))
+                if (BattleData.SkillGroups.ContainsKey(i.Value.Data.PayloadName) && BattleData.SkillGroups[i.Value.Data.PayloadName].Contains(action.SkillID))
                 {
                     immunity = i.Value;
                     break;
@@ -799,7 +799,7 @@ public class Entity : MonoBehaviour
         {
             foreach (var i in Immunities[Effect.ePayloadFilter.StatusGroup])
             {
-                if (GameData.StatusEffectGroups.ContainsKey(i.Value.Data.PayloadName) && GameData.StatusEffectGroups[i.Value.Data.PayloadName].Contains(statusID))
+                if (BattleData.StatusEffectGroups.ContainsKey(i.Value.Data.PayloadName) && BattleData.StatusEffectGroups[i.Value.Data.PayloadName].Contains(statusID))
                 {
                     immunity = i.Value;
                     break;
@@ -887,7 +887,7 @@ public class Entity : MonoBehaviour
         {
             foreach (var group in Locks[EffectLock.eLockType.SkillsGroup])
             {
-                if (GameData.SkillGroups.ContainsKey(group.Value.Skill) && GameData.SkillGroups[group.Value.Skill].Contains(skillID))
+                if (BattleData.SkillGroups.ContainsKey(group.Value.Skill) && BattleData.SkillGroups[group.Value.Skill].Contains(skillID))
                 {
                     return true;
                 }
@@ -1163,7 +1163,7 @@ public class Entity : MonoBehaviour
         ResourcesMax = new Dictionary<string, float>();
         var attributes = EntityAttributes(skillID: null, actionID: null, statusID: null, categories: null);
 
-        foreach (var resource in GameData.EntityResources)
+        foreach (var resource in BattleData.EntityResources)
         {
             ResourcesMax.Add(resource.Key, Formulae.ResourceMaxValue(attributes, resource.Key));
         }
@@ -1174,7 +1174,7 @@ public class Entity : MonoBehaviour
         ResourcesCurrent = new Dictionary<string, float>();
         var attributes = EntityAttributes(skillID: null, actionID: null, statusID: null, categories: null);
 
-        foreach (var resource in GameData.EntityResources)
+        foreach (var resource in BattleData.EntityResources)
         {
             ResourcesCurrent.Add(resource.Key, Formulae.ResourceMaxValue(attributes, resource.Key));
         }
@@ -1421,7 +1421,7 @@ public class Entity : MonoBehaviour
                         }
                         case Effect.ePayloadFilter.SkillGroup:
                         {
-                            if (!string.IsNullOrEmpty(skillID) && GameData.SkillGroups.ContainsKey(requirement))
+                            if (!string.IsNullOrEmpty(skillID) && BattleData.SkillGroups.ContainsKey(requirement))
                             {
                                 break;
                             }
@@ -1437,7 +1437,7 @@ public class Entity : MonoBehaviour
                         }
                         case Effect.ePayloadFilter.StatusGroup:
                         {
-                            if (!string.IsNullOrEmpty(statusID) && GameData.StatusEffectGroups.ContainsKey(requirement))
+                            if (!string.IsNullOrEmpty(statusID) && BattleData.StatusEffectGroups.ContainsKey(requirement))
                             {
                                 break;
                             }
@@ -1489,7 +1489,7 @@ public class Entity : MonoBehaviour
     {
         get
         {
-            return GameData.GetFactionData(Faction);
+            return BattleData.GetFactionData(Faction);
         }
     }
 
@@ -1600,7 +1600,7 @@ public class Entity : MonoBehaviour
 
         if (!CanUseSkillInCurrentState(skillData))
 
-        if (!CanAffordCost(GameData.GetSkillData(skillData.SkillID).SkillCost))
+        if (!CanAffordCost(BattleData.GetSkillData(skillData.SkillID).SkillCost))
         {
             return false;
         }
