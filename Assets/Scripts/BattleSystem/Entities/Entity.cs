@@ -585,13 +585,13 @@ public class Entity : MonoBehaviour
     #region Status
     public void ApplyStatusEffect(Entity sourceEntity, Action action, string statusID, int stacks, Payload sourcePayload)
     {
-        if (!BattleData.StatusEffectData.ContainsKey(statusID))
+        if (!BattleData.StatusEffects.ContainsKey(statusID))
         {
             Debug.LogError($"Invalid status effect ID: {statusID}");
             return;
         }
 
-        var statusEffectData = BattleData.StatusEffectData[statusID];
+        var statusEffectData = BattleData.StatusEffects[statusID];
 
         if (!StatusEffects.ContainsKey(statusEffectData.StatusID))
         {

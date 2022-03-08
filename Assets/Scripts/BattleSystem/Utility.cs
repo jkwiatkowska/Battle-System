@@ -33,6 +33,19 @@ public static class Utility
         return copy;
     }
 
+    public static List<T> CopyLists<T>(List<List<T>> lists)
+    {
+        var copy = new List<T>();
+        foreach (var list in lists)
+        {
+            foreach (var item in list)
+            {
+                copy.Add(item);
+            }
+        }
+        return copy;
+    }
+
     public static Vector2 Get2DVector(Vector3 position)
     {
         return new Vector2(position.x, position.z);

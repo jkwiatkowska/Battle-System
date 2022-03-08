@@ -156,7 +156,7 @@ public class BattleSystemDataEditor : EditorWindow
         }
 
         Factions = new List<EditorFaction>();
-        foreach (var faction in BattleData.FactionData)
+        foreach (var faction in BattleData.Factions)
         {
             Factions.Add(new EditorFaction(faction.Value));
         }
@@ -378,7 +378,7 @@ public class BattleSystemDataEditor : EditorWindow
             GUILayout.Label("Faction:", GUILayout.Width(52));
         }
         var factionCopy = faction; // Copy the string to use it in a lambda expression
-        var options = BattleData.FactionData.Keys.ToList();
+        var options = BattleData.Factions.Keys.ToList();
 
         if (options.Count > 0)
         {
@@ -503,20 +503,20 @@ public class BattleSystemDataEditor : EditorWindow
 
                     if (oldName != Factions[i].Data.FactionID)
                     {
-                        if (!BattleData.FactionData.ContainsKey(Factions[i].Data.FactionID))
+                        if (!BattleData.Factions.ContainsKey(Factions[i].Data.FactionID))
                         {
-                            BattleData.FactionData.Remove(oldName);
-                            BattleData.FactionData.Add(Factions[i].Data.FactionID, value);
+                            BattleData.Factions.Remove(oldName);
+                            BattleData.Factions.Add(Factions[i].Data.FactionID, value);
                         }
                         else
                         {
                             Factions[i].Data.FactionID = oldName;
-                            BattleData.FactionData[Factions[i].Data.FactionID] = value;
+                            BattleData.Factions[Factions[i].Data.FactionID] = value;
                         }
                     }
                     else
                     {
-                        BattleData.FactionData[Factions[i].Data.FactionID] = value;
+                        BattleData.Factions[Factions[i].Data.FactionID] = value;
                     }
 
                 }
@@ -574,7 +574,7 @@ public class BattleSystemDataEditor : EditorWindow
         var exclude = new List<List<string>>() { faction.FriendlyFactions, faction.EnemyFactions };
         if (exclude.Count < Factions.Count)
         {
-            var options = BattleData.FactionData.Keys.ToList();
+            var options = BattleData.Factions.Keys.ToList();
             foreach (var list in exclude)
             {
                 foreach (var f in list)

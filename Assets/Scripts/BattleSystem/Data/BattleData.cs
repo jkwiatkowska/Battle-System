@@ -1,21 +1,44 @@
+using FullSerializer;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class BattleData
+[System.Serializable]
+public class BattleData
 {
-    public static List<string> Categories = new List<string>();                                                         // These can be used to define entities and payloads to customise payloads.
-    public static Dictionary<string, Value> EntityResources = new Dictionary<string, Value>();                          // Values like hit points, mana, stamina, etc and their max values
-                                                                                                                        // based on entity attributes.
-    public static List<string> EntityAttributes = new List<string>();                                                   // Stats mainly used to determine outgoing and incoming damage.
-    public static List<string> PayloadFlags = new List<string>();                                                       // Flags to customise payload damage.
+    public static BattleData Instance = new BattleData();
 
-    public static Dictionary<string, FactionData> FactionData = new Dictionary<string, FactionData>();                  // Define entity allegiance and relations.
-    public static Dictionary<string, EntityData> EntityData = new Dictionary<string, EntityData>();
-    public static Dictionary<string, SkillData> SkillData = new Dictionary<string, SkillData>();
-    public static Dictionary<string, List<string>> SkillGroups = new Dictionary<string, List<string>>();                // Cooldowns and effects can apply to multiple skills at once.
-    public static Dictionary<string, StatusEffectData> StatusEffectData = new Dictionary<string, StatusEffectData>();
-    public static Dictionary<string, List<string>> StatusEffectGroups = new Dictionary<string, List<string>>();         // Effects can be grouped together and affected all at once.
+    #region Game Data
+    List<string> CategoryData = new List<string>();                                                     // These can be used to define entities and payloads to customise payloads.
+    Dictionary<string, Value> EntityResourceData = new Dictionary<string, Value>();                     // Values like hit points, mana, stamina, etc and their max values
+                                                                                                        // based on entity attributes.
+    List<string> EntityAttributeData = new List<string>();                                              // Stats mainly used to determine outgoing and incoming damage.
+    List<string> PayloadFlagData = new List<string>();                                                  // Flags to customise payload damage.
+
+    Dictionary<string, FactionData> FactionData = new Dictionary<string, FactionData>();                // Define entity allegiance and relations.
+    Dictionary<string, EntityData> EntityData = new Dictionary<string, EntityData>();
+    Dictionary<string, SkillData> SkillData = new Dictionary<string, SkillData>();
+    Dictionary<string, List<string>> SkillGroupData = new Dictionary<string, List<string>>();           // Cooldowns and effects can apply to multiple skills at once.
+    Dictionary<string, StatusEffectData> StatusEffectData = new Dictionary<string, StatusEffectData>();
+    Dictionary<string, List<string>> StatusEffectGroupData = new Dictionary<string, List<string>>();    // Effects can be grouped together and affected all at once.
+    #endregion
+
+    #region Getters
+    public static List<string> Categories => Instance.CategoryData;
+    public static Dictionary<string, Value> EntityResources => Instance.EntityResourceData;
+
+    public static List<string> EntityAttributes => Instance.EntityAttributeData;
+    public static List<string> PayloadFlags => Instance.PayloadFlagData;
+
+    public static Dictionary<string, FactionData> Factions => Instance.FactionData;
+    public static Dictionary<string, EntityData> Entities => Instance.EntityData;
+    public static Dictionary<string, SkillData> Skills => Instance.SkillData;
+    public static Dictionary<string, List<string>> SkillGroups => Instance.SkillGroupData;
+    public static Dictionary<string, StatusEffectData> StatusEffects => Instance.StatusEffectData;
+    public static Dictionary<string, List<string>> StatusEffectGroups => Instance.StatusEffectGroupData;
+    #endregion
+
+    static readonly fsSerializer Serializer = new fsSerializer();
 
     public static void LoadData(string path)
     {
@@ -24,7 +47,7 @@ public static class BattleData
 
     public static void LoadMockData()
     {
-        Categories = new List<string>()
+        Instance.CategoryData = new List<string>()
         {
             "physical",
             "magic",
@@ -34,7 +57,7 @@ public static class BattleData
             "water"
         };
 
-        EntityResources = new Dictionary<string, Value>()
+        Instance.EntityResourceData = new Dictionary<string, Value>()
         {
             {
                 "hp", 
@@ -52,7 +75,7 @@ public static class BattleData
             }
         };
 
-        EntityAttributes = new List<string>()
+        Instance.EntityAttributeData = new List<string>()
         {
             "hp",
             "mp",
@@ -62,13 +85,13 @@ public static class BattleData
             "critDamage"
         };
 
-        PayloadFlags = new List<string>()
+        Instance.PayloadFlagData = new List<string>()
         {
             "ignoreDef",
             "canCrit"
         };
 
-        FactionData = new Dictionary<string, FactionData>
+        Instance.FactionData = new Dictionary<string, FactionData>
         {
             {
                 "Player",
@@ -104,14 +127,14 @@ public static class BattleData
             }
         };
 
-        SkillGroups = new Dictionary<string, List<string>>()
+        Instance.SkillGroupData = new Dictionary<string, List<string>>()
         {
             { "elemental", new List<string>() { "fireAttack", "waterAttack"} }
         };
 
-        StatusEffectGroups = new Dictionary<string, List<string>>();
+        Instance.StatusEffectGroupData = new Dictionary<string, List<string>>();
 
-        StatusEffectData = new Dictionary<string, StatusEffectData>()
+        Instance.StatusEffectData = new Dictionary<string, StatusEffectData>()
         {
             {
                 "burn",
@@ -367,7 +390,7 @@ public static class BattleData
             }
         };
 
-        EntityData = new Dictionary<string, EntityData>
+        Instance.EntityData = new Dictionary<string, EntityData>
         {
             {
                 "Player",
@@ -799,7 +822,7 @@ public static class BattleData
                 }
             }
         };
-        SkillData = new Dictionary<string, SkillData>()
+        Instance.SkillData = new Dictionary<string, SkillData>()
         {
             {
                 "neutralAttack",
@@ -1560,17 +1583,22 @@ public static class BattleData
     #region Editor
     public static void SaveData(string path)
     {
+        // Serialize the data
+        fsData data;
+        Serializer.TrySerialize(typeof(BattleData), Instance, out data).AssertSuccessWithoutWarnings();
 
+        // emit the data via JSON
+        var json = fsJsonPrinter.CompressedJson(data);
     }
 
     public static void UpdateSkillID(string oldID, string newID)
     {
-        if (SkillData.ContainsKey(oldID))
+        if (Skills.ContainsKey(oldID))
         {
-            SkillData.Add(newID, SkillData[oldID]);
-            SkillData.Remove(oldID);
+            Skills.Add(newID, Skills[oldID]);
+            Skills.Remove(oldID);
 
-            foreach (var entity in EntityData)
+            foreach (var entity in Entities)
             {
                 if (entity.Value.IsAI)
                 {
@@ -1592,11 +1620,11 @@ public static class BattleData
 
     public static void DeleteSkill(string skillID)
     {
-        if (SkillData.ContainsKey(skillID))
+        if (Skills.ContainsKey(skillID))
         {
-            SkillData.Remove(skillID);
+            Skills.Remove(skillID);
 
-            foreach (var entity in EntityData)
+            foreach (var entity in Entities)
             {
                 if (entity.Value.IsAI)
                 {
@@ -1619,9 +1647,9 @@ public static class BattleData
 
     public static EntityData GetEntityData(string entityID)
     {
-        if (EntityData.ContainsKey(entityID))
+        if (Entities.ContainsKey(entityID))
         {
-            return EntityData[entityID];
+            return Entities[entityID];
         }
         else
         {
@@ -1632,9 +1660,9 @@ public static class BattleData
 
     public static SkillData GetSkillData(string skillID)
     {
-        if (SkillData.ContainsKey(skillID))
+        if (Skills.ContainsKey(skillID))
         {
-            return SkillData[skillID];
+            return Skills[skillID];
         }
         else
         {
@@ -1645,9 +1673,9 @@ public static class BattleData
 
     public static FactionData GetFactionData(string factionID)
     {
-        if (FactionData.ContainsKey(factionID))
+        if (Factions.ContainsKey(factionID))
         {
-            return FactionData[factionID];
+            return Factions[factionID];
         }
         else
         {

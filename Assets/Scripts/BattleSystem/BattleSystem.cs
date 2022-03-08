@@ -37,7 +37,7 @@ public class BattleSystem : MonoBehaviour
     {
         EntityPrefabs = new Dictionary<string, GameObject>();
 
-        foreach (var entity in BattleData.EntityData)
+        foreach (var entity in BattleData.Entities)
         {
             var path = $"Entities/{entity.Key}";
             var prefab = Resources.Load<GameObject>(path);
