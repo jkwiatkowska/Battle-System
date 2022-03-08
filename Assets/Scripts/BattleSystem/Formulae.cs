@@ -40,11 +40,11 @@ public static class Formulae
         return baseAttribute;
     }
 
-    public static float ResourceMaxValue(Dictionary<string, float> entityAttributes, string resource)
+    public static float ResourceMaxValue(Entity entity, Dictionary<string, float> entityAttributes, string resource)
     {
         if (BattleData.EntityResources.ContainsKey(resource))
         {
-            return BattleData.EntityResources[resource].GetValue(entityAttributes);
+            return BattleData.EntityResources[resource].GetValue(entity, entityAttributes);
         }
 
         Debug.LogError($"Resource {resource} not found in game data.");
@@ -65,7 +65,7 @@ public static class Formulae
 
         if (entity.IsInCombat())
         {
-            recoveryRate = 0.001f;
+            recoveryRate = 0.0f;
         }
 
         recoveryRate *= entity.ResourcesMax[resource];

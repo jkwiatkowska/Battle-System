@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,14 +7,14 @@ public class ValueComponent
 {
     public enum eValueComponentType
     {
-        FlatValue,
-        CasterAttributeBase,
-        CasterAttributeCurrent,
-        CasterResourceMax,
-        CasterResourceCurrent,
-        TargetResourceMax,
-        TargetResourceCurrent,
-        ActionResultValue
+        FlatValue               = 0,
+        CasterAttributeBase     = 1,
+        CasterAttributeCurrent  = 2,
+        CasterResourceMax       = 3,
+        CasterResourceCurrent   = 4,
+        TargetResourceMax       = 5,
+        TargetResourceCurrent   = 6,
+        ActionResultValue       = 7,
     }
     public eValueComponentType ComponentType;
 
@@ -27,7 +28,9 @@ public class ValueComponent
         Attribute = attribute;
     }
 
-    public float GetValue(Dictionary<string, float> entityAttributes)
+    public ValueComponent Copy => new ValueComponent(ComponentType, Potency, Attribute);
+
+    public float GetValue(Entity entity, Dictionary<string, float> entityAttributes)
     {
         switch (ComponentType)
         {
@@ -39,6 +42,15 @@ public class ValueComponent
                     return 0.0f;
                 }
                 return Potency * entityAttributes[Attribute];
+            }
+            case eValueComponentType.CasterAttributeBase:
+            {
+                if (entity == null || !entity.BaseAttributes.ContainsKey(Attribute))
+                {
+                    Debug.LogError($"Invalid attribute [{Attribute}].");
+                    return 0.0f;
+                }
+                return Potency * entity.BaseAttribute(Attribute);
             }
             case eValueComponentType.FlatValue:
             {
@@ -71,7 +83,7 @@ public class ValueComponent
             }
             case eValueComponentType.CasterAttributeBase:
             {
-                if (caster == null)
+                if (caster == null || !caster.BaseAttributes.ContainsKey(Attribute))
                 {
                     Debug.LogError($"Invalid attribute [{Attribute}].");
                     return 0.0f;
@@ -135,13 +147,24 @@ public class ValueComponent
 
 public class Value : List<ValueComponent>
 {
-    public float GetValue(Dictionary<string, float> entityAttributes)
+    public Value Copy()
+    {
+        var value = new Value();
+        foreach (var component in this)
+        {
+            value.Add(component.Copy);
+        }
+
+        return value;
+    }
+
+    public float GetValue(Entity entity, Dictionary<string, float> entityAttributes)
     {
         var totalValue = 0.0f;
 
         foreach (var value in this)
         {
-            totalValue += value.GetValue(entityAttributes);
+            totalValue += value.GetValue(entity, entityAttributes);
         }
 
         return totalValue;

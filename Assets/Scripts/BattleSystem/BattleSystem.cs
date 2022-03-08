@@ -111,21 +111,6 @@ public class BattleSystem : MonoBehaviour
         return false;
     }
 
-    public static bool IsOnPlayerSide(string factionID)
-    {
-        if (factionID == BattleData.PlayerFaction)
-        {
-            return true;
-        }
-
-        if (BattleData.GetFactionData(BattleData.PlayerFaction).FriendlyFactions.Contains(factionID))
-        {
-            return true;
-        }
-
-        return false;
-    }
-
     public static bool IsOnTerrainLayer(GameObject gameObject)
     {
         return Instance.TerrainLayers == (Instance.TerrainLayers | (1 << gameObject.layer));

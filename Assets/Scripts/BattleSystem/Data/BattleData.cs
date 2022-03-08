@@ -4,18 +4,18 @@ using UnityEngine;
 
 public static class BattleData
 {
-    public static List<string> Categories;                                  // Damage types and resistances can be calculated using these.
-    public static Dictionary<string, Value> EntityResources;                // Values like hit points, mana, stamina, etc and their max values based on entity attributes.
-    public static List<string> EntityAttributes;                            // Stats mainly used to determine outgoing and incoming damage.
-    public static List<string> PayloadFlags;                                // Flags to customise payload damage.
+    public static List<string> Categories = new List<string>();                                                         // These can be used to define entities and payloads to customise payloads.
+    public static Dictionary<string, Value> EntityResources = new Dictionary<string, Value>();                          // Values like hit points, mana, stamina, etc and their max values
+                                                                                                                        // based on entity attributes.
+    public static List<string> EntityAttributes = new List<string>();                                                   // Stats mainly used to determine outgoing and incoming damage.
+    public static List<string> PayloadFlags = new List<string>();                                                       // Flags to customise payload damage.
 
-    public static Dictionary<string, FactionData> FactionData;              // Define entity allegiance and relations.
-    public static string PlayerFaction;                                     // Which of the factions the player is in.
-    public static Dictionary<string, EntityData> EntityData;
-    public static Dictionary<string, SkillData> SkillData;
-    public static Dictionary<string, List<string>> SkillGroups;             // Cooldowns and effects can apply to multiple skills at once.
-    public static Dictionary<string, StatusEffectData> StatusEffectData;
-    public static Dictionary<string, List<string>> StatusEffectGroups;      // Effects can be grouped together and affected all at once.
+    public static Dictionary<string, FactionData> FactionData = new Dictionary<string, FactionData>();                  // Define entity allegiance and relations.
+    public static Dictionary<string, EntityData> EntityData = new Dictionary<string, EntityData>();
+    public static Dictionary<string, SkillData> SkillData = new Dictionary<string, SkillData>();
+    public static Dictionary<string, List<string>> SkillGroups = new Dictionary<string, List<string>>();                // Cooldowns and effects can apply to multiple skills at once.
+    public static Dictionary<string, StatusEffectData> StatusEffectData = new Dictionary<string, StatusEffectData>();
+    public static Dictionary<string, List<string>> StatusEffectGroups = new Dictionary<string, List<string>>();         // Effects can be grouped together and affected all at once.
 
     public static void LoadData(string path)
     {
@@ -72,9 +72,8 @@ public static class BattleData
         {
             {
                 "Player",
-                new FactionData()
+                new FactionData("Player")
                 {
-                    FactionID = "Player",
                     FriendlyFactions = new List<string>(),
                     EnemyFactions = new List<string>()
                     {
@@ -85,18 +84,16 @@ public static class BattleData
             },
             {
                 "Dummy",
-                new FactionData()
+                new FactionData("Dummy")
                 {
-                    FactionID = "Dummy",
                     FriendlyFactions = new List<string>(),
                     EnemyFactions = new List<string>()
                 }
             },
             {
                 "Object",
-                new FactionData()
+                new FactionData("Object")
                 {
-                    FactionID = "Object",
                     FriendlyFactions = new List<string>(),
                     EnemyFactions = new List<string>()
                     {
@@ -369,8 +366,6 @@ public static class BattleData
                 }
             }
         };
-
-        PlayerFaction = "Player";
 
         EntityData = new Dictionary<string, EntityData>
         {

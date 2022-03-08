@@ -1165,7 +1165,7 @@ public class Entity : MonoBehaviour
 
         foreach (var resource in BattleData.EntityResources)
         {
-            ResourcesMax.Add(resource.Key, Formulae.ResourceMaxValue(attributes, resource.Key));
+            ResourcesMax.Add(resource.Key, Formulae.ResourceMaxValue(this, attributes, resource.Key));
         }
     }
 
@@ -1176,7 +1176,7 @@ public class Entity : MonoBehaviour
 
         foreach (var resource in BattleData.EntityResources)
         {
-            ResourcesCurrent.Add(resource.Key, Formulae.ResourceMaxValue(attributes, resource.Key));
+            ResourcesCurrent.Add(resource.Key, Formulae.ResourceMaxValue(this, attributes, resource.Key));
         }
     }
 
