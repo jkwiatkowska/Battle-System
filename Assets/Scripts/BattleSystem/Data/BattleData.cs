@@ -9,18 +9,18 @@ public class BattleData
     public static BattleData Instance = new BattleData();
 
     #region Game Data
-    List<string> CategoryData = new List<string>();                                                     // These can be used to define entities and payloads to customise payloads.
-    Dictionary<string, Value> EntityResourceData = new Dictionary<string, Value>();                     // Values like hit points, mana, stamina, etc and their max values
-                                                                                                        // based on entity attributes.
-    List<string> EntityAttributeData = new List<string>();                                              // Stats mainly used to determine outgoing and incoming damage.
-    List<string> PayloadFlagData = new List<string>();                                                  // Flags to customise payload damage.
+    public List<string> CategoryData = new List<string>();                                                     // These can be used to define entities and payloads to customise payloads.
+    public Dictionary<string, Value> EntityResourceData = new Dictionary<string, Value>();                     // Values like hit points, mana, stamina, etc and their max values
+                                                                                                               // based on entity attributes.
+    public List<string> EntityAttributeData = new List<string>();                                              // Stats mainly used to determine outgoing and incoming damage.
+    public List<string> PayloadFlagData = new List<string>();                                                  // Flags to customise payload damage.
 
-    Dictionary<string, FactionData> FactionData = new Dictionary<string, FactionData>();                // Define entity allegiance and relations.
-    Dictionary<string, EntityData> EntityData = new Dictionary<string, EntityData>();
-    Dictionary<string, SkillData> SkillData = new Dictionary<string, SkillData>();
-    Dictionary<string, List<string>> SkillGroupData = new Dictionary<string, List<string>>();           // Cooldowns and effects can apply to multiple skills at once.
-    Dictionary<string, StatusEffectData> StatusEffectData = new Dictionary<string, StatusEffectData>();
-    Dictionary<string, List<string>> StatusEffectGroupData = new Dictionary<string, List<string>>();    // Effects can be grouped together and affected all at once.
+    public Dictionary<string, FactionData> FactionData = new Dictionary<string, FactionData>();                // Define entity allegiance and relations.
+    public Dictionary<string, EntityData> EntityData = new Dictionary<string, EntityData>();
+    public Dictionary<string, SkillData> SkillData = new Dictionary<string, SkillData>();
+    public Dictionary<string, List<string>> SkillGroupData = new Dictionary<string, List<string>>();           // Cooldowns and effects can apply to multiple skills at once.
+    public Dictionary<string, StatusEffectData> StatusEffectData = new Dictionary<string, StatusEffectData>();
+    public Dictionary<string, List<string>> StatusEffectGroupData = new Dictionary<string, List<string>>();    // Effects can be grouped together and affected all at once.
     #endregion
 
     #region Getters
@@ -42,7 +42,13 @@ public class BattleData
 
     public static void LoadData(string path)
     {
+        var json = "";
 
+        // Parse the JSON data
+        fsData data = fsJsonParser.Parse(json);
+
+        // Deserialize the data
+        Serializer.TryDeserialize(data, ref Instance);//.AssertSuccessWithoutWarnings();
     }
 
     public static void LoadMockData()
@@ -1583,11 +1589,11 @@ public class BattleData
     #region Editor
     public static void SaveData(string path)
     {
-        // Serialize the data
+        // Serialize the data.
         fsData data;
-        Serializer.TrySerialize(typeof(BattleData), Instance, out data).AssertSuccessWithoutWarnings();
+        Serializer.TrySerialize(Instance, out data);//.AssertSuccessWithoutWarnings();
 
-        // emit the data via JSON
+        // Emit the data via JSON.
         var json = fsJsonPrinter.CompressedJson(data);
     }
 

@@ -89,6 +89,7 @@ public class BattleSystemDataEditor : EditorWindow
         if (GUILayout.Button("Save"))
         {
             BattleData.SaveData(path);
+            UpdateValues();
         }
         GUILayout.EndHorizontal();
 
