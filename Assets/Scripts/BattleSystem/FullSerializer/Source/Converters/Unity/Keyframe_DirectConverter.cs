@@ -10,12 +10,14 @@ namespace FullSerializer {
 }
 
 namespace FullSerializer.Internal.DirectConverters {
+#pragma warning disable CS0618 // Type or member is obsolete
     public class Keyframe_DirectConverter : fsDirectConverter<Keyframe> {
         protected override fsResult DoSerialize(Keyframe model, Dictionary<string, fsData> serialized) {
             var result = fsResult.Success;
 
             result += SerializeMember(serialized, null, "time", model.time);
             result += SerializeMember(serialized, null, "value", model.value);
+
             result += SerializeMember(serialized, null, "tangentMode", model.tangentMode);
             result += SerializeMember(serialized, null, "inTangent", model.inTangent);
             result += SerializeMember(serialized, null, "outTangent", model.outTangent);
@@ -53,5 +55,6 @@ namespace FullSerializer.Internal.DirectConverters {
             return new Keyframe();
         }
     }
+#pragma warning restore CS0618 // Type or member is obsolete
 }
 #endif

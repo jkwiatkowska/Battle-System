@@ -9,6 +9,8 @@ public class BattleSystemDataEditor : EditorWindow
     int Tab = 0;
     Vector2 ScrollPos;
     bool ShowHelp;
+    const string PathPlayerPrefs = "BattleDataPath";
+    string Path = "Data/BattleData";
 
     #region GameData
     bool ShowAttributes = false;
@@ -69,26 +71,37 @@ public class BattleSystemDataEditor : EditorWindow
 
     void Awake()
     {
+        var pathSaved = PlayerPrefs.HasKey(PathPlayerPrefs) || string.IsNullOrEmpty(PlayerPrefs.GetString(PathPlayerPrefs));
+        if (!pathSaved)
+        {
+            PlayerPrefs.SetString(PathPlayerPrefs, Path);
+        }
+        Path = PlayerPrefs.GetString(PathPlayerPrefs);
+        BattleData.LoadData(Path);
         UpdateValues();
     }
 
     void OnGUI()
     {
         GUILayout.BeginHorizontal();
-        GUILayout.Label("Path:", GUILayout.Width(35));
-        var path = GUILayout.TextField("", GUILayout.Width(400f));
+        GUILayout.Label("Resources/", GUILayout.Width(70));
+        Path = GUILayout.TextField(Path, GUILayout.Width(300f));
+        PlayerPrefs.SetString(PathPlayerPrefs, Path);
+        GUILayout.Label($".json", GUILayout.Width(30));
 
         if (GUILayout.Button("Load"))
         {
-            BattleData.LoadMockData();
-            //BattleSystemData.LoadData(path);
+            BattleData.LoadData(Path);
 
             UpdateValues();
         }
 
         if (GUILayout.Button("Save"))
         {
-            BattleData.SaveData(path);
+            if (!string.IsNullOrEmpty(Path))
+            {
+                BattleData.SaveData(Path);
+            }
             UpdateValues();
         }
         GUILayout.EndHorizontal();
@@ -426,7 +439,7 @@ public class BattleSystemDataEditor : EditorWindow
             GUILayout.Label($"{Indent(1)}New Category: ", GUILayout.Width(100));
             NewCategory = GUILayout.TextField(NewCategory, GUILayout.Width(200));
             if (GUILayout.Button("Add", GUILayout.Width(90)) && !string.IsNullOrEmpty(NewCategory) &&
-                !Categories.Contains(NewCategory))
+                !BattleData.Categories.Contains(NewCategory))
             {
                 Categories.Add(NewCategory);
                 BattleData.Categories.Add(NewCategory);
@@ -468,7 +481,7 @@ public class BattleSystemDataEditor : EditorWindow
             GUILayout.Label($"{Indent(1)}New Payload Flag: ", GUILayout.Width(120));
             NewPayloadFlag = GUILayout.TextField(NewPayloadFlag, GUILayout.Width(200));
             if (GUILayout.Button("Add", GUILayout.Width(90)) && !string.IsNullOrEmpty(NewPayloadFlag) &&
-                !PayloadFlags.Contains(NewPayloadFlag))
+                !BattleData.PayloadFlags.Contains(NewPayloadFlag))
             {
                 PayloadFlags.Add(NewPayloadFlag);
                 BattleData.PayloadFlags.Add(NewPayloadFlag);
@@ -532,18 +545,21 @@ public class BattleSystemDataEditor : EditorWindow
                                 "Friendly Factions:", "Add Friendly Faction:", "(No Friendly Factions)");
                 EditFactionList(Factions[i].Data, Factions[i].Data.EnemyFactions, ref Factions[i].NewEnemyFaction,
                                 "Enemy Factions:", "Add Enemy Faction:", "(No Enemy Factions)");
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label($"{Indent(1)}New Faction: ", GUILayout.Width(120));
+                NewFaction = GUILayout.TextField(NewFaction, GUILayout.Width(200));
+                if (GUILayout.Button("Add", GUILayout.Width(90)) && !string.IsNullOrEmpty(NewFaction) &&
+                    !BattleData.Factions.ContainsKey(NewFaction))
+                {
+                    var newFactionData = new FactionData(NewFaction);
+                    Factions.Add(new EditorFaction(newFactionData));
+                    BattleData.Factions.Add(NewFaction, newFactionData);
+                    NewFaction = "";
+                }
+                GUILayout.EndHorizontal();
             }
         }
-    }
-
-    string Indent(int width = 1)
-    {
-        var indent = "";
-        for (int i = 0; i < width; i ++)
-        {
-            indent += "    ";
-        }
-        return indent;
     }
 
     void EditFactionList(FactionData faction, List<string> factions, ref string newFaction, string label = "", string addLabel = "", string noLabel = "")
@@ -654,5 +670,15 @@ public class BattleSystemDataEditor : EditorWindow
         r.x -= 2;
         r.width += 6;
         EditorGUI.DrawRect(r, color);
+    }
+
+    string Indent(int width = 1)
+    {
+        var indent = "";
+        for (int i = 0; i < width; i++)
+        {
+            indent += "    ";
+        }
+        return indent;
     }
 }

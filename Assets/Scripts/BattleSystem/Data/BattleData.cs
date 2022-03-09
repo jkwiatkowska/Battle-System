@@ -1,6 +1,7 @@
 using FullSerializer;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 [System.Serializable]
@@ -42,13 +43,14 @@ public class BattleData
 
     public static void LoadData(string path)
     {
-        var json = "";
+        // Read from a file.
+        var json = Resources.Load<TextAsset>(path).text;
 
-        // Parse the JSON data
+        // Parse the JSON data.
         fsData data = fsJsonParser.Parse(json);
 
-        // Deserialize the data
-        Serializer.TryDeserialize(data, ref Instance);//.AssertSuccessWithoutWarnings();
+        // Deserialize the data.
+        Serializer.TryDeserialize(data, ref Instance);
     }
 
     public static void LoadMockData()
@@ -1591,10 +1593,16 @@ public class BattleData
     {
         // Serialize the data.
         fsData data;
-        Serializer.TrySerialize(Instance, out data);//.AssertSuccessWithoutWarnings();
+        Serializer.TrySerialize(Instance, out data);
 
         // Emit the data via JSON.
         var json = fsJsonPrinter.CompressedJson(data);
+
+        // Save to a file.
+        System.IO.File.WriteAllText(Application.dataPath + "/Resources/" + path + ".json", json);
+
+        // Refresh the project.
+        AssetDatabase.Refresh();
     }
 
     public static void UpdateSkillID(string oldID, string newID)
