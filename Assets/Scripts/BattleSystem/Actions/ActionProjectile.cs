@@ -24,7 +24,7 @@ public class ActionProjectile : ActionSummon
         }
 
         public eReactionType Reaction;
-        public ActionTimeline Actions; 
+        public ActionTimeline Actions;
     }
 
     // Some behaviours cancel one another out, but others may be used together
@@ -98,5 +98,27 @@ public class ActionProjectile : ActionSummon
         summoner.AddSummonedEntity(projectile, this);
 
         return true;
+    }
+
+    public override void SetTypeDefaults()
+    {
+        base.SetTypeDefaults();
+
+        ProjectileMovementMode = eProjectileMovementMode.Free;
+
+        OnEnemyHit = new List<OnCollisionReaction>();
+        OnFriendHit = new List<OnCollisionReaction>();
+        OnTerrainHit = new List<OnCollisionReaction>();
+
+        ProjectileTimeline = new List<ProjectileState>();
+
+        Target = eTarget.Target;
+        TargetPosition = null;
+
+        ArchAngle = 40.0f;
+        Gravity = 0.0f;
+
+        Anchor = eAnchor.Caster;
+        AnchorPosition = null;
     }
 }

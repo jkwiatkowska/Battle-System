@@ -227,4 +227,20 @@ public class ActionPayloadArea : ActionPayload
 
         return targets;
     }
+
+    public override void SetTypeDefaults()
+    {
+        base.SetTypeDefaults();
+
+        AreasAffected = new List<Area>()
+        {
+            new Area()
+            {
+                Shape = Area.eShape.Sphere,
+                Dimensions = new Vector3(1.0f, 360.0f, 1.0f),
+                InnerDimensions = new Vector2(0.0f, 0.0f),
+                AreaTransform = new TransformData()
+            }
+        };
+    }
 }

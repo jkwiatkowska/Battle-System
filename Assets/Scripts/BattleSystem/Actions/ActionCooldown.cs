@@ -20,7 +20,7 @@ public class ActionCooldown : Action
     public eChangeMode ChangeMode;              // A skill cooldown can be set or modified.
     public eCooldownTarget CooldownTarget;      // A cooldown can be applied to a singular skill or a group of skills.
     public string CooldownTargetName;           // Name of a skill or skill group.
-    
+
     public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
     {
         actionResults[ActionID] = new ActionResult();
@@ -71,5 +71,13 @@ public class ActionCooldown : Action
         }
 
         actionResults[ActionID].Success = true;
+    }
+
+    public override void SetTypeDefaults()
+    {
+        Cooldown = 0.5f;
+        ChangeMode = eChangeMode.Set;
+        CooldownTarget = eCooldownTarget.Skill;
+        CooldownTargetName = SkillID;
     }
 }

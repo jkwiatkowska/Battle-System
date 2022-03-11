@@ -27,4 +27,10 @@ public class ActionLoopBack : Action
 
         return Loops == 0 || Loops > actionResults[ActionID].Count;
     }
+
+    public override void SetTypeDefaults()
+    {
+        GoToTimestamp = 0.0f;
+        Loops = 1;
+    }
 }

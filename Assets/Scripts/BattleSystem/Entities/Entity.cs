@@ -1565,6 +1565,7 @@ public class Entity : MonoBehaviour
     protected virtual bool CanAffordCost(List<ActionCostCollection> costActions)
     {
         var costs = new Dictionary<string, float>();
+
         foreach (var cost in costActions)
         {
             if (costs.ContainsKey(cost.ResourceName))

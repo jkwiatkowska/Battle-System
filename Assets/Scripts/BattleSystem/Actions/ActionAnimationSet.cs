@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ActionAnimationSet<T> : Action
+public class ActionAnimationSet : Action
 {
     public enum eAnimationAction
     {
@@ -85,5 +85,13 @@ public class ActionAnimationSet<T> : Action
                 return;
             }
         }
+    }
+
+    public override void SetTypeDefaults()
+    {
+        AnimationAction = eAnimationAction.SetTrigger;
+        Name = "";
+        ValueBool = true;
+        ValueOther = "";
     }
 }

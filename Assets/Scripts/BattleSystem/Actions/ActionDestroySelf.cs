@@ -16,4 +16,9 @@ public class ActionDestroySelf : Action
         entity.DestroyEntity();
         actionResults[ActionID].Success = true;
     }
+
+    public override void SetTypeDefaults()
+    {
+        
+    }
 }

@@ -62,4 +62,12 @@ public class ActionCostCollection : Action
         actionResults[ActionID].Success = true;
         actionResults[ActionID].Value = value;
     }
+
+    public override void SetTypeDefaults()
+    {
+        ResourceName = "";
+        ValueType = eCostValueType.FlatValue;
+        Value = 100.0f;
+        Optional = false;
+    }
 }

@@ -66,7 +66,7 @@ public class ActionPayloadDirect : ActionPayload
                     else
                     {
                         return targets;
-                    }    
+                    }
                 }
                 break;
             }
@@ -117,5 +117,11 @@ public class ActionPayloadDirect : ActionPayload
         }
 
         return targets;
+    }
+
+    public override void SetTypeDefaults()
+    {
+        ActionTargets = eDirectActionTargets.SelectedEntity;
+        EntityTag = "";
     }
 }

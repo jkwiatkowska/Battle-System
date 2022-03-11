@@ -45,6 +45,18 @@ public class TransformData
     public float ForwardRotationOffset;     // The forward vector can be rotated around its Y axis.
     public float RandomForwardOffset;       // Randomness can be applied to this as well. 
 
+    public TransformData()
+    {
+        PositionOrigin = ePositionOrigin.CasterPosition;
+        ForwardSource = eForwardSource.CasterForward;
+        EntityTag = "";
+        TaggedTargetPriority = eTaggedTargetPriority.Random;
+        PositionOffset = Vector3.zero;
+        RandomPositionOffset = Vector3.zero;
+        ForwardRotationOffset = 0.0f;
+        RandomForwardOffset = 0.0f;
+    }
+
     public bool TryGetTransformFromData(Entity caster, Entity target, out Vector3 position, out Vector3 forward)
     {
         position = new Vector3();

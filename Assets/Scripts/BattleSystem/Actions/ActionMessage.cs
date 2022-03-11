@@ -22,4 +22,10 @@ public class ActionMessage : Action
         actionResults[ActionID].Success = true;
         return;
     }
+
+    public override void SetTypeDefaults()
+    {
+        MessageString = "";
+        MessageColor = Color.white;
+    }
 }

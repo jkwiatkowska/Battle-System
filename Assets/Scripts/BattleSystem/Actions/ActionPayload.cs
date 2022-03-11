@@ -143,4 +143,13 @@ public abstract class ActionPayload : Action
         Debug.LogError($"Unimplemented target state: {TargetState}");
         return false;
     }
+
+    public override void SetTypeDefaults()
+    {
+        Target = eTarget.EnemyEntities;
+        TargetState = eTargetState.Alive;
+        PayloadData = new List<PayloadData>();
+        TargetLimit = 0;
+        TargetPriority = eTargetPriority.Random;
+    }
 }

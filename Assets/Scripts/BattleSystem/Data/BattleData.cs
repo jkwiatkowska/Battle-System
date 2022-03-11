@@ -39,7 +39,7 @@ public class BattleData
     public static Dictionary<string, List<string>> StatusEffectGroups => Instance.StatusEffectGroupData;
     #endregion
 
-    static readonly fsSerializer Serializer = new fsSerializer();
+    public static readonly fsSerializer Serializer = new fsSerializer();
 
     public static void LoadData(string path)
     {
@@ -1592,8 +1592,7 @@ public class BattleData
     public static void SaveData(string path)
     {
         // Serialize the data.
-        fsData data;
-        Serializer.TrySerialize(Instance, out data);
+        Serializer.TrySerialize(Instance, out var data);
 
         // Emit the data via JSON.
         var json = fsJsonPrinter.CompressedJson(data);

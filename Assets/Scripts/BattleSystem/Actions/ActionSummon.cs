@@ -60,4 +60,18 @@ public class ActionSummon : Action
         summoner.AddSummonedEntity(summonedEntity, this);
         return true;
     }
+
+    public override void SetTypeDefaults()
+    {
+        EntityID = "";
+
+        SummonAtPosition = new TransformData();
+
+        SummonDuration = 60.0f;
+        SummonLimit = 0;
+        SharedAttributes = new Dictionary<string, float>();
+
+        LifeLink = true;
+        InheritFaction = true;
+    }
 }
