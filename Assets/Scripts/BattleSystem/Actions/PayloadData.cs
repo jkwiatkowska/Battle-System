@@ -14,14 +14,16 @@ public class PayloadData
     public TagData Tag;                                 // An entity can be "tagged". This makes it possible for skills to affect this entity specifically without selecting it
 
     public List<(string StatusID, int Stacks)> ApplyStatus;             // Effects applied to the target entity along with the payload.
-    public List<(bool StatusGroup, string StatusID)> ClearStatus;       // Effects cleared from the target entity.
-    public List<(string StatusID, int Stacks)> RemoveStatus;            // Status stacks cleared from the target entity
+    public List<(string StatusID, int Stacks)> RemoveStatusStacks;      // Status stacks cleared from the target entity
+    public List<(bool StatusGroup, string StatusID)> ClearStatus;       // Effects fully cleared from the target entity.
 
     public bool Instakill = false;                      // Used to set an entity's OnDeath trigger.
+    public bool Revive = false;                         // Revives dead entities.
 
     public float SuccessChance;
 
     public PayloadCondition PayloadCondition;           // Condition for the payload to be applied.
+    public PayloadData AlternatePayload;                // If the condition isn't met, an alternate payload can be executed instead.
 
     // TO DO:
     // - Force applied to target.
@@ -32,24 +34,91 @@ public class PayloadData
         PayloadValue = new Value();
         Flags = new List<string>();
         SuccessChance = 1.0f;
+
+        ApplyStatus = new List<(string StatusID, int Stacks)>();
+        ClearStatus = new List<(bool StatusGroup, string StatusID)>();
+        RemoveStatusStacks = new List<(string StatusID, int Stacks)>();
     }
 }
 
-public abstract class PayloadCondition
+public class PayloadCondition
 {
     public enum ePayloadConditionType
     {
+        AngleBetweenDirections,
         TargetHasStatus,
         TargetWithinDistance,
-        TargetResourceInRange,
-        AngleBetweenDirections,
+        TargetResourceRatioWithinRange,
     }
 
     public ePayloadConditionType ConditionType;
 
-    public bool ExpectedResult;             // If false, the check must fail for the condition to be met.
+    // Status
+    public string StatusID;
+    public int MinStatusStacks;
+
+    // Everything but status
+    public Vector2 Range;
+
+    // Resource
+    public string Resource;
+
+    // Direction
+    public enum eDirection
+    {
+        CasterToTarget,
+        TargetToCaster,
+        CasterForward,
+        TargetForward,
+        CasterRight,
+        TargetRight,
+    }
+
+    public eDirection Direction1;
+    public eDirection Direction2;
+
+    public bool ExpectedResult = true;      // If false, the check must fail for the condition to be met.
     public PayloadCondition AndCondition;   // Both conditions must succeed for the condtion to be met.
     public PayloadCondition OrCondition;    // If this check fails, another can be made with a different condition.
+
+    public PayloadCondition(ePayloadConditionType condition = ePayloadConditionType.AngleBetweenDirections)
+    {
+        SetCondition(condition);
+    }
+
+    public void SetCondition(ePayloadConditionType condition)
+    {
+        ConditionType = condition;
+
+        switch (condition)
+        {
+            case ePayloadConditionType.AngleBetweenDirections:
+            {
+                Range = new Vector2(0.0f, 45.0f);
+
+                Direction1 = eDirection.CasterToTarget;
+                Direction2 = eDirection.TargetForward;
+                break;
+            }
+            case ePayloadConditionType.TargetHasStatus:
+            {
+                StatusID = "";
+                MinStatusStacks = 1;
+                break;
+            }
+            case ePayloadConditionType.TargetWithinDistance:
+            {
+                Range = new Vector2(0.0f, 1.0f);
+                break;
+            }
+            case ePayloadConditionType.TargetResourceRatioWithinRange:
+            {
+                Resource = "";
+                Range = new Vector2(0.0f, 0.5f);
+                break;
+            }
+        }
+    }
 
     public bool CheckCondition(Entity caster, Entity target)
     {
@@ -68,80 +137,41 @@ public abstract class PayloadCondition
         }
     }
 
-    protected abstract bool ConditionMet(Entity caster, Entity target);
-}
-
-public class PayloadConditionStatus : PayloadCondition
-{
-    public string StatusID;
-    public int MinStatusStacks;
-
-    protected override bool ConditionMet(Entity caster, Entity target)
+    bool ConditionMet(Entity caster, Entity target)
     {
-        return target.GetStatusEffectStacks(StatusID) > MinStatusStacks;
-    }
-}
+        switch (ConditionType)
+        {
+            case ePayloadConditionType.AngleBetweenDirections:
+            {
+                var dir1 = Direction(Direction1, caster, target);
+                var dir2 = Direction(Direction2, caster, target);
 
-public abstract class PayloadConditionRange : PayloadCondition
-{
-    public Vector2 Range;
+                var value = Vector3.Angle(dir1, dir2);
 
-    protected override bool ConditionMet(Entity caster, Entity target)
-    {
-        var value = GetValue(caster, target);
+                return CheckRange(value, Range.x, Range.y);
+            }
+            case ePayloadConditionType.TargetHasStatus:
+            {
+                return target.GetStatusEffectStacks(StatusID) > MinStatusStacks;
+            }
+            case ePayloadConditionType.TargetWithinDistance:
+            {
+                var value = (target.transform.position - caster.transform.position).sqrMagnitude;
+                return CheckRange(value, (Range.x * Range.x), (Range.y * Range.y));
+            }
+            case ePayloadConditionType.TargetResourceRatioWithinRange:
+            {
+                var value = target.ResourcesCurrent.ContainsKey(Resource) ? target.ResourceRatio(Resource) : 0.0f;
+                return CheckRange(value, Range.x, Range.y);
+            }
+        }
 
-        return value >= Range.x - Constants.Epsilon && value <= Range.y + Constants.Epsilon;
-    }
-
-    protected abstract float GetValue(Entity caster, Entity target);
-}
-
-public class PayloadConditionDistance : PayloadConditionRange
-{
-    protected override bool ConditionMet(Entity caster, Entity target)
-    {
-        var value = GetValue(caster, target);
-
-        return value >= (Range.x * Range.x) - Constants.Epsilon && value <= (Range.y * Range.y) + Constants.Epsilon;
+        return false;
     }
 
-    protected override float GetValue(Entity caster, Entity target)
+    bool CheckRange(float value, float min, float max)
     {
-        return (target.transform.position - caster.transform.position).sqrMagnitude;
-    }
-}
-
-public class PayloadConditionResource : PayloadConditionRange
-{
-    public string Resource;
-
-    protected override float GetValue(Entity caster, Entity target)
-    {
-        return (target.ResourcesCurrent.ContainsKey(Resource) ? target.ResourcesCurrent[Resource] : 0.0f);
-    }
-}
-
-public class PayloadConditionAngle : PayloadConditionRange
-{
-    public enum eDirection
-    {
-        CasterToTarget,
-        TargetToCaster,
-        CasterForward,
-        TargetForward,
-        CasterRight,
-        TargetRight,
-    }
-
-    public eDirection Direction1;
-    public eDirection Direction2;
-
-    protected override float GetValue(Entity caster, Entity target)
-    {
-        var dir1 = Direction(Direction1, caster, target);
-        var dir2 = Direction(Direction2, caster, target);
-
-        return Vector3.Angle(dir1, dir2);
+        return value >= min - Constants.Epsilon && value <= max + Constants.Epsilon;
     }
 
     Vector3 Direction(eDirection direction, Entity caster, Entity target)

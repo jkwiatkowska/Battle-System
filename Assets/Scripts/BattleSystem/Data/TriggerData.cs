@@ -210,7 +210,8 @@ public class TriggerData
 
             bool isPayloadTrigger = triggerType == eTrigger.OnPayloadApplied || triggerType == eTrigger.OnPayloadReceived || 
                                     triggerType == eTrigger.OnResourceChanged || triggerType == eTrigger.OnDeath || 
-                                    triggerType == eTrigger.OnKill || triggerType == eTrigger.OnHitMissed || triggerType == eTrigger.OnImmune;
+                                    triggerType == eTrigger.OnKill || triggerType == eTrigger.OnHitMissed || triggerType == eTrigger.OnImmune || 
+                                    triggerType == eTrigger.OnReviveIncoming || triggerType == eTrigger.OnReviveOutgoing;
 
             bool isActionTrigger = triggerType == eTrigger.OnActionUsed;
 
@@ -266,7 +267,7 @@ public class TriggerData
         OnPayloadApplied,           // Succesfully using a payload action.
         OnPayloadReceived,          // Having payload applied.
         OnHitMissed,                // Failing to apply a payload action.
-        OnImmune,              // Immunity status effect.
+        OnImmune,                   // Immunity status effect.
         OnResourceChanged,          // Damage or recovery of a resource.
         OnActionUsed,               // Use of an action.
         OnStatusApplied,            // Status applied to another entity.
@@ -277,6 +278,8 @@ public class TriggerData
         OnDeath,                    // Life resource reaches 0.
         OnKill,                     // Killing another entity.
         OnSpawn,                    // Fires after setup.
+        OnReviveOutgoing,           // Fires if an entity revives another entity.
+        OnReviveIncoming,           // Fires if an entity is revived by another entity.
         OnCollisionEnemy,           // Fires on trigger collision with an enemy.
         OnCollisionFriend,          // Fireso on trigger collision with a friend.
         OnCollisionTerrain,         // Fires on trigger collision with an object on terrain layer.

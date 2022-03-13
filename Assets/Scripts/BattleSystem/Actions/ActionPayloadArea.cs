@@ -22,6 +22,14 @@ public class ActionPayloadArea : ActionPayload
         public TransformData AreaTransform;
 
         // To do: add a way to define falloff ratios
+        public Area()
+        {
+            Shape = eShape.Sphere;
+            Dimensions = new Vector3(2.0f, 360.0f, 2.0f);
+            InnerDimensions = Vector2.zero;
+
+            AreaTransform = new TransformData();
+        }
     }
 
     public List<Area> AreasAffected;
@@ -170,7 +178,7 @@ public class ActionPayloadArea : ActionPayload
                         var tBottom = t.transform.position.y;
                         var tTop = tBottom + t.EntityData.Height;
                         var areaBottom = areaPos.y;
-                        var areaTop = areaPos.y + area.Dimensions.z;
+                        var areaTop = areaPos.y + area.Dimensions.y;
 
                         if (tBottom < areaBottom || tTop > areaTop)
                         {
@@ -182,7 +190,7 @@ public class ActionPayloadArea : ActionPayload
                         var maxX = halfWidth + areaPos.x;
                         var minX = -halfWidth + areaPos.x;
 
-                        var halfLength = area.Dimensions.y * 0.5f + t.EntityData.Radius;
+                        var halfLength = area.Dimensions.z * 0.5f + t.EntityData.Radius;
                         var maxY = halfLength + areaPos.z;
                         var minY = -halfLength + areaPos.z;
 

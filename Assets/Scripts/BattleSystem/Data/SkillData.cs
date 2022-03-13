@@ -36,6 +36,22 @@ public class SkillData
     public eCasterState CasterState;            // Skill can only be executed in the state specified and is cancelled when state changes.
     public bool MovementCancelsSkill;           // Skill is cancelled if the entity moves while casting.
 
+    public SkillData():this("")
+    {
+
+    }
+
+    public SkillData(string skillID)
+    {
+        SkillID = skillID;
+        Interruptible = false;
+        SkillChargeData = null;
+        SkillTimeline = new ActionTimeline();
+        NeedsTarget = false;
+        PreferredTarget = eTargetPreferrence.Enemy;
+        Range = 20.0f;
+    }
+
     public float Cooldown
     {
         get

@@ -492,7 +492,24 @@ public class Entity : MonoBehaviour
 
         HUDPopupTextHUD.Instance.DisplayDamage(payloadResult);
 
-        OnTrigger(TriggerData.eTrigger.OnPayloadApplied, triggerSource: payloadResult.Caster);
+        OnTrigger(TriggerData.eTrigger.OnPayloadApplied, triggerSource: payloadResult.Caster, payloadResult: payloadResult);
+    }
+
+    public virtual void OnReviveIncoming(PayloadResult payloadResult)
+    {
+        if (!Alive)
+        {
+            StopAllCoroutines();
+            EntityState = eEntityState.Idle;
+
+            OnTrigger(TriggerData.eTrigger.OnReviveIncoming, triggerSource: payloadResult.Caster, payloadResult: payloadResult);
+            payloadResult.Caster.OnReviveOutgoing(payloadResult);
+        }
+    }
+
+    public virtual void OnReviveOutgoing(PayloadResult payloadResult)
+    {
+        OnTrigger(TriggerData.eTrigger.OnReviveOutgoing, triggerSource: payloadResult.Target, payloadResult: payloadResult);
     }
 
     public virtual void OnActionUsed(Action action, ActionResult actionResult)

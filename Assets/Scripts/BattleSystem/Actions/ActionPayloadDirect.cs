@@ -121,6 +121,8 @@ public class ActionPayloadDirect : ActionPayload
 
     public override void SetTypeDefaults()
     {
+        base.SetTypeDefaults();
+
         ActionTargets = eDirectActionTargets.SelectedEntity;
         EntityTag = "";
     }

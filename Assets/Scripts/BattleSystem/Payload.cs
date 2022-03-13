@@ -24,6 +24,11 @@ public class Payload
 
     public bool ApplyPayload(Entity caster, Entity target, PayloadResult result)
     {
+        if (PayloadData.Revive && !target.Alive)
+        {
+            target.OnReviveIncoming(result);
+        }
+
         // Chance
         var chance = Formulae.PayloadSuccessChance(PayloadData, caster, target);
         if (Random.value > chance)
@@ -110,9 +115,9 @@ public class Payload
             }
         }
 
-        if (PayloadData.RemoveStatus != null)
+        if (PayloadData.RemoveStatusStacks != null)
         {
-            foreach (var status in PayloadData.RemoveStatus)
+            foreach (var status in PayloadData.RemoveStatusStacks)
             {
                 target.RemoveStatusEffectStacks(caster, status.StatusID, status.Stacks);
             }
