@@ -142,6 +142,8 @@ public class BattleSystemDataEditor : EditorWindow
 
         public EditorPayloadAction(ActionPayload action)
         {
+            ShowPayloads = false;
+
             foreach (var payload in action.PayloadData)
             {
                 Add(new EditorPayload(payload));
@@ -201,6 +203,49 @@ public class BattleSystemDataEditor : EditorWindow
     static Dictionary<string, EditorPayloadAction> EditorPayloads = new Dictionary<string, EditorPayloadAction>();
 
     string NewString = "";
+    Action.eActionType NewAction;
+    bool ShowValues;
+    ActionProjectile.OnCollisionReaction.eReactionType NewReaction;
+
+    #endregion
+
+    #region Effect Data
+
+    class EditorStatusGroup
+    {
+        public string GroupID = "";
+        public List<string> Statuses = new List<string>();
+        public string NewStatus = "";
+
+        public EditorStatusGroup(string id = "", List<string> list = null)
+        {
+            GroupID = id;
+            if (list != null)
+            {
+                Statuses = Utility.CopyList(list);
+            }
+        }
+    }
+
+    class EditorStatusEffect
+    {
+        public StatusEffectData Data = new StatusEffectData();
+        public bool Show = false;
+
+        public EditorStatusEffect(StatusEffectData data)
+        {
+            Data = Copy(data);
+        }
+    }
+
+    bool ShowStatusGroups = false;
+    bool ShowStatusEffects = false;
+
+    string NewStatusGroup = "";
+    string NewStatusEffect = "";
+
+    List <EditorStatusGroup> StatusGroups = new List<EditorStatusGroup>();
+    List<EditorStatusEffect> StatusEffects = new List<EditorStatusEffect>();
     #endregion
 
     [MenuItem("Tools/Battle System Data")]
@@ -329,6 +374,18 @@ public class BattleSystemDataEditor : EditorWindow
         {
             Skills.Add(new EditorSkill(skill.Value));
         }
+
+        StatusGroups = new List<EditorStatusGroup>();
+        foreach (var group in BattleData.StatusEffectGroups)
+        {
+            StatusGroups.Add(new EditorStatusGroup(group.Key, group.Value));
+        }
+
+        StatusEffects = new List<EditorStatusEffect>();
+        foreach (var status in BattleData.StatusEffects)
+        {
+            StatusEffects.Add(new EditorStatusEffect(status.Value));
+        }
     }
 
     #region GameData
@@ -370,11 +427,11 @@ public class BattleSystemDataEditor : EditorWindow
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("", GUILayout.Width(10));
                 EntityAttributes[i] = GUILayout.TextField(EntityAttributes[i], GUILayout.Width(203));
-                if (GUILayout.Button("Rename", GUILayout.Width(90)))
+                if (Rename())
                 {
                     BattleData.EntityAttributes[i] = EntityAttributes[i];
                 }
-                if (GUILayout.Button("Remove", GUILayout.Width(90)))
+                if (Remove())
                 {
                     EntityAttributes.RemoveAt(i);
                     BattleData.EntityAttributes.RemoveAt(i);
@@ -384,7 +441,7 @@ public class BattleSystemDataEditor : EditorWindow
             GUILayout.BeginHorizontal();
             GUILayout.Label($"{Indent(1)}New Attribute: ", GUILayout.Width(100));
             NewAttribute = GUILayout.TextField(NewAttribute, GUILayout.Width(200));
-            if (GUILayout.Button("Add", GUILayout.Width(90)) && !string.IsNullOrEmpty(NewAttribute) &&
+            if (Add() && !string.IsNullOrEmpty(NewAttribute) &&
                 !EntityAttributes.Contains(NewAttribute))
             {
                 EntityAttributes.Add(NewAttribute);
@@ -415,7 +472,7 @@ public class BattleSystemDataEditor : EditorWindow
                 GUILayout.Label($"{Indent(1)}Resource: ", GUILayout.Width(74));
                 var oldName = EntityResources[i].Name;
                 EntityResources[i].Name = GUILayout.TextField(EntityResources[i].Name, GUILayout.Width(200));
-                if (GUILayout.Button("Save Changes", GUILayout.Width(110)))
+                if (Button("Save Changes", 110))
                 {
                     GUI.FocusControl(null);
                     var value = EntityResources[i].Value.Copy();
@@ -439,7 +496,7 @@ public class BattleSystemDataEditor : EditorWindow
                     }
 
                 }
-                if (GUILayout.Button("Remove", GUILayout.Width(90)))
+                if (Remove())
                 {
                     EntityResources.RemoveAt(i);
                     BattleData.EntityResources.Remove(EntityResources[i].Name);
@@ -454,7 +511,7 @@ public class BattleSystemDataEditor : EditorWindow
             GUILayout.BeginHorizontal();
             GUILayout.Label("New Resource: ", GUILayout.Width(88));
             NewResource.Name = GUILayout.TextField(NewResource.Name, GUILayout.Width(200));
-            if (GUILayout.Button("Add", GUILayout.Width(90)) && !string.IsNullOrEmpty(NewResource.Name) &&
+            if (Add() && !string.IsNullOrEmpty(NewResource.Name) &&
                 !BattleData.EntityResources.ContainsKey(NewResource.Name))
             {
                 EntityResources.Add(new EditorResource(NewResource.Name, NewResource.Value.Copy()));
@@ -483,11 +540,11 @@ public class BattleSystemDataEditor : EditorWindow
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("", GUILayout.Width(10));
                 Categories[i] = GUILayout.TextField(Categories[i], GUILayout.Width(203));
-                if (GUILayout.Button("Rename", GUILayout.Width(90)))
+                if (Rename())
                 {
                     BattleData.Categories[i] = Categories[i];
                 }
-                if (GUILayout.Button("Remove", GUILayout.Width(90)))
+                if (Remove())
                 {
                     Categories.RemoveAt(i);
                     BattleData.Categories.RemoveAt(i);
@@ -497,7 +554,7 @@ public class BattleSystemDataEditor : EditorWindow
             GUILayout.BeginHorizontal();
             GUILayout.Label($"{Indent(1)}New Category: ", GUILayout.Width(100));
             NewCategory = GUILayout.TextField(NewCategory, GUILayout.Width(200));
-            if (GUILayout.Button("Add", GUILayout.Width(90)) && !string.IsNullOrEmpty(NewCategory) &&
+            if (Add() && !string.IsNullOrEmpty(NewCategory) &&
                 !BattleData.Categories.Contains(NewCategory))
             {
                 Categories.Add(NewCategory);
@@ -525,11 +582,11 @@ public class BattleSystemDataEditor : EditorWindow
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("", GUILayout.Width(10));
                 PayloadFlags[i] = GUILayout.TextField(PayloadFlags[i], GUILayout.Width(203));
-                if (GUILayout.Button("Rename", GUILayout.Width(90)))
+                if (Rename())
                 {
                     BattleData.PayloadFlags[i] = PayloadFlags[i];
                 }
-                if (GUILayout.Button("Remove", GUILayout.Width(90)))
+                if (Remove())
                 {
                     PayloadFlags.RemoveAt(i);
                     BattleData.PayloadFlags.RemoveAt(i);
@@ -539,7 +596,7 @@ public class BattleSystemDataEditor : EditorWindow
             GUILayout.BeginHorizontal();
             GUILayout.Label($"{Indent(1)}New Payload Flag: ", GUILayout.Width(120));
             NewPayloadFlag = GUILayout.TextField(NewPayloadFlag, GUILayout.Width(200));
-            if (GUILayout.Button("Add", GUILayout.Width(90)) && !string.IsNullOrEmpty(NewPayloadFlag) &&
+            if (Add() && !string.IsNullOrEmpty(NewPayloadFlag) &&
                 !BattleData.PayloadFlags.Contains(NewPayloadFlag))
             {
                 PayloadFlags.Add(NewPayloadFlag);
@@ -570,7 +627,7 @@ public class BattleSystemDataEditor : EditorWindow
 
                 var oldName = Factions[i].Data.FactionID;
                 Factions[i].Data.FactionID = GUILayout.TextField(Factions[i].Data.FactionID, GUILayout.Width(200));
-                if (GUILayout.Button("Save Changes", GUILayout.Width(110)))
+                if (Button("Save Changes", 110))
                 {
                     GUI.FocusControl(null);
                     var value = Factions[i].Data.Copy();
@@ -589,7 +646,7 @@ public class BattleSystemDataEditor : EditorWindow
                     BattleData.Factions[Factions[i].Data.FactionID] = value;
 
                 }
-                if (GUILayout.Button("Remove", GUILayout.Width(90)))
+                if (Remove())
                 {
                     Factions.RemoveAt(i);
                     BattleData.EntityResources.Remove(Factions[i].Data.FactionID);
@@ -604,7 +661,7 @@ public class BattleSystemDataEditor : EditorWindow
                 GUILayout.BeginHorizontal();
                 GUILayout.Label($"{Indent(1)}New Faction: ", GUILayout.Width(120));
                 NewFaction = GUILayout.TextField(NewFaction, GUILayout.Width(200));
-                if (GUILayout.Button("Add", GUILayout.Width(90)) && !string.IsNullOrEmpty(NewFaction) &&
+                if (Add() && !string.IsNullOrEmpty(NewFaction) &&
                     !BattleData.Factions.ContainsKey(NewFaction))
                 {
                     var newFactionData = new FactionData(NewFaction);
@@ -631,7 +688,7 @@ public class BattleSystemDataEditor : EditorWindow
                 GUILayout.BeginHorizontal();
                 Indent(2);
                 GUILayout.Label($"{Indent(2)}• {factions[i]}", GUILayout.Width(100));
-                if (GUILayout.Button("Remove", GUILayout.Width(70)))
+                if (Add())
                 {
                     factions.RemoveAt(i);
                 }
@@ -675,7 +732,7 @@ public class BattleSystemDataEditor : EditorWindow
                 newFaction = options[EditorGUILayout.Popup(index, options.ToArray(),
                             GUILayout.Width(70))];
 
-                if (GUILayout.Button("+", GUILayout.Width(20)) && newFaction != null)
+                if (Button("+", 20) && newFaction != null)
                 {
                     factions.Add(newFaction);
                 }
@@ -714,7 +771,7 @@ public class BattleSystemDataEditor : EditorWindow
 
                 var oldName = SkillGroups[i].GroupID;
                 SkillGroups[i].GroupID = GUILayout.TextField(SkillGroups[i].GroupID, GUILayout.Width(200));
-                if (GUILayout.Button("Save Changes", GUILayout.Width(110)))
+                if (Button("Save Changes", 110))
                 {
                     GUI.FocusControl(null);
                     var value = Utility.CopyList(SkillGroups[i].Skills);
@@ -733,7 +790,7 @@ public class BattleSystemDataEditor : EditorWindow
                     BattleData.SkillGroups[SkillGroups[i].GroupID] = value;
                 }
 
-                if (GUILayout.Button("Remove", GUILayout.Width(90)))
+                if (Remove())
                 {
                     SkillGroups.RemoveAt(i);
                     BattleData.SkillGroups.Remove(SkillGroups[i].GroupID);
@@ -748,7 +805,7 @@ public class BattleSystemDataEditor : EditorWindow
             GUILayout.BeginHorizontal();
             GUILayout.Label($"{Indent(1)}New Skill Group: ", GUILayout.Width(128));
             NewSkillGroup = GUILayout.TextField(NewSkillGroup, GUILayout.Width(200));
-            if (GUILayout.Button("Add", GUILayout.Width(90)) && !string.IsNullOrEmpty(NewSkillGroup) &&
+            if (Add() && !string.IsNullOrEmpty(NewSkillGroup) &&
                 !BattleData.SkillGroups.ContainsKey(NewSkillGroup))
             {
                 SkillGroups.Add(new EditorSkillGroup(NewSkillGroup));
@@ -786,7 +843,7 @@ public class BattleSystemDataEditor : EditorWindow
                     skill.SkillID = GUILayout.TextField(skill.SkillID, GUILayout.Width(200));
 
                     // Save/Remove
-                    if (GUILayout.Button("Save Changes", GUILayout.Width(110)))
+                    if (Button("Save Changes", 110))
                     {
                         GUI.FocusControl(null);
 
@@ -818,7 +875,7 @@ public class BattleSystemDataEditor : EditorWindow
                         BattleData.Skills[skill.SkillData.SkillID] = value;
                     }
 
-                    if (GUILayout.Button("Remove", GUILayout.Width(90)))
+                    if (Remove())
                     {
                         Skills.RemoveAt(i);
                         BattleData.Skills.Remove(skill.SkillData.SkillID);
@@ -854,7 +911,7 @@ public class BattleSystemDataEditor : EditorWindow
             // New skill
             GUILayout.BeginHorizontal();
             EditString(ref NewSkill, $"{Indent(1)}New Skill: ", 80, 200, false);
-            if (GUILayout.Button("Add", GUILayout.Width(90)) && !BattleData.Skills.ContainsKey(NewSkill))
+            if (Add() && !BattleData.Skills.ContainsKey(NewSkill))
             {
                 var newSkill = new SkillData(NewSkill);
                 Skills.Add(new EditorSkill(newSkill));
@@ -872,14 +929,78 @@ public class BattleSystemDataEditor : EditorWindow
         void EditStatusEffectData()
     {
         // Status Effect Groups
-        GUILayout.BeginHorizontal();
-
-        GUILayout.EndHorizontal();
+        EditStatusEffectGroups();
 
         // Status Effects
-        GUILayout.BeginHorizontal();
+        EditStatusEffects();
+    }
 
-        GUILayout.EndHorizontal();
+    void EditStatusEffectGroups()
+    {
+        ShowStatusGroups = EditorGUILayout.Foldout(ShowStatusGroups, "Status Effect Groups");
+        if (ShowStatusGroups)
+        {
+            if (ShowHelp)
+            {
+                EditorGUILayout.HelpBox("", MessageType.None);
+            }
+
+            for (int i = 0; i < BattleData.StatusEffectGroups.Count; i++)
+            {
+                EditorDrawLine(new Color(0.35f, 0.35f, 0.35f));
+                GUILayout.BeginHorizontal();
+                GUILayout.Label($"{Indent(1)}Status Effect Group: ", GUILayout.Width(120));
+
+                var oldName = StatusGroups[i].GroupID;
+                StatusGroups[i].GroupID = GUILayout.TextField(StatusGroups[i].GroupID, GUILayout.Width(200));
+                if (Button("Save Changes", 110))
+                {
+                    GUI.FocusControl(null);
+                    var value = Utility.CopyList(StatusGroups[i].Statuses);
+
+                    if (oldName != StatusGroups[i].GroupID)
+                    {
+                        if (!BattleData.StatusEffectGroups.ContainsKey(StatusGroups[i].GroupID))
+                        {
+                            BattleData.StatusEffectGroups.Remove(oldName);
+                        }
+                        else
+                        {
+                            StatusGroups[i].GroupID = oldName;
+                        }
+                    }
+                    BattleData.StatusEffectGroups[StatusGroups[i].GroupID] = value;
+                }
+
+                if (Remove())
+                {
+                    StatusGroups.RemoveAt(i);
+                    BattleData.StatusEffectGroups.Remove(StatusGroups[i].GroupID);
+                }
+                GUILayout.EndHorizontal();
+
+                EditListString(ref StatusGroups[i].NewStatus, StatusGroups[i].Statuses, BattleData.StatusEffects.Keys.ToList(),
+                               "", "No Status Effects in the Status Effect Group", "Add Status Effect:");
+            }
+
+            // New status effect group
+            GUILayout.BeginHorizontal();
+            GUILayout.Label($"{Indent(1)}New Status Effect Group: ", GUILayout.Width(165));
+            NewStatusGroup = GUILayout.TextField(NewStatusGroup, GUILayout.Width(200));
+            if (Add() && !string.IsNullOrEmpty(NewStatusGroup) &&
+                !BattleData.StatusEffectGroups.ContainsKey(NewStatusGroup))
+            {
+                StatusGroups.Add(new EditorStatusGroup(NewStatusGroup));
+                BattleData.StatusEffectGroups.Add(NewStatusGroup, new List<string>());
+                NewStatusGroup = "";
+            }
+            GUILayout.EndHorizontal();
+        }
+    }
+
+    void EditStatusEffects()
+    {
+
     }
     #endregion
 
@@ -910,8 +1031,8 @@ public class BattleSystemDataEditor : EditorWindow
         EditorDrawLine(new Color(0.35f, 0.35f, 0.35f));
 
         GUILayout.BeginHorizontal();
-        GUILayout.Label($"{Indent(indent)}{action.ActionType} Action", GUILayout.Width(250));
-        if (GUILayout.Button("Remove", GUILayout.Width(90)))
+        GUILayout.Label($"{Indent(indent)}{action.ActionType} Action", GUILayout.Width(200 + indent * 12));
+        if (Remove())
         {
             return false;
         }
@@ -919,8 +1040,8 @@ public class BattleSystemDataEditor : EditorWindow
 
         indent++;
 
-        EditString(ref action.ActionID, $"{Indent(indent)}Action ID:", 250);
-        EditFloat(ref action.Timestamp, $"{Indent(indent)}Timestamp:", 250);
+        EditString(ref action.ActionID, $"{Indent(indent)}Action ID:", 200 + indent * 12);
+        EditFloat(ref action.Timestamp, $"{Indent(indent)}Timestamp:", 200 + indent * 12);
 
         if (ShowHelp && ActionHelp.ContainsKey(action.ActionType))
         {
@@ -939,21 +1060,21 @@ public class BattleSystemDataEditor : EditorWindow
                 }
 
                 GUILayout.BeginHorizontal();
-                GUILayout.Label($"{Indent(indent)}Cooldown:", GUILayout.Width(250));
+                GUILayout.Label($"{Indent(indent)}Cooldown:", GUILayout.Width(200 + indent * 12));
                 a.Cooldown = EditorGUILayout.FloatField(action.Timestamp, GUILayout.Width(60));
                 GUILayout.EndHorizontal();
 
-                EditEnum(ref a.ChangeMode, $"{Indent(indent)}Change Mode:", 250, 120);
-                EditEnum(ref a.CooldownTarget, $"{Indent(indent)}Cooldown Target:", 250, 120);
+                EditEnum(ref a.ChangeMode, $"{Indent(indent)}Change Mode:", 200 + indent * 12, 120);
+                EditEnum(ref a.CooldownTarget, $"{Indent(indent)}Cooldown Target:", 200 + indent * 12, 120);
 
                 GUILayout.BeginHorizontal();
                 if (a.CooldownTarget == ActionCooldown.eCooldownTarget.Skill)
                 {
-                    SelectSkill(ref a.CooldownTargetName, $"{Indent(indent)}Cooldown Skill ID:", 250);
+                    SelectSkill(ref a.CooldownTargetName, $"{Indent(indent)}Cooldown Skill ID:", 200 + indent * 12);
                 }
                 else if (a.CooldownTarget == ActionCooldown.eCooldownTarget.SkillGroup)
                 {
-                    EditSkillGroup(ref a.CooldownTargetName, $"{Indent(indent)}Cooldown Skill Group Name:", 250);
+                    EditSkillGroup(ref a.CooldownTargetName, $"{Indent(indent)}Cooldown Skill Group Name:", 200 + indent * 12);
                 }
 
                 GUILayout.EndHorizontal();
@@ -969,16 +1090,16 @@ public class BattleSystemDataEditor : EditorWindow
                     return false;
                 }
 
-                SelectResource(ref a.ResourceName, $"{Indent(indent)}Resource Collected: ", 250);
-                EditEnum(ref a.ValueType, $"{Indent(indent)}Value Type: ", 250);
+                SelectResource(ref a.ResourceName, $"{Indent(indent)}Resource Collected: ", 200 + indent * 12);
+                EditEnum(ref a.ValueType, $"{Indent(indent)}Value Type: ", 200 + indent * 12);
                 if (a.ValueType == ActionCostCollection.eCostValueType.FlatValue)
                 {
-                    EditFloat(ref a.Value, $"{Indent(indent)}Amount Collected: ", 250);
+                    EditFloat(ref a.Value, $"{Indent(indent)}Amount Collected: ", 200 + indent * 12);
                 }
                 else if (a.ValueType == ActionCostCollection.eCostValueType.CurrentMult || a.ValueType == ActionCostCollection.eCostValueType.MaxMult)
                 {
                     GUILayout.BeginHorizontal();
-                    EditFloat(ref a.Value, $"{Indent(indent)}Amount Collected: ", 250, 70, false);
+                    EditFloat(ref a.Value, $"{Indent(indent)}Amount Collected: ", 200 + indent * 12, 70, false);
                     GUILayout.Label($"x {(a.ValueType == ActionCostCollection.eCostValueType.CurrentMult ? "Current" : "Max")} {a.ResourceName.ToUpper()}");
                     GUILayout.EndHorizontal();
                 }
@@ -1007,8 +1128,8 @@ public class BattleSystemDataEditor : EditorWindow
                     return false;
                 }
 
-                EditFloatSlider(ref a.GoToTimestamp, $"{Indent(indent)}Go To Timestamp:", 0.0f, a.Timestamp, 250);
-                EditInt(ref a.Loops, $"{Indent(indent)}Loops:", 250);
+                EditFloatSlider(ref a.GoToTimestamp, $"{Indent(indent)}Go To Timestamp:", 0.0f, a.Timestamp, 200 + indent * 12);
+                EditInt(ref a.Loops, $"{Indent(indent)}Loops:", 200 + indent * 12);
 
                 break;
             }
@@ -1021,8 +1142,8 @@ public class BattleSystemDataEditor : EditorWindow
                     return false; ;
                 }
 
-                EditString(ref a.MessageString, $"{Indent(indent)}Message Text:", 250, 300);
-                EditColor(ref a.MessageColor, $"{Indent(indent)}Message Colour:", 250, 10);
+                EditString(ref a.MessageString, $"{Indent(indent)}Message Text:", 200 + indent * 12, 300);
+                EditColor(ref a.MessageColor, $"{Indent(indent)}Message Colour:", 200 + indent * 12, 20);
 
                 break;
             }
@@ -1050,10 +1171,10 @@ public class BattleSystemDataEditor : EditorWindow
                 }
 
                 EditPayloadAction(a, EditorPayloadAction.GetEditorPayloadAction(a), indent);
-                EditEnum(ref a.ActionTargets, $"{Indent(indent)}Payload Targets:", 250);
+                EditEnum(ref a.ActionTargets, $"{Indent(indent)}Payload Targets:", 200 + indent * 12);
                 if (a.ActionTargets == ActionPayloadDirect.eDirectActionTargets.TaggedEntity)
                 {
-                    EditString(ref a.EntityTag, $"{Indent(indent)}Target Tag:", 250);
+                    EditString(ref a.EntityTag, $"{Indent(indent)}Target Tag:", 200 + indent * 12);
                 }
 
                 break;
@@ -1104,10 +1225,16 @@ public class BattleSystemDataEditor : EditorWindow
     #region Summon Actions
     void EditActionSummon(ActionSummon a, int indent)
     {
-        SelectStringFromList(ref a.EntityID, BattleData.Entities.Keys.ToList(), $"{Indent(indent)}Summonned Entity:", 250);
+        SelectStringFromList(ref a.EntityID, BattleData.Entities.Keys.ToList(), $"{Indent(indent)}Summonned Entity:", 200 + indent * 12);
+
+        if (a.SummonAtPosition == null)
+        {
+            a.SummonAtPosition = new TransformData();
+        }
         EditTransform(a.SummonAtPosition, indent, "Summon At Position:");
-        EditFloat(ref a.SummonDuration, $"{Indent(indent)}Summon Duration:", 250);
-        EditInt(ref a.SummonLimit, $"{Indent(indent)}Max Summonned {a.EntityID}s:", 250);
+
+        EditFloat(ref a.SummonDuration, $"{Indent(indent)}Summon Duration:", 200 + indent * 12);
+        EditInt(ref a.SummonLimit, $"{Indent(indent)}Max Summonned {a.EntityID}s:", 200 + indent * 12);
 
         // Shared attributes
         var options = BattleData.Entities[a.EntityID].BaseAttributes.Keys.Where(k => !a.SharedAttributes.Keys.Contains(k)).ToList();
@@ -1122,10 +1249,165 @@ public class BattleSystemDataEditor : EditorWindow
     {
         EditActionSummon(a, indent);
 
-        EditEnum(ref a.ProjectileMovementMode, $"{Indent(indent)}Projectile Movement Mode:");
+        var newMode = a.ProjectileMovementMode;
+        EditEnum(ref newMode, $"{Indent(indent)}Projectile Movement Mode:");
+        if (a.ProjectileMovementMode != newMode)
+        {
+            if (newMode == ActionProjectile.eProjectileMovementMode.Homing)
+            {
+                a.Gravity = Constants.Gravity;
+            }
+            else if (a.ProjectileMovementMode == ActionProjectile.eProjectileMovementMode.Homing)
+            {
+                a.Gravity = 0.0f;
+            }
+
+            a.ProjectileMovementMode = newMode;
+        }
+
+        // Mode-specific values
+        indent++;
+        if (a.ProjectileMovementMode == ActionProjectile.eProjectileMovementMode.Homing ||
+            a.ProjectileMovementMode == ActionProjectile.eProjectileMovementMode.Arched)
+        {
+            EditEnum(ref a.Target, $"{Indent(indent)}Moving Toward:", 200 + indent * 12);
+            if (a.Target == ActionProjectile.eTarget.StaticPosition)
+            {
+                if (a.TargetPosition == null)
+                {
+                    a.TargetPosition = new TransformData();
+                }
+                EditTransform(a.TargetPosition, indent + 1, "Position Transform:");
+            }
+        }
+
+        if (a.ProjectileMovementMode == ActionProjectile.eProjectileMovementMode.Arched)
+        {
+            EditFloatSlider(ref a.ArchAngle, $"{Indent(indent)}Arch Angle:", 1.0f, 85.0f, 200 + indent * 12);
+            EditFloat(ref a.Gravity, $"{Indent(indent)}Gravity (Affects Speed):", 200 + indent * 12);
+        }
+
+        if (a.ProjectileMovementMode == ActionProjectile.eProjectileMovementMode.Orbit)
+        {
+            EditEnum(ref a.Anchor, $"{Indent(indent)}Orbit Anchor:", 200 + indent * 12);
+            if (a.Anchor == ActionProjectile.eAnchor.CustomPosition)
+            {
+                if (a.AnchorPosition == null)
+                {
+                    a.AnchorPosition = new TransformData();
+                }
+                EditTransform(a.AnchorPosition, indent + 1, "Position Transform:");
+            }
+        }
+
+        // Projectile Timeline
+        if (a.ProjectileMovementMode != ActionProjectile.eProjectileMovementMode.Arched)
+        {
+            EditProjectileTimeline(a, indent);
+        }
+        indent--;
 
         // Projectile Triggers
+        EditCollisionReactions(a.OnEnemyHit, "On Enemy Hit:", indent, a.SkillID);
+        EditCollisionReactions(a.OnFriendHit, "On Friend Hit:", indent, a.SkillID);
+        EditCollisionReactions(a.OnTerrainHit, "On Terrain Hit:", indent, a.SkillID);
+    }
 
+    void EditCollisionReactions(List<ActionProjectile.OnCollisionReaction> reactions, string label, int indent, string skillID = "")
+    {
+        if (!string.IsNullOrEmpty(label))
+        {
+            GUILayout.Label($"{Indent(indent)}{label}");
+        }
+        indent++;
+
+        if (reactions.Count == 0)
+        {
+            GUILayout.Label($"{Indent(indent)}No Reactions");
+        }
+
+        for (int i = 0; i < reactions.Count; i++)
+        {
+            EditorGUILayout.BeginHorizontal();
+            EditEnum(ref reactions[i].Reaction, $" ", indent * 12, makeHorizontal: false);
+            var remove = Remove();
+            EditorGUILayout.EndHorizontal();
+
+            if (remove)
+            {
+                reactions.RemoveAt(i);
+                i--;
+                continue;
+            }
+
+            if (reactions[i].Reaction == ActionProjectile.OnCollisionReaction.eReactionType.ExecuteActions)
+            {
+                EditActionTimeline(reactions[i].Actions, ref NewAction, ref ShowValues, "Projectile Action Timeline:", indent, skillID);
+            }
+        }
+
+        GUILayout.BeginHorizontal();
+        EditEnum(ref NewReaction, $"{Indent(indent)}New Collision Reaction: ", 200 + indent * 12, 200, false);
+        if (Add())
+        {
+            reactions.Add(new ActionProjectile.OnCollisionReaction(NewReaction));
+        }
+        EditorGUILayout.EndHorizontal();
+    }
+
+    void EditProjectileTimeline(ActionProjectile a, int indent)
+    {
+        GUILayout.BeginHorizontal();
+        GUILayout.Label($"{Indent(indent)}Projectile Timeline", GUILayout.Width(200 + indent * 12));
+        if (a.ProjectileTimeline.Count > 1 && Button("Sort"))
+        {
+            GUI.FocusControl(null);
+            a.ProjectileTimeline.Sort((s1, s2) => s1.Timestamp.CompareTo(s2.Timestamp));
+        }
+        GUILayout.EndHorizontal();
+
+        indent++;
+        for (int i = 0; i < a.ProjectileTimeline.Count; i++)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label($"{Indent(indent)}State {i}", GUILayout.Width(100 + indent * 12));
+            if (Button("Copy"))
+            {
+                a.ProjectileTimeline.Add(Copy(a.ProjectileTimeline[i]));
+            }
+
+            var remove = Remove();
+            GUILayout.EndHorizontal();
+
+            if (remove)
+            {
+                a.ProjectileTimeline.RemoveAt(i);
+                i--;
+                continue;
+            }
+
+            EditProjectileTimelineState(a.ProjectileTimeline[i], a.ProjectileMovementMode, indent + 1);
+        }
+
+        GUILayout.BeginHorizontal();
+        GUILayout.Label($"", GUILayout.Width(indent * 12));
+        if (Button("Add Projectile State", 160))
+        {
+            a.ProjectileTimeline.Add(new ActionProjectile.ProjectileState(a.ProjectileTimeline.Count > 0 ? 
+                                     a.ProjectileTimeline[a.ProjectileTimeline.Count - 1].Timestamp : 0.0f));
+        }
+        GUILayout.EndHorizontal();
+    }
+
+    void EditProjectileTimelineState(ActionProjectile.ProjectileState state, ActionProjectile.eProjectileMovementMode mode, int indent)
+    {
+        EditFloat(ref state.Timestamp, $"{Indent(indent)}Timestamp:", 80 + indent * 12);
+        EditVector2(state.SpeedMultiplier, "Speed (Random between X and Y):", indent);
+        EditVector2(state.RotationPerSecond, "Rotation Speed (Random between X and Y):", indent);
+        if (mode == ActionProjectile.eProjectileMovementMode.Free)
+        {
+            EditVector2(state.RotationY, "Rotate By Degrees (Random between X and Y):", indent);
+        }
     }
     #endregion
 
@@ -1134,6 +1416,17 @@ public class BattleSystemDataEditor : EditorWindow
         showTimeline = EditorGUILayout.Foldout(showTimeline, Indent(indent) + title);
         if (showTimeline)
         {
+            if (timeline == null)
+            {
+                timeline = new ActionTimeline();
+            }
+
+            if (timeline.Count > 1 && Button("Sort", 90, indent))
+            {
+                GUI.FocusControl(null);
+                timeline.Sort((a1, a2) => a1.Timestamp.CompareTo(a2.Timestamp));
+            }
+
             for (int i = 0; i < timeline.Count; i++)
             {
                 // Show and edit an action and check if remove button was pressed.
@@ -1150,8 +1443,8 @@ public class BattleSystemDataEditor : EditorWindow
 
             // New action
             GUILayout.BeginHorizontal();
-            EditEnum(ref newAction, $"{Indent(indent + 1)}New Action: ", 200, 200, false);
-            if (GUILayout.Button("Add", GUILayout.Width(90)))
+            EditEnum(ref newAction, $"{Indent(indent + 1)}New Action: ", 188 + indent * 12, 200, false);
+            if (Add())
             {
                 var a = Action.MakeAction(newAction);
                 a.ActionID = newAction.ToString() + "Action";
@@ -1169,6 +1462,10 @@ public class BattleSystemDataEditor : EditorWindow
             }
             GUILayout.EndHorizontal();
 
+            if (Button("Hide Timeline", 120, indent))
+            {
+                showTimeline = false;
+            }
             EditorDrawLine();
         }
     }
@@ -1219,6 +1516,10 @@ public class BattleSystemDataEditor : EditorWindow
             EditFloat(ref area.Dimensions.z, $"{Indent(indent)}Height:", 100 + indent * 12);
         }
 
+        if (area.AreaTransform == null)
+        {
+            area.AreaTransform = new TransformData();
+        }
         EditTransform(area.AreaTransform, indent, "Area Transform:");
     }
 
@@ -1232,7 +1533,7 @@ public class BattleSystemDataEditor : EditorWindow
             GUILayout.BeginHorizontal();
             GUILayout.Label(Indent(indent) + $"Area [{i}]", GUILayout.Width(50 + indent * 12));
 
-            if (GUILayout.Button("Remove", GUILayout.Width(90)))
+            if (Remove())
             {
                 areas.RemoveAt(i);
                 i--;
@@ -1245,7 +1546,7 @@ public class BattleSystemDataEditor : EditorWindow
 
         GUILayout.BeginHorizontal();
         GUILayout.Label("", GUILayout.Width(indent * 12));
-        if (GUILayout.Button("Add Area", GUILayout.Width(90)))
+        if (Button("Add Area", 90))
         {
             areas.Add(new ActionPayloadArea.Area());
         }
@@ -1291,7 +1592,7 @@ public class BattleSystemDataEditor : EditorWindow
             EditFloatSlider(ref value, $"{Indent(indent)}{keys[i]}{elementLabel}", min, max, elementLabelWidth, makeHorizontal: false);
             dictionary[keys[i]] = value;
 
-            if (GUILayout.Button("Remove", GUILayout.Width(90)))
+            if (Remove())
             {
                 dictionary.Remove(keys[i]);
                 keys.RemoveAt(i);
@@ -1304,7 +1605,7 @@ public class BattleSystemDataEditor : EditorWindow
         {
             GUILayout.BeginHorizontal();
             SelectStringFromList(ref newElement, options, $"{Indent(indent)}{addLabel}", addWidth, 150, false);
-            if (GUILayout.Button("Add", GUILayout.Width(90)))
+            if (Add())
             {
                 dictionary.Add(newElement, max);
             }
@@ -1318,14 +1619,22 @@ public class BattleSystemDataEditor : EditorWindow
 
     void SelectStringFromList(ref string value, List<string> list, string label, int labelWidth = 250, int inputWidth = 200, bool makeHorizontal = true)
     {
+        if (list.Count == 0)
+        {
+            GUILayout.Label("List is empty!");
+            return;
+        }
+
         if (makeHorizontal)
         {
             GUILayout.BeginHorizontal();
         }
+
         if (!string.IsNullOrEmpty(label))
         {
             GUILayout.Label(label, GUILayout.Width(labelWidth));
         }
+
         var copy = value; // Copy the string to use it in a lambda expression
         var index = list.FindIndex(0, v => v.Equals(copy));
         if (index < 0)
@@ -1342,11 +1651,19 @@ public class BattleSystemDataEditor : EditorWindow
 
     void SelectAttribute(ref string attribute, bool showLabel = true)
     {
+        if (BattleData.EntityAttributes.Count == 0)
+        {
+            GUILayout.Label("No Attributes!");
+            return;
+        }
+
         if (showLabel)
         {
             GUILayout.Label("Attribute:", GUILayout.Width(60));
         }
+
         var attributeCopy = attribute; // Copy the string to use it in a lambda expression
+
         var index = BattleData.EntityAttributes.FindIndex(0, a => a.Equals(attributeCopy));
         if (index < 0)
         {
@@ -1395,23 +1712,35 @@ public class BattleSystemDataEditor : EditorWindow
 
     void SelectResource(ref string resource, string label = "", int labelWidth = 60, bool makeHorizontal = true)
     {
+        var resources = BattleData.EntityResources.Keys.ToList();
+
+        if (resources.Count == 0)
+        {
+            GUILayout.Label("No Resources!");
+            return;
+        }
+
         if (makeHorizontal)
         {
             GUILayout.BeginHorizontal();
         }
+
         if (!string.IsNullOrEmpty(label))
         {
             GUILayout.Label(label, GUILayout.Width(labelWidth));
         }
+
         var resourceCopy = resource; // Copy the string to use it in a lambda expression
-        var resources = BattleData.EntityResources.Keys.ToList();
+
         var index = resources.FindIndex(0, r => r.Equals(resourceCopy));
         if (index < 0)
         {
             index = 0;
         }
+
         resource = resources[EditorGUILayout.Popup(index, resources.ToArray(),
                    GUILayout.Width(60))];
+
         if (makeHorizontal)
         {
             GUILayout.EndHorizontal();
@@ -1426,7 +1755,7 @@ public class BattleSystemDataEditor : EditorWindow
                        "Payload Categories: ", "No Payload Categories", "Add Payload Category:", indent);
 
         EditValue(payload.PayloadValue, isSkill ? eEditorValueRange.SkillAction : eEditorValueRange.NonAction, "Payload Damage:", indent: indent);
-        SelectResource(ref payload.ResourceAffected, $"{Indent(indent)}Resource Affected: ", 150 + indent * 11);
+        SelectResource(ref payload.ResourceAffected, $"{Indent(indent)}Resource Affected: ", 150 + indent * 12);
 
         EditListString(ref editorPayload.NewFlag, payload.Flags, Utility.CopyList(BattleData.PayloadFlags),
                        "Payload Flags: ", "No Payload Flags", "Add Payload Flag:", indent);
@@ -1439,14 +1768,22 @@ public class BattleSystemDataEditor : EditorWindow
             {
                 payload.Tag = new TagData();
             }
-            EditString(ref payload.Tag.TagID, $"{Indent(indent + 1)}Tag ID: ", 150 + indent * 11, 150);
-            EditInt(ref payload.Tag.TagLimit, $"{Indent(indent + 1)}Max tagged: ", 150 + indent * 11);
-            EditFloat(ref payload.Tag.TagDuration, $"{Indent(indent + 1)}Tag Duration: ", 150 + indent * 11);
+            EditString(ref payload.Tag.TagID, $"{Indent(indent + 1)}Tag ID: ", 150 + indent * 12, 150);
+            EditInt(ref payload.Tag.TagLimit, $"{Indent(indent + 1)}Max tagged: ", 150 + indent * 12);
+            EditFloat(ref payload.Tag.TagDuration, $"{Indent(indent + 1)}Tag Duration: ", 150 + indent * 12);
         }
 
         // Statuses
+        if (payload.ApplyStatus == null)
+        {
+            payload.ApplyStatus = new List<(string StatusID, int Stacks)>();
+        }
         EditStatusStackList(payload.ApplyStatus, ref editorPayload.NewStatusApply, indent,
                             "Applied Status Effects:", "No Status Effects", "Add Status Effect:");
+        if (payload.RemoveStatusStacks == null)
+        {
+            payload.RemoveStatusStacks = new List<(string StatusID, int Stacks)>();
+        }
         EditStatusStackList(payload.RemoveStatusStacks, ref editorPayload.NewStatusRemoveStack, indent,
                     "Removed Status Effects:", "No Status Effects", "Add Status Effect:");
         if (payload.ClearStatus == null)
@@ -1469,7 +1806,7 @@ public class BattleSystemDataEditor : EditorWindow
             payload.Instakill = false;
         }
 
-        EditFloatSlider(ref payload.SuccessChance, $"{Indent(indent)}Success Chance: ", 0.0f, 1.0f, 120 + indent * 11, 250);
+        EditFloatSlider(ref payload.SuccessChance, $"{Indent(indent)}Success Chance: ", 0.0f, 1.0f, 120 + indent * 12, 250);
 
         // Payload conditions
         var hasPayloadCondition = payload.PayloadCondition != null;
@@ -1509,8 +1846,14 @@ public class BattleSystemDataEditor : EditorWindow
 
     void EditPayloadAction(ActionPayload action, EditorPayloadAction editorAction, int indent)
     {
-        EditEnum(ref action.Target, $"{Indent(indent)}Targets Affected: ");
-        EditEnum(ref action.TargetState, $"{Indent(indent)}Required Target State: ");
+        EditEnum(ref action.Target, $"{Indent(indent)}Targets Affected: ", 200 + indent * 12);
+        EditEnum(ref action.TargetState, $"{Indent(indent)}Required Target State: ", 200 + indent * 12);
+
+        if (editorAction == null)
+        {
+            EditorPayloadAction.AddPayloadAction(action);
+            return;
+        }
 
         editorAction.ShowPayloads = EditorGUILayout.Foldout(editorAction.ShowPayloads, $"{Indent(indent - 1)} Payloads:");
         if (editorAction.ShowPayloads)
@@ -1520,8 +1863,8 @@ public class BattleSystemDataEditor : EditorWindow
                 EditorDrawLine(new Color(0.35f, 0.35f, 0.35f));
 
                 GUILayout.BeginHorizontal();
-                GUILayout.Label($"{Indent(indent + 1)}Payload {i}", GUILayout.Width(100 + indent * 11));
-                if (GUILayout.Button("Remove Payload", GUILayout.Width(200)))
+                GUILayout.Label($"{Indent(indent + 1)}Payload {i}", GUILayout.Width(100 + indent * 12));
+                if (Button("Remove Payload", 200))
                 {
                     EditorPayloads[EditorPayloadAction.ActionKey(action)].RemoveAt(i);
                     action.PayloadData.RemoveAt(i);
@@ -1536,20 +1879,34 @@ public class BattleSystemDataEditor : EditorWindow
 
             // New payload
             GUILayout.BeginHorizontal();
-            GUILayout.Label("", GUILayout.Width((indent + 1) * 11));
-            if (GUILayout.Button("Add New Payload", GUILayout.Width(200)))
+            GUILayout.Label("", GUILayout.Width((indent + 1) * 12));
+            if (Button("Add New Payload", 200))
             {
                 var newPayload = new PayloadData();
                 action.PayloadData.Add(newPayload);
                 EditorPayloads[EditorPayloadAction.ActionKey(action)].Add(new EditorPayload(newPayload));
             }
             GUILayout.EndHorizontal();
+
+            if (Button("Hide Payloads", 120, indent))
+            {
+                editorAction.ShowPayloads = false;
+            }
         }
 
-        EditInt(ref action.TargetLimit, $"{Indent(indent)}Max Targets Affected:", 250);
+        EditInt(ref action.TargetLimit, $"{Indent(indent)}Max Targets Affected:", 200 + indent * 12);
         if (action.TargetLimit > 0)
         {
-            EditEnum(ref action.TargetPriority, $"{Indent(indent)}TargetPriority: ");
+            EditEnum(ref action.TargetPriority, $"{Indent(indent)}TargetPriority: ", 200 + indent * 12);
+            if (action.TargetPriority == ActionPayload.eTargetPriority.ResourceCurrentHighest ||
+                action.TargetPriority == ActionPayload.eTargetPriority.ResourceCurrentLowest ||
+                action.TargetPriority == ActionPayload.eTargetPriority.ResourceMaxHighest ||
+                action.TargetPriority == ActionPayload.eTargetPriority.ResourceMaxLowest ||
+                action.TargetPriority == ActionPayload.eTargetPriority.ResourceRatioHighest ||
+                action.TargetPriority == ActionPayload.eTargetPriority.ResourceRatioLowest)
+            {
+                SelectResource(ref action.Resource, $"{Indent(indent + 1)}Resource: ", 200 + (indent + 1) * 12);
+            }
         }
     }
 
@@ -1703,7 +2060,7 @@ public class BattleSystemDataEditor : EditorWindow
             index = 0;
         }
         status = options[EditorGUILayout.Popup(index, options.ToArray(),
-                 GUILayout.Width(250))];
+                 GUILayout.Width(inputWidth))];
 
         if (makeHorizontal)
         {
@@ -1760,7 +2117,7 @@ public class BattleSystemDataEditor : EditorWindow
 
                 list[i] = (isGroup == 1, status);
 
-                if (GUILayout.Button("Remove", GUILayout.Width(70)))
+                if (Remove())
                 {
                     list.RemoveAt(i);
                     i--;
@@ -1799,11 +2156,11 @@ public class BattleSystemDataEditor : EditorWindow
             index = 0;
         }
         var newStatus = options[EditorGUILayout.Popup(index, options.ToArray(),
-                        GUILayout.Width(250))];
+                        GUILayout.Width(200))];
 
         newElement = (group == 1, newStatus);
     
-        if (GUILayout.Button("+", GUILayout.Width(20)))
+        if (Button("+", 20))
         {
             list.Add(newElement);
         }
@@ -1835,7 +2192,7 @@ public class BattleSystemDataEditor : EditorWindow
 
                 list[i] = (status, stacks);
 
-                if (GUILayout.Button("Remove", GUILayout.Width(70)))
+                if (Remove())
                 {
                     list.RemoveAt(i);
                     i--;
@@ -1863,7 +2220,7 @@ public class BattleSystemDataEditor : EditorWindow
             GUILayout.BeginHorizontal();
             if (!string.IsNullOrEmpty(addLabel))
             {
-                GUILayout.Label($"{Indent(indent)}{addLabel}", GUILayout.Width((addLabel.Count() + indent) * 8));
+                GUILayout.Label($"{Indent(indent)}{addLabel}", GUILayout.Width((addLabel.Count() + indent * 4) * 4));
             }
 
             var copy = newElement; // This is needed for the lambda expression to work.
@@ -1873,9 +2230,9 @@ public class BattleSystemDataEditor : EditorWindow
                 index = 0;
             }
             newElement = options[EditorGUILayout.Popup(index, options.ToArray(),
-                         GUILayout.Width(250))];
+                         GUILayout.Width(200))];
 
-            if (GUILayout.Button("+", GUILayout.Width(20)) && newElement != null)
+            if (Button("+", 20) && newElement != null)
             {
                 list.Add((newElement, 1));
             }
@@ -1903,7 +2260,7 @@ public class BattleSystemDataEditor : EditorWindow
         for (int i = 0; i < v.Count; i++)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label($"{Indent(indent)}Component Type:", GUILayout.Width(130 + indent * 8));
+            GUILayout.Label($"{Indent(indent)}Component Type:", GUILayout.Width(120 + indent * 12));
 
             string[] options = Utility.EnumStrings<ValueComponent.eValueComponentType>((int)valueRange);
 
@@ -1941,11 +2298,11 @@ public class BattleSystemDataEditor : EditorWindow
                 v[i].Attribute = GUILayout.TextField(v[i].Attribute, GUILayout.Width(190));
             }
 
-            if (GUILayout.Button("Copy", GUILayout.Width(70)))
+            if (Button("Copy", 70))
             {
                 v.Add(v[i].Copy);
             }
-            if (GUILayout.Button("Remove", GUILayout.Width(70)))
+            if (Remove())
             {
                 v.RemoveAt(i);
             }
@@ -1953,7 +2310,7 @@ public class BattleSystemDataEditor : EditorWindow
         }
         GUILayout.BeginHorizontal();
         GUILayout.Label("", GUILayout.Width(12 * indent));
-        if (GUILayout.Button("Add Component", GUILayout.Width(120)))
+        if (Button("Add Component", 120))
         {
             v.Add(new ValueComponent(ValueComponent.eValueComponentType.CasterAttributeCurrent, 1.0f, EntityAttributes[0]));
         }
@@ -1962,6 +2319,39 @@ public class BattleSystemDataEditor : EditorWindow
     #endregion
 
     #region Utility
+    bool Add()
+    {
+        return GUILayout.Button("Add", GUILayout.Width(90));
+    }
+
+    bool Remove()
+    {
+        return GUILayout.Button("Remove", GUILayout.Width(90));
+    }
+
+    bool Rename()
+    {
+        return GUILayout.Button("Rename", GUILayout.Width(90));
+    }
+
+    bool Button(string text, int width = 90, int indent = 0)
+    {
+        if (indent > 0)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("", GUILayout.Width(indent * 12));
+        }
+
+        var result = GUILayout.Button(text, GUILayout.Width(width));
+
+        if (indent > 0)
+        {
+            GUILayout.EndHorizontal();
+        }
+
+        return result;
+    }
+
     void EditBool(ref bool value, string label, int indent = 3)
     {
         GUILayout.BeginHorizontal();
@@ -2080,7 +2470,7 @@ public class BattleSystemDataEditor : EditorWindow
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label($"{Indent(indent)}• {list[i]}", GUILayout.Width(250));
-                if (GUILayout.Button("Remove", GUILayout.Width(70)))
+                if (Remove())
                 {
                     list.RemoveAt(i);
                     i--;
@@ -2119,7 +2509,7 @@ public class BattleSystemDataEditor : EditorWindow
             newElement = options[EditorGUILayout.Popup(index, options.ToArray(),
                          GUILayout.Width(250))];
 
-            if (GUILayout.Button("+", GUILayout.Width(20)) && newElement != null)
+            if (Button("+", 20) && newElement != null)
             {
                 list.Add(newElement);
             }
@@ -2140,6 +2530,14 @@ public class BattleSystemDataEditor : EditorWindow
         {
             GUILayout.EndHorizontal();
         }
+    }
+
+    void EditVector2(Vector2 value, string label, int indent, int width = 300)
+    {
+        GUILayout.BeginHorizontal();
+        GUILayout.Label("", GUILayout.Width(indent * 12));
+        EditorGUILayout.Vector2Field(label, value, GUILayout.Width(width));
+        GUILayout.EndHorizontal();
     }
 
     void EditVector3(Vector3 value, string label, int indent, int width = 300)

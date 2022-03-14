@@ -25,6 +25,12 @@ public class ActionProjectile : ActionSummon
 
         public eReactionType Reaction;
         public ActionTimeline Actions;
+
+        public OnCollisionReaction(eReactionType reaction = eReactionType.ExecuteActions)
+        {
+            Reaction = reaction;
+            Actions = new ActionTimeline();
+        }
     }
 
     // Some behaviours cancel one another out, but others may be used together
@@ -41,21 +47,34 @@ public class ActionProjectile : ActionSummon
         public Vector2 RotationY;               // Rotation around the projectile's Y axis in angles, at the given rotation speed. Used by the free movement mode.
         public float Timestamp;                 // Time at which the changes are applied, relative to the projectile spawning.
                                                 // If there are multiple entries, speed multiplier and direction from previous and next timestamp are interpolated.
+
+
+        public ProjectileState()
+        {
+            SpeedMultiplier = new Vector2(1.0f, 1.0f);
+            RotationPerSecond = new Vector2(5.0f, 5.0f);
+            RotationY = new Vector2(0.0f, 0.0f);
+        }
+
+        public ProjectileState(float timestamp):this()
+        {
+            Timestamp = timestamp;
+        }
     }
 
     public List<ProjectileState> ProjectileTimeline;   // Defines speed and direction changes, as well as skill use.
     #endregion
 
-    #region Homing Mode
+    #region Target Modes
     public enum eTarget
     {
         StaticPosition, // The projectile will move toward a specified position.
-        Caster,         // The projectile will move toward caster. This will create a homing effect.
-        Target,         // The projectile will move toward target. This will create a homing effect.
+        Caster,         // The projectile will move toward caster.
+        Target,         // The projectile will move toward target.
     }
 
-    public eTarget Target;                              // Target position for homing mode.
-    public TransformData TargetPosition;                // If using custom position for target. Also used by arched mode.
+    public eTarget Target;                              // Target position for Homing and Arched modes.
+    public TransformData TargetPosition;                // If using custom position for target.
     #endregion
 
     #region Arched Mode
@@ -76,6 +95,11 @@ public class ActionProjectile : ActionSummon
     public eAnchor Anchor;                              // Anchor position affects horizontal movement of the projectile.
     public TransformData AnchorPosition;                // If using custom position for anchor
     #endregion
+
+    public ActionProjectile()
+    {
+        SetTypeDefaults();
+    }
 
     protected override bool SetupSummon(Entity summon, Entity summoner, Entity target, Vector3 position, Vector3 forward)
     {
@@ -113,12 +137,12 @@ public class ActionProjectile : ActionSummon
         ProjectileTimeline = new List<ProjectileState>();
 
         Target = eTarget.Target;
-        TargetPosition = null;
+        TargetPosition = new TransformData();
 
         ArchAngle = 40.0f;
         Gravity = 0.0f;
 
         Anchor = eAnchor.Caster;
-        AnchorPosition = null;
+        AnchorPosition = new TransformData();
     }
 }
