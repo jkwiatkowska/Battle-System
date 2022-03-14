@@ -13,4 +13,19 @@ public class StatusEffectData
     public List<(PayloadData PayloadData, float Interval)> OnInterval;  // Payload applied every n seconds.
     public PayloadData OnCleared;                                       // Payload applied when a status effect is removed by an action.
     public PayloadData OnExpired;                                       // Payload applied when a status effect is removed because of its timer running out.
+
+    public StatusEffectData()
+    {
+        StatusID = "";
+        Effects = new List<Effect>();
+        MaxStacks = 1;
+        Duration = 0.0f;
+        OnStacksGained = new List<(PayloadData PayloadData, int Stacks)>();
+        OnInterval = new List<(PayloadData PayloadData, float Interval)>();
+    }
+
+    public StatusEffectData(string statusID):this()
+    {
+        StatusID = statusID;
+    }
 }

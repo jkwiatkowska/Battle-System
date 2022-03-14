@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BattleSystem : MonoBehaviour
 {
-    [SerializeField] static string DataPath;
+    [SerializeField] string DataPath = "Data/BattleData";
     public static BattleSystem Instance                         { get; private set; }
     public LayerMask TerrainLayers;
 
@@ -17,7 +17,7 @@ public class BattleSystem : MonoBehaviour
 
     void Awake()
     {
-        BattleData.LoadMockData();
+        BattleData.LoadData(DataPath);
 
         Instance = this;
         Entities = new Dictionary<string, Entity>();

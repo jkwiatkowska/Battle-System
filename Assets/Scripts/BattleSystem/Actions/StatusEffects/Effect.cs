@@ -8,8 +8,8 @@ public abstract class Effect
     {
         AttributeChange,                                // Target's attributes are modified while the effect is active.
         Convert,                                        // Target's faction is temporarily overriden.
-        DamageResistance,                               // Resistance to damage from specific skills, effects and payload types.
-        DamageVulnerability,                            // Increased damage from specific skills, effects and payload types.
+        //DamageResistance,                               // Resistance to damage from specific skills, effects and payload types.
+        //DamageVulnerability,                            // Increased damage from specific skills, effects and payload types.
         Immunity,                                       // Full immunity to particular skills, payload types or effects.
         Lock,                                           // Prevents the target from using specific skills or moving.
         ResourceGuard,                                  // Prevents a resource from going below a specified amount.
@@ -39,6 +39,45 @@ public abstract class Effect
     protected string Key(string statusID, int effectIndex)
     {
         return statusID + effectIndex.ToString();
+    }
+
+    public Effect MakeNew(eEffectType type)
+    {
+        switch(type)
+        {
+            case eEffectType.AttributeChange:
+            {
+                return new EffectAttributeChange();
+            }
+            case eEffectType.Convert:
+            {
+                return new EffectConvert();
+            }
+            case eEffectType.Immunity:
+            {
+                return new EffectImmunity();
+            }
+            case eEffectType.Lock:
+            {
+                return new EffectLock();
+            }
+            case eEffectType.ResourceGuard:
+            {
+                return new EffectResourceGuard();
+            }
+            case eEffectType.Shield:
+            {
+                return new EffectShield();
+            }
+            case eEffectType.Trigger:
+            {
+                return new EffectTrigger();
+            }
+            default:
+            {
+                return null;
+            }
+        }
     }
 }
 

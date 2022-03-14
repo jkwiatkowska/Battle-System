@@ -20,17 +20,24 @@ public abstract class ActionPayload : Action
 
     public enum eTargetPriority
     {
-        Random, 
+        Random,
+        Furthest,
         Nearest,
-        Furthest
+        ResourceCurrentHighest,
+        ResourceCurrentLowest,
+        ResourceMaxHighest,
+        ResourceMaxLowest,
+        ResourceRatioHighest,
+        ResourceRatioLowest,
     }
 
-    public eTarget Target;                  // Which entities the payload affects
-    public eTargetState TargetState;        // What state the target has to be in to be affected
+    public eTarget Target;                  // Which entities the payload affects.
+    public eTargetState TargetState;        // What state the target has to be in to be affected.
     public List<PayloadData> PayloadData;
 
-    public int TargetLimit;                 // Targets can be limited for actions that affect multiple targets
-    public eTargetPriority TargetPriority;  // If there's a target limit, targets can be prioritised based on specified criteria
+    public int TargetLimit;                 // Targets can be limited for actions that affect multiple targets.
+    public eTargetPriority TargetPriority;  // If there's a target limit, targets can be prioritised based on specified criteria.
+    public string Resource;                 // If targets are prioritiesd by how much of a resource they hold.
 
     public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
     {
@@ -63,14 +70,50 @@ public abstract class ActionPayload : Action
                 case eTargetPriority.Nearest:
                 {
                     targets.Sort((t1, t2) => (entity.transform.position - t1.transform.position).sqrMagnitude.
-                                    CompareTo((entity.transform.position - t2.transform.position).sqrMagnitude));
+                                CompareTo((entity.transform.position - t2.transform.position).sqrMagnitude));
                     targets = targets.GetRange(0, TargetLimit);
                     break;
                 }
                 case eTargetPriority.Furthest:
                 {
-                    targets.Sort((t2, t1) => (entity.transform.position - t1.transform.position).sqrMagnitude.
-                                    CompareTo((entity.transform.position - t2.transform.position).sqrMagnitude));
+                    targets.Sort((t2, t1) => (entity.transform.position - t2.transform.position).sqrMagnitude.
+                                CompareTo((entity.transform.position - t1.transform.position).sqrMagnitude));
+                    targets = targets.GetRange(0, TargetLimit);
+                    break;
+                }
+                case eTargetPriority.ResourceCurrentLowest:
+                {
+                    targets.Sort((t2, t1) => t1.ResourcesCurrent[Resource].CompareTo(t2.ResourcesCurrent[Resource]));
+                    targets = targets.GetRange(0, TargetLimit);
+                    break;
+                }
+                case eTargetPriority.ResourceCurrentHighest:
+                {
+                    targets.Sort((t2, t1) => t2.ResourcesCurrent[Resource].CompareTo(t1.ResourcesCurrent[Resource]));
+                    targets = targets.GetRange(0, TargetLimit);
+                    break;
+                }
+                case eTargetPriority.ResourceMaxLowest:
+                {
+                    targets.Sort((t2, t1) => t1.ResourcesMax[Resource].CompareTo(t2.ResourcesCurrent[Resource]));
+                    targets = targets.GetRange(0, TargetLimit);
+                    break;
+                }
+                case eTargetPriority.ResourceMaxHighest:
+                {
+                    targets.Sort((t2, t1) => t2.ResourcesMax[Resource].CompareTo(t1.ResourcesCurrent[Resource]));
+                    targets = targets.GetRange(0, TargetLimit);
+                    break;
+                }
+                case eTargetPriority.ResourceRatioLowest:
+                {
+                    targets.Sort((t2, t1) => t1.ResourceRatio(Resource).CompareTo(t2.ResourceRatio(Resource)));
+                    targets = targets.GetRange(0, TargetLimit);
+                    break;
+                }
+                case eTargetPriority.ResourceRatioHighest:
+                {
+                    targets.Sort((t2, t1) => t2.ResourceRatio(Resource).CompareTo(t1.ResourceRatio(Resource)));
                     targets = targets.GetRange(0, TargetLimit);
                     break;
                 }
