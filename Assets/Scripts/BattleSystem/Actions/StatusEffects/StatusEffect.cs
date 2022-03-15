@@ -14,9 +14,8 @@ public class StatusEffect
     Payload SourcePayload;
 
     public List<(Payload Payload, float NextTimestamp)> OnInterval;
-    public List<(Payload Payload, int Stacks)> OnStacksGained;
-    public Payload OnCleared;
-    public Payload OnExpired;
+    public List<Payload> OnCleared;
+    public List<Payload> OnExpired;
 
     public bool RemoveEffect;
 
@@ -36,6 +35,9 @@ public class StatusEffect
         EndTime = StartTime + Formulae.StatusDurationTime(Caster, Target, Data);
         SourcePayload = payload;
         RemoveEffect = false;
+        OnInterval = new List<(Payload Payload, float NextTimestamp)>();
+        OnCleared = new List<Payload>();
+        OnExpired = new List<Payload>();
     }
 
     void UpdatePayloads()
@@ -49,23 +51,22 @@ public class StatusEffect
             }
         }
 
-        OnStacksGained = new List<(Payload, int)>();
-        if (Data.OnStacksGained != null)
+        if (Data.OnCleared != null && Data.OnCleared.Count > 0)
         {
-            foreach (var payload in Data.OnStacksGained)
+            OnCleared = new List<Payload>();
+            foreach (var payload in Data.OnCleared)
             {
-                OnStacksGained.Add((Payload: new Payload(Caster, payloadData: payload.PayloadData, Action, Data.StatusID), Stacks: payload.Stacks));
+                OnCleared.Add(new Payload(Caster, payload, Action, Data.StatusID));
             }
         }
 
-        if (Data.OnCleared != null)
+        if (Data.OnExpired != null && Data.OnExpired.Count > 0)
         {
-            OnCleared = new Payload(Caster, Data.OnCleared, Action, Data.StatusID);
-        }
-
-        if (Data.OnExpired != null)
-        {
-            OnCleared = new Payload(Caster, Data.OnCleared, Action, Data.StatusID);
+            OnExpired = new List<Payload>();
+            foreach (var payload in Data.OnExpired)
+            {
+                OnExpired.Add(new Payload(Caster, payload, Action, Data.StatusID));
+            }
         }
     }
 
@@ -78,17 +79,17 @@ public class StatusEffect
 
         var now = BattleSystem.Time;
 
-        if (Data.Duration > Constants.Epsilon)
+        if (Data.Duration > Constants.Epsilon && EndTime < now)
         {
-            if (EndTime < now)
+            if (OnExpired != null)
             {
-                if (OnExpired != null)
+                for (int i = 0; i < OnExpired.Count; i++)
                 {
-                    var payloadResult = new PayloadResult(Data.OnExpired, Caster, Target);
-                    OnExpired.ApplyPayload(Caster, Target, payloadResult);
+                    var payloadResult = new PayloadResult(Data.OnExpired[i], Caster, Target);
+                    OnExpired[i].ApplyPayload(Caster, Target, payloadResult);
                 }
-                return false;
             }
+            return false;
         }
         
         for (int i = 0; i < OnInterval.Count; i++)
@@ -165,27 +166,17 @@ public class StatusEffect
                 }
             }
         }
-
-        if (change > 0 && Data.OnStacksGained != null)
-        {
-            for (int i = 0; i < OnStacksGained.Count; i++)
-            {
-                var payload = OnStacksGained[i];
-                if (payload.Stacks > stacksBefore && payload.Stacks <= CurrentStacks)
-                {
-                    var payloadResult = new PayloadResult(Data.OnStacksGained[i].PayloadData, Caster, Target);
-                    payload.Payload.ApplyPayload(Caster, Target, payloadResult);
-                }
-            }
-        }
     }
 
     public void ClearStatus()
     {
         if (OnCleared != null)
         {
-            var payloadResult = new PayloadResult(Data.OnCleared, Caster, Target);
-            OnCleared.ApplyPayload(Caster, Target, payloadResult);
+            for (int i = 0; i < OnCleared.Count; i++)
+            {
+                var payloadResult = new PayloadResult(Data.OnCleared[i], Caster, Target);
+                OnCleared[i].ApplyPayload(Caster, Target, payloadResult);
+            }
         }
         RemoveStatus();
     }

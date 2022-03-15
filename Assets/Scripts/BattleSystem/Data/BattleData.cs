@@ -43,6 +43,8 @@ public class BattleData
 
     public static void LoadData(string path)
     {
+        Instance = new BattleData();
+
         // Read from a file.
         var json = Resources.Load<TextAsset>(path).text;
 
@@ -152,27 +154,6 @@ public class BattleData
                     MaxStacks = 1,
                     Duration = 5.0f,
                     Effects = new List<Effect>(),
-                    OnStacksGained = new List<(PayloadData, int)>()
-                    {
-                        (new PayloadData()
-                        {
-                            Flags = new List<string>()
-                            {
-                                "ignoreDef"
-                            },
-                            PayloadValue = new Value()
-                            {
-                                new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 50)
-                            },
-                            Categories = new List<string>()
-                            {
-                                "fire"
-                            },
-                            SuccessChance = 1.0f,
-                            ResourceAffected = "hp"
-                        },
-                        1)
-                    },
                     OnInterval = new List<(PayloadData, float)>()
                     {
                         (new PayloadData()
@@ -215,7 +196,6 @@ public class BattleData
                             EffectType = Effect.eEffectType.Immunity
                         }
                     },
-                    OnStacksGained = new List<(PayloadData, int)>(),
                     OnInterval = new List<(PayloadData, float)>()
                 }
             },
@@ -245,7 +225,6 @@ public class BattleData
                             },
                         }
                     },
-                    OnStacksGained = new List<(PayloadData, int)>(),
                     OnInterval = new List<(PayloadData, float)>()
                 }
             },
@@ -265,7 +244,6 @@ public class BattleData
                             StacksRequired = new Vector2Int(1, 1)
                         }
                     },
-                    OnStacksGained = new List<(PayloadData, int)>(),
                     OnInterval = new List<(PayloadData, float)>()
                 }
             },
@@ -285,7 +263,6 @@ public class BattleData
                             StacksRequired = new Vector2Int(1, 1)
                         }
                     },
-                    OnStacksGained = new List<(PayloadData, int)>(),
                     OnInterval = new List<(PayloadData, float)>()
                 }
             },
@@ -305,7 +282,6 @@ public class BattleData
                             StacksRequired = new Vector2Int(1, 1)
                         }
                     },
-                    OnStacksGained = new List<(PayloadData, int)>(),
                     OnInterval = new List<(PayloadData, float)>()
                 }
             },
@@ -344,7 +320,6 @@ public class BattleData
                             }
                         }
                     },
-                    OnStacksGained = new List<(PayloadData, int)>(),
                     OnInterval = new List<(PayloadData, float)>()
                 }
             },
@@ -644,38 +619,38 @@ public class BattleData
                             {
                                 new TriggerData.TriggerCondition()
                                 {
-                                    ConditionType = TriggerData.TriggerCondition.eConditionType.Category,
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.PayloadCategory,
                                     StringValue = "fire",
                                     DesiredOutcome = true
                                 },
                                 new TriggerData.TriggerCondition()
                                 {
-                                    ConditionType = TriggerData.TriggerCondition.eConditionType.Skill,
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.CausedBySkill,
                                     StringValue = "fireAttack",
                                     DesiredOutcome = true
                                 },
                                 new TriggerData.TriggerCondition()
                                 {
-                                    ConditionType = TriggerData.TriggerCondition.eConditionType.SkillGroup,
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.CausedBySkillGroup,
                                     StringValue = "elemental",
                                     DesiredOutcome = true
                                 },
                                 new TriggerData.TriggerCondition()
                                 {
-                                    ConditionType = TriggerData.TriggerCondition.eConditionType.Action,
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.CausedByAction,
                                     StringValue = "fireAttackAction",
                                     DesiredOutcome = true
                                 },
                                 new TriggerData.TriggerCondition()
                                 {
-                                    ConditionType = TriggerData.TriggerCondition.eConditionType.EntityResource,
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.EntityResourceMin,
                                     StringValue = "hp",
                                     FloatValue = 0.1f,
                                     DesiredOutcome = false
                                 },
                                 new TriggerData.TriggerCondition()
                                 {
-                                    ConditionType = TriggerData.TriggerCondition.eConditionType.TriggerSourceResourceRatio,
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.TriggerSourceResourceRatioMin,
                                     StringValue = "hp",
                                     FloatValue = 0.5f,
                                     DesiredOutcome = true
@@ -780,13 +755,13 @@ public class BattleData
                             {
                                 new TriggerData.TriggerCondition()
                                 {
-                                    ConditionType = TriggerData.TriggerCondition.eConditionType.Category,
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.PayloadCategory,
                                     StringValue = "fire",
                                     DesiredOutcome = false
                                 },
                                 new TriggerData.TriggerCondition()
                                 {
-                                    ConditionType = TriggerData.TriggerCondition.eConditionType.Category,
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.PayloadCategory,
                                     StringValue = "water",
                                     DesiredOutcome = false
                                 }
@@ -820,7 +795,7 @@ public class BattleData
                             {
                                 new TriggerData.TriggerCondition()
                                 {
-                                    ConditionType = TriggerData.TriggerCondition.eConditionType.Category,
+                                    ConditionType = TriggerData.TriggerCondition.eConditionType.PayloadCategory,
                                     StringValue = "water",
                                     DesiredOutcome = true
                                 }

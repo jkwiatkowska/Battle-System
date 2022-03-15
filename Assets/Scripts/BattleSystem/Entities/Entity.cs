@@ -473,7 +473,7 @@ public class Entity : MonoBehaviour
             return;
         }
 
-        OnTrigger(TriggerData.eTrigger.OnPayloadApplied, triggerSource: payloadResult.Caster);
+        OnTrigger(TriggerData.eTrigger.OnPayloadReceived, triggerSource: payloadResult.Caster);
     }
 
     public virtual void OnHitMissed(Entity target, PayloadResult payloadResult)
@@ -492,7 +492,7 @@ public class Entity : MonoBehaviour
 
         HUDPopupTextHUD.Instance.DisplayDamage(payloadResult);
 
-        OnTrigger(TriggerData.eTrigger.OnPayloadApplied, triggerSource: payloadResult.Caster, payloadResult: payloadResult);
+        OnTrigger(TriggerData.eTrigger.OnResourceChanged, triggerSource: payloadResult.Caster, payloadResult: payloadResult);
     }
 
     public virtual void OnReviveIncoming(PayloadResult payloadResult)
@@ -572,6 +572,30 @@ public class Entity : MonoBehaviour
         OnTrigger(TriggerData.eTrigger.OnSpawn);
     }
 
+    public void OnTriggerEnter(Collider other)
+    {
+        var entityHit = other.GetComponentInParent<Entity>();
+
+        if (entityHit != null && entityHit.EntityUID != EntityUID)
+        {
+            if (entityHit.IsTargetable)
+            {
+                if (IsEnemy(entityHit.Faction))
+                {
+                    OnCollisionEnemy(entityHit);
+                }
+                else if (IsFriendly(entityHit.Faction))
+                {
+                    OnCollisionFriend(entityHit);
+                }
+            }
+        }
+        else if (BattleSystem.IsOnTerrainLayer(other.gameObject))
+        {
+            OnCollisionTerrain(other);
+        }
+    }
+
     protected virtual void OnCollisionEnemy(Entity entity)
     {
         OnTrigger(TriggerData.eTrigger.OnCollisionEnemy, triggerSource: entity);
@@ -582,7 +606,7 @@ public class Entity : MonoBehaviour
         OnTrigger(TriggerData.eTrigger.OnCollisionFriend, triggerSource: entity);
     }
 
-    protected virtual void OnCollisionTerrain(Collision collision)
+    protected virtual void OnCollisionTerrain(Collider collider)
     {
         OnTrigger(TriggerData.eTrigger.OnCollisionTerrain);
     }

@@ -28,6 +28,16 @@ public class ActionCondition
     public string ConditionTarget;                  // Name of resource if using resource ratio, action if ActionSuccess/Fail or status ID
     public int MinStatusStacks;                     // For the HasStatus condition.
 
+    public ActionCondition()
+    {
+        MinStatusStacks = 1;
+    }
+
+    public ActionCondition(eActionCondition condition):this()
+    {
+        Condition = condition;
+    }
+
     public virtual bool ConditionMet(Entity entity, string actionID, Dictionary<string, ActionResult> actionResults)
     {
         switch (Condition)

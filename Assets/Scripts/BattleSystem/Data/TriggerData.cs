@@ -10,23 +10,23 @@ public class TriggerData
     {
         public enum eConditionType
         {
-            Skill,                              // For a trigger caused by a payload to work, it may be required to have been caused by a specific skill,
-            SkillGroup,                         // or a skill from a specific skill group,
-            Action,                             // or an action.
-            Category,                           // Custom string that typically refers to the type of damage.
+            CausedBySkill,                      // For a trigger caused by a payload to work, it may be required to have been caused by a specific skill,
+            CausedBySkillGroup,                 // or a skill from a specific skill group,
+            CausedByAction,                     // or an action.
+            PayloadCategory,                    // Custom string that typically refers to the type of damage.
             PayloadFlag,                        // Payload flags are custom string values that can be set when a resource change is applied. 
             ResultFlag,                         // Payload result flags are custom string values that can be set as a result of applying a payload.
-            Status,                             // For status triggers, used to specify the status.
-            StatusGroup,                        // A status belonging to this group.
+            CausedByStatus,                     // For status triggers, used to specify the status.
+            CausedByStatusGroup,                // A status belonging to this group.
             ResourceAffected,                   // Particular resource was affected by a payload.
-            EntityResource,                     // Resource of this entity must be bigger than the float value.
-            TriggerSourceResource,              // Resource of the entity that caused the trigger must be bigger than the float value.
-            EntityResourceRatio,                // Ratio of current resource to max resource.
-            TriggerSourceResourceRatio,         // Ratio of current resource to max resource of the entity that caused the trigger.
-            PayloadResult,                      // How much a resource has been depleted as a result of a payload being applied.
-            ActionResult,                       // How much resources of all targets have been affected as a result of a payload being applied.
-            NumTargetsAffected,                 // For triggers caused by outgoing payload actions. 
-            HasStatus,                          // Trigger can only go off if the entity has this status. Min stacks can be specified.
+            EntityResourceMin,                  // Resource of this entity must be bigger than the float value.
+            TriggerSourceResourceMin,           // Resource of the entity that caused the trigger must be bigger than the float value.
+            EntityResourceRatioMin,             // Ratio of current resource to max resource.
+            TriggerSourceResourceRatioMin,      // Ratio of current resource to max resource of the entity that caused the trigger.
+            PayloadResultMin,                   // How much a resource has been depleted as a result of a payload being applied.
+            ActionResultMin,                    // How much resources of all targets have been affected as a result of a payload being applied.
+            NumTargetsAffectedMin,              // For triggers caused by outgoing payload actions. 
+            EntityHasStatus,                    // Trigger can only go off if the entity has this status. Min stacks can be specified.
             TriggerSourceHasStatus,             // Trigger can go off if the entity that caused it has this status.
             TriggerSourceIsEnemy,               // Condition succeeds if the entity that triggered it is an enemy.
             TriggerSourceIsFriend,              // Condition succeeds if the entity that triggered it is a friend.
@@ -37,17 +37,26 @@ public class TriggerData
         
         public string StringValue;              // Name or ID.            
         public float FloatValue;                // Resource value/change.
-        public float IntValue;                  // Count or status stacks.
+        public int IntValue;                    // Count or status stacks.
 
         public TriggerCondition AndCondition;   // Both this condition and the and condition must pass for the condition to be met. 
         public TriggerCondition OrCondition;    // Alternate conditions can be chained this way. If this condition fails, the next condition will be tried.
+
+        public TriggerCondition()
+        {
+            DesiredOutcome = true;
+
+            StringValue = "";
+            FloatValue = 1.0f;
+            IntValue = 1;
+        }
 
         public bool ConditionMet(Entity entity, Entity triggerSource, PayloadResult payloadResult, Action action, ActionResult actionResult, string statusID)
         {
             bool conditionMet;
             switch (ConditionType)
             {
-                case eConditionType.Skill:
+                case eConditionType.CausedBySkill:
                 {
                     if (payloadResult == null && action == null)
                     {
@@ -60,7 +69,7 @@ public class TriggerData
                     }
                     break;
                 }
-                case eConditionType.SkillGroup:
+                case eConditionType.CausedBySkillGroup:
                 {
                     if (payloadResult == null && action == null)
                     {
@@ -74,7 +83,7 @@ public class TriggerData
                     }
                     break;
                 }
-                case eConditionType.Action:
+                case eConditionType.CausedByAction:
                 {
                     if (payloadResult == null && action == null)
                     {
@@ -87,7 +96,7 @@ public class TriggerData
                     }
                     break;
                 }
-                case eConditionType.Category:
+                case eConditionType.PayloadCategory:
                 {
                     conditionMet = payloadResult != null && payloadResult.PayloadData.Categories.Contains(StringValue);
                     break;
@@ -102,12 +111,12 @@ public class TriggerData
                     conditionMet = payloadResult != null && payloadResult.Flags.Contains(StringValue);
                     break;
                 }
-                case eConditionType.Status:
+                case eConditionType.CausedByStatus:
                 {
                     conditionMet = !string.IsNullOrEmpty(statusID) && statusID == StringValue;
                     break;
                 }
-                case eConditionType.StatusGroup:
+                case eConditionType.CausedByStatusGroup:
                 {
                     conditionMet = !string.IsNullOrEmpty(statusID) && BattleData.StatusEffectGroups.ContainsKey(StringValue) &&
                                    BattleData.StatusEffectGroups[StringValue].Contains(statusID);
@@ -118,46 +127,46 @@ public class TriggerData
                     conditionMet = payloadResult != null && payloadResult.PayloadData.ResourceAffected == StringValue;
                     break;
                 }
-                case eConditionType.EntityResource:
+                case eConditionType.EntityResourceMin:
                 {
                     conditionMet = entity != null && entity.ResourcesCurrent.ContainsKey(StringValue) &&
                                    entity.ResourcesCurrent[StringValue] >= FloatValue;
                     break;
                 }
-                case eConditionType.TriggerSourceResource:
+                case eConditionType.TriggerSourceResourceMin:
                 {
                     conditionMet = triggerSource != null && triggerSource.ResourcesCurrent.ContainsKey(StringValue) &&
                                    triggerSource.ResourcesCurrent[StringValue] >= FloatValue;
                     break;
                 }
-                case eConditionType.EntityResourceRatio:
+                case eConditionType.EntityResourceRatioMin:
                 {
                     conditionMet = entity != null && entity.ResourcesCurrent.ContainsKey(StringValue) &&
                                    entity.ResourceRatio(StringValue) >= FloatValue;
                     break;
                 }
-                case eConditionType.TriggerSourceResourceRatio:
+                case eConditionType.TriggerSourceResourceRatioMin:
                 {
                     conditionMet = triggerSource != null && triggerSource.ResourcesCurrent.ContainsKey(StringValue) &&
                                    triggerSource.ResourceRatio(StringValue) >= FloatValue;
                     break;
                 }
-                case eConditionType.PayloadResult:
+                case eConditionType.PayloadResultMin:
                 {
                     conditionMet = payloadResult != null && payloadResult.Change >= FloatValue;
                     break;
                 }
-                case eConditionType.ActionResult:
+                case eConditionType.ActionResultMin:
                 {
                     conditionMet = actionResult != null && actionResult.Value >= FloatValue;
                     break;
                 }
-                case eConditionType.NumTargetsAffected:
+                case eConditionType.NumTargetsAffectedMin:
                 {
                     conditionMet = actionResult != null && actionResult.Count >= IntValue;
                     break;
                 }
-                case eConditionType.HasStatus:
+                case eConditionType.EntityHasStatus:
                 {
                     var stacks = entity != null ? entity.GetStatusEffectStacks(StringValue) : 0;
                     conditionMet = stacks >= IntValue;
@@ -204,9 +213,9 @@ public class TriggerData
         {
             var list = new List<eConditionType>();
 
-            list.Add(eConditionType.EntityResource);
-            list.Add(eConditionType.EntityResourceRatio);
-            list.Add(eConditionType.HasStatus);
+            list.Add(eConditionType.EntityResourceMin);
+            list.Add(eConditionType.EntityResourceRatioMin);
+            list.Add(eConditionType.EntityHasStatus);
 
             bool isPayloadTrigger = triggerType == eTrigger.OnPayloadApplied || triggerType == eTrigger.OnPayloadReceived || 
                                     triggerType == eTrigger.OnResourceChanged || triggerType == eTrigger.OnDeath || 
@@ -224,15 +233,15 @@ public class TriggerData
 
             if (isPayloadTrigger || isActionTrigger)
             {
-                list.Add(eConditionType.Skill);
-                list.Add(eConditionType.SkillGroup);
-                list.Add(eConditionType.Action);
+                list.Add(eConditionType.CausedBySkill);
+                list.Add(eConditionType.CausedBySkillGroup);
+                list.Add(eConditionType.CausedByAction);
             }
 
             if (hasSourceEntity)
             {
-                list.Add(eConditionType.TriggerSourceResource);
-                list.Add(eConditionType.TriggerSourceResourceRatio);
+                list.Add(eConditionType.TriggerSourceResourceMin);
+                list.Add(eConditionType.TriggerSourceResourceRatioMin);
                 list.Add(eConditionType.TriggerSourceHasStatus);
                 list.Add(eConditionType.TriggerSourceIsEnemy);
                 list.Add(eConditionType.TriggerSourceIsFriend);
@@ -240,22 +249,22 @@ public class TriggerData
 
             if (isPayloadTrigger)
             {
-                list.Add(eConditionType.PayloadResult);
+                list.Add(eConditionType.PayloadResultMin);
                 list.Add(eConditionType.ResourceAffected);
-                list.Add(eConditionType.Category);
+                list.Add(eConditionType.PayloadCategory);
                 list.Add(eConditionType.ResultFlag);
             }
 
             if (isActionTrigger)
             {
-                list.Add(eConditionType.ActionResult);
-                list.Add(eConditionType.NumTargetsAffected);
+                list.Add(eConditionType.ActionResultMin);
+                list.Add(eConditionType.NumTargetsAffectedMin);
             }
 
             if (isStatusTrigger)
             {
-                list.Add(eConditionType.Status);
-                list.Add(eConditionType.StatusGroup);
+                list.Add(eConditionType.CausedByStatus);
+                list.Add(eConditionType.CausedByStatusGroup);
             }
 
             return list;
@@ -292,4 +301,10 @@ public class TriggerData
     public float TriggerChance = 1.0f;          // The odds of an effect triggering. 
 
     public ActionTimeline Actions;
+
+    public TriggerData()
+    {
+        Conditions = new List<TriggerCondition>();
+        Actions = new ActionTimeline();
+    }
 }

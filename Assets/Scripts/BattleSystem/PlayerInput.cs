@@ -93,7 +93,7 @@ public class PlayerInput : MonoBehaviour
 
             foreach (var skill in Player.PlayerSkills)
             {
-                if (Input.GetKey(skill.Key))
+                if (Input.GetKeyDown(skill.Key))
                 {
                     Player.TryUseSkill(skill.Value);
                     OnInput();

@@ -23,6 +23,17 @@ public static class Utility
         return types;
     }
 
+    public static string[] EnumStrings<T>(List<T> list)
+    {
+        var types = new string[list.Count];
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            types[i] = list[i].ToString();
+        }
+        return types;
+    }
+
     public static List<T> CopyList<T>(List<T> list)
     {
         var copy = new List<T>();

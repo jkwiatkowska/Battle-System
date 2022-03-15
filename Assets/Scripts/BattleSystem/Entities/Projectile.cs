@@ -225,36 +225,29 @@ public class Projectile : EntitySummon
         base.OnDeath(source, payloadResult);
     }
 
-    public void OnTriggerEnter(Collider other)
+    protected override void OnCollisionEnemy(Entity entity)
     {
-        var entityHit = other.GetComponentInParent<Entity>();
+        base.OnCollisionEnemy(entity);
 
-        if (entityHit != null)
+        foreach (var reaction in ProjectileData.OnEnemyHit)
         {
-            if (entityHit.IsTargetable)
-            {
-                if (IsEnemy(entityHit.Faction))
-                {
-                    foreach (var reaction in ProjectileData.OnEnemyHit)
-                    {
-                        ProjectileReaction(reaction, entityHit);
-                    }
-                }
-                else if (IsFriendly(entityHit.Faction))
-                {
-                    foreach (var reaction in ProjectileData.OnFriendHit)
-                    {
-                        ProjectileReaction(reaction, entityHit);
-                    }
-                }
-            }
+            ProjectileReaction(reaction, entity);
         }
-        else if (BattleSystem.IsOnTerrainLayer(other.gameObject))
+    }
+
+    protected override void OnCollisionFriend(Entity entity)
+    {
+        base.OnCollisionFriend(entity);
+
+        foreach (var reaction in ProjectileData.OnFriendHit)
         {
-            foreach (var reaction in ProjectileData.OnTerrainHit)
-            {
-                ProjectileReaction(reaction, null);
-            }
+            ProjectileReaction(reaction, entity);
         }
+    }
+
+    protected override void OnCollisionTerrain(Collider collider)
+    {
+        base.OnCollisionTerrain(collider);
+
     }
 }

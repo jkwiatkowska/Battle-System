@@ -41,43 +41,62 @@ public abstract class Effect
         return statusID + effectIndex.ToString();
     }
 
-    public Effect MakeNew(eEffectType type)
+    public static Effect MakeNew(eEffectType type)
     {
+        Effect effect = null;
+
         switch(type)
         {
             case eEffectType.AttributeChange:
             {
-                return new EffectAttributeChange();
+                effect = new EffectAttributeChange();
+                break;
             }
             case eEffectType.Convert:
             {
-                return new EffectConvert();
+                effect = new EffectConvert();
+                break;
             }
             case eEffectType.Immunity:
             {
-                return new EffectImmunity();
+                effect = new EffectImmunity();
+                break;
             }
             case eEffectType.Lock:
             {
-                return new EffectLock();
+                effect = new EffectLock();
+                break;
             }
             case eEffectType.ResourceGuard:
             {
-                return new EffectResourceGuard();
+                effect = new EffectResourceGuard();
+                break;
             }
             case eEffectType.Shield:
             {
-                return new EffectShield();
+                effect = new EffectShield();
+                break;
             }
             case eEffectType.Trigger:
             {
-                return new EffectTrigger();
+                effect = new EffectTrigger();
+                break;
             }
             default:
             {
-                return null;
+                effect = null;
+                break;
             }
         }
+
+        if (effect != null)
+        {
+            effect.EffectType = type;
+            effect.StacksRequired = new Vector2Int(1, 1);
+            effect.EndStatusOnEffectEnd = true;
+        }
+
+        return effect;
     }
 }
 
@@ -111,6 +130,11 @@ public class EffectAttributeChange : Effect
 
     public ePayloadFilter PayloadTargetType;            // An attribute can be affected directly or only when specific skills and actions are used.
     public string PayloadTarget;                        // Name or ID of the above.
+
+    public EffectAttributeChange()
+    {
+        Value = new Value();
+    }
 
     public override void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload)
     {
@@ -345,6 +369,12 @@ public class EffectShield : Effect
     public int Limit;                                       // How many times a shield can be struck before being removed. 0 for no limit. 
     public bool RemoveShieldResourceOnEffectEnd;            // If true, all of the resource used to shield will be drained when the effect ends.
 
+    public EffectShield()
+    {
+        ShieldResourceToGrant = new Value();
+        MaxDamageAbsorbed = new Value();
+        CategoryMultipliers = new Dictionary<string, float>();
+    }
     public override void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload)
     {
         var casterAttributes = caster.EntityAttributes(payload.Action.SkillID,
@@ -405,6 +435,11 @@ public class Shield : LimitedEffect<EffectShield>
 public class EffectTrigger : Effect
 {
     public TriggerData TriggerData;
+
+    public EffectTrigger()
+    {
+        TriggerData = new TriggerData();
+    }
     public override void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload)
     {
         target.AddTrigger(new Trigger(TriggerData), Key(statusID, effectIndex));
