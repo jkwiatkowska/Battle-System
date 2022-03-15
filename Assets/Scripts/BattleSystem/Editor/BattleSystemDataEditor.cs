@@ -1082,21 +1082,18 @@ public class BattleSystemDataEditor : EditorWindow
 
         StartIndent();
 
-        var min = effect.StacksRequired.x;
-        EditInt(ref min, "Min Stacks Required:", Space);
-        if (min < 1)
+        EditInt(ref effect.StacksRequiredMin, "Min Stacks Required:", Space);
+        if (effect.StacksRequiredMin < 1)
         {
-            min = 1;
+            effect.StacksRequiredMin = 1;
         }
-        effect.StacksRequired.x = min;
 
-        var max = effect.StacksRequired.y;
-        EditInt(ref max, "Max Stacks Required:", Space);
-        if (max < min)
+
+        EditInt(ref effect.StacksRequiredMax, "Max Stacks Required:", Space);
+        if (effect.StacksRequiredMax < effect.StacksRequiredMin)
         {
-            max = min;
+            effect.StacksRequiredMax = effect.StacksRequiredMin;
         }
-        effect.StacksRequired.y = max;
 
         switch (effect.EffectType)
         {

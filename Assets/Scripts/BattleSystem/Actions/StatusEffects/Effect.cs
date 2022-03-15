@@ -29,7 +29,8 @@ public abstract class Effect
     }
 
     public eEffectType EffectType;
-    public Vector2Int StacksRequired;                   // Effect is only applied if the current stack number is within this range.
+    public int StacksRequiredMin;                       // Effect is only applied if the current stack number is within this range.
+    public int StacksRequiredMax;
 
     public bool EndStatusOnEffectEnd;                   // If an effect can run out before the status ends, it can cause it to end early.
 
@@ -92,7 +93,8 @@ public abstract class Effect
         if (effect != null)
         {
             effect.EffectType = type;
-            effect.StacksRequired = new Vector2Int(1, 1);
+            effect.StacksRequiredMin = 1;
+            effect.StacksRequiredMax = 1;
             effect.EndStatusOnEffectEnd = true;
         }
 

@@ -18,6 +18,7 @@ public class BattleSystem : MonoBehaviour
     void Awake()
     {
         BattleData.LoadData(DataPath);
+        //BattleData.LoadMockData();
 
         Instance = this;
         Entities = new Dictionary<string, Entity>();

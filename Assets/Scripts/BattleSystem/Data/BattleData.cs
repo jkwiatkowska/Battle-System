@@ -192,7 +192,6 @@ public class BattleData
                             PayloadName = "water",
                             Limit = 3,
                             EndStatusOnEffectEnd = true,
-                            StacksRequired = new Vector2Int(1, 1),
                             EffectType = Effect.eEffectType.Immunity
                         }
                     },
@@ -212,7 +211,6 @@ public class BattleData
                         {
                             Limit = 0,
                             EndStatusOnEffectEnd = true,
-                            StacksRequired = new Vector2Int(1, 1),
                             EffectType = Effect.eEffectType.ResourceGuard,
                             Resource = "hp",
                             MinValue = new Value()
@@ -241,7 +239,6 @@ public class BattleData
                         {
                             EffectType = Effect.eEffectType.Lock,
                             LockType = EffectLock.eLockType.SkillsAll,
-                            StacksRequired = new Vector2Int(1, 1)
                         }
                     },
                     OnInterval = new List<(PayloadData, float)>()
@@ -260,7 +257,6 @@ public class BattleData
                         {
                             EffectType = Effect.eEffectType.Lock,
                             LockType = EffectLock.eLockType.Jump,
-                            StacksRequired = new Vector2Int(1, 1)
                         }
                     },
                     OnInterval = new List<(PayloadData, float)>()
@@ -279,7 +275,6 @@ public class BattleData
                         {
                             EffectType = Effect.eEffectType.Lock,
                             LockType = EffectLock.eLockType.Movement,
-                            StacksRequired = new Vector2Int(1, 1)
                         }
                     },
                     OnInterval = new List<(PayloadData, float)>()
@@ -298,7 +293,8 @@ public class BattleData
                         {
                             Limit = 20,
                             EndStatusOnEffectEnd = true,
-                            StacksRequired = new Vector2Int(1, 1),
+                            StacksRequiredMin = 1,
+                            StacksRequiredMax = 1,
                             EffectType = Effect.eEffectType.Shield,
                             ShieldResource = "shield",
                             ShieldedResource = "hp",
@@ -340,7 +336,8 @@ public class BattleData
                             {
                                 new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 15.0f)
                             },
-                            StacksRequired = new Vector2Int(1, 2),
+                            StacksRequiredMin = 1,
+                            StacksRequiredMax = 2,
                             PayloadTargetType = Effect.ePayloadFilter.All,
                             PayloadTarget = "neutral"
                         },
@@ -352,7 +349,8 @@ public class BattleData
                             {
                                 new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 25.0f)
                             },
-                            StacksRequired = new Vector2Int(2, 2),
+                            StacksRequiredMin = 2,
+                            StacksRequiredMax = 2,
                             PayloadTargetType = Effect.ePayloadFilter.Category,
                             PayloadTarget = "neutral"
                         },
@@ -364,7 +362,8 @@ public class BattleData
                             {
                                 new ValueComponent(ValueComponent.eValueComponentType.FlatValue, 70.0f)
                             },
-                            StacksRequired = new Vector2Int(3, 3),
+                            StacksRequiredMin = 3,
+                            StacksRequiredMax = 3,
                             PayloadTargetType = Effect.ePayloadFilter.Category,
                             PayloadTarget = "neutral"
                         }

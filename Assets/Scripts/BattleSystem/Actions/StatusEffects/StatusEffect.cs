@@ -141,26 +141,26 @@ public class StatusEffect
             var effect = Data.Effects[i];
             if (change > 0)
             {
-                if (effect.StacksRequired.y < CurrentStacks)
+                if (effect.StacksRequiredMax < CurrentStacks)
                 {
                     effect.Remove(Data.StatusID, i, Target);
                 }
 
-                if (effect.StacksRequired.x > stacksBefore && effect.StacksRequired.x <= CurrentStacks && 
-                    effect.StacksRequired.y >= CurrentStacks)
+                if (effect.StacksRequiredMin > stacksBefore && effect.StacksRequiredMin <= CurrentStacks && 
+                    effect.StacksRequiredMax >= CurrentStacks)
                 {
                     effect.Apply(Data.StatusID, i, Target, Caster, SourcePayload);
                 }
             }
             else if (change < 0)
             {
-                if (effect.StacksRequired.x > CurrentStacks)
+                if (effect.StacksRequiredMin > CurrentStacks)
                 {
                     effect.Remove(Data.StatusID, i, Target);
                 }
 
-                if (effect.StacksRequired.y < stacksBefore && effect.StacksRequired.x <= CurrentStacks &&
-                    effect.StacksRequired.y >= CurrentStacks)
+                if (effect.StacksRequiredMax < stacksBefore && effect.StacksRequiredMin <= CurrentStacks &&
+                    effect.StacksRequiredMax >= CurrentStacks)
                 {
                     effect.Apply(Data.StatusID, i, Target, Caster, SourcePayload);
                 }
