@@ -54,7 +54,7 @@ public class ActionPayloadArea : ActionPayload
             }
             case eTarget.AllEntities:
             {
-                potentialTargets = targetingSystem.AllEntities.FindAll(t => CheckTargetableState(t));
+                potentialTargets = targetingSystem.DetectedEntities.FindAll(t => CheckTargetableState(t));
                 break;
             }
             default:

@@ -17,7 +17,7 @@ public class Entity : MonoBehaviour
 
     [SerializeField] string EntityID;
     [SerializeField] int EntityLevel = 1;
-    public EntityData EntityData { get; protected set; }
+    public EntityData EntityData => BattleData.GetEntityData(EntityID);
 
     public string EntityUID                                                 { get; private set; }
     static int EntityCount = 0;
@@ -78,7 +78,6 @@ public class Entity : MonoBehaviour
         EntityLevel = entityLevel;
         EntityState = eEntityState.Idle;
         name = EntityUID;
-        EntityData = BattleData.GetEntityData(entityID);
         Faction = EntityData.Faction;
 
         // Attributes

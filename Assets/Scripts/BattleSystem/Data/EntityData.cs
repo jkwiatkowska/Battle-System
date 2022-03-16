@@ -12,7 +12,7 @@ public class EntityData
     }
     public eEntityType EntityType;                          // Specifies which entity script an entity should use.
 
-    // Targeting
+    public EntityTargetingData Targeting;                   // Target priority and detect/disengage distance.
     // Skill use 
 
     public List<string> Categories;                         // This doesn't do anything, but can be used in damage calculations.
@@ -35,6 +35,19 @@ public class EntityData
     public float MovementSpeed;
     public float RotateSpeed;
     public float JumpHeight;
+
+    public EntityData()
+    {
+        Targeting = new EntityTargetingData();
+
+        Categories = new List<string>();
+        BaseAttributes = new Dictionary<string, Vector2>();
+
+        Resources = new List<string>();
+        LifeResources = new List<string>();
+
+        Triggers = new List<TriggerData>();
+    }
 }
 
 public class EntityMovementData
@@ -45,7 +58,6 @@ public class EntityMovementData
         Static,         // No movement.
         AutoTurret,     // Rotate around/toward target.
         GoToPos,        // Entity rotates and moves toward target or given position.
-
     }
 
     public eMovementMode MovementMode;
@@ -61,18 +73,47 @@ public class EntityMovementData
 
 public class EntityTargetingData
 {
-    public enum eTargetPriority
+    public class TargetingPriority
     {
-        Nearest,
-        Furthest,
-        LineOfSight,
-        //Enmity,
+        public enum eTargetPriority
+        {
+            Any,
+            Nearest,
+            Furthest,
+            LineOfSight,
+            //Enmity,
+        }
+
+        public eTargetPriority TargetPriority;
+        public float PreferredDistanceMin;              // Entities further than this will be preferred when selecting a target.
+        public float PreferredDistanceMax;              // Entities closer than this will be preferred when selecting a target.
+        public bool PreferredInFront;                  // Entities in front will get a higher score regardless of other criteria.
+
+        public TargetingPriority()
+        {
+            PreferredDistanceMin = 0.0f;
+            PreferredDistanceMax = 5.0f;
+        }
     }
 
-    public eTargetPriority TargetPreference;
-    public float DetectDistance;
-    public float DisengageDistance;
-    public float DetectFieldOfView;
+    public TargetingPriority EnemyTargetPriority;       // Targeting preference when targeting enemy entities.
+    public TargetingPriority FriendlyTargetPriority;    // Targeting preference when targeting friendly entities.
+
+    public float DetectDistance;                        // A distance at which entities are detected and can be targeted.
+    public float DetectFieldOfView;                     // Detection can be limited to a specified angle.
+
+    public float DisengageDistance;                     // If a detected entity moves further than this, it cannot be targeted or attacked.
+
+    public EntityTargetingData()
+    {
+        EnemyTargetPriority = new TargetingPriority();
+        FriendlyTargetPriority = new TargetingPriority();
+
+        DetectDistance = 10.0f;
+        DetectFieldOfView = 360.0f;
+
+        DisengageDistance = 15.0f;
+    }
 }
 
 public class EntitySkillData

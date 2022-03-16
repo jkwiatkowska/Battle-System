@@ -88,7 +88,7 @@ public class ActionPayloadDirect : ActionPayload
                     }
                     case eTarget.AllEntities:
                     {
-                        targets = targetingSystem.AllEntities.FindAll(t => CheckTargetableState(t));
+                        targets = targetingSystem.DetectedEntities.FindAll(t => CheckTargetableState(t));
                         break;
                     }
                     default:

@@ -5,9 +5,6 @@ using UnityEngine;
 public class TargetingSystemPlayer : TargetingSystem
 {
     HUDTarget TargetHUD; 
-    [SerializeField] float DistanceWeight = 0.5f;
-    [SerializeField] float AngleWeight = 0.5f;
-    [SerializeField] float MaxDistance = 100.0f;
 
     MovementEntity Player;
     float PlayerLastMoved;
@@ -98,37 +95,5 @@ public class TargetingSystemPlayer : TargetingSystem
             base.SelectBestEnemy();
             PlayerLastMoved = Player.LastMoved;
         }
-    }
-
-    protected override void ProcessEnemyEntityList()
-    {
-        var scores = new Dictionary<string, float>();
-
-        foreach (var target in EnemyEntities)
-        {
-            scores.Add(target.EntityUID, GetTargetScore(target));
-        }
-
-        EnemyEntities.Sort((e1, e2) => scores[e2.EntityUID].CompareTo(scores[e1.EntityUID]));
-    }
-
-    protected override void ProcessFriendlyEntityList()
-    {
-
-    }
-
-    float GetTargetScore(Entity target)
-    {
-        if (!target.Alive)
-        {
-            return 0;
-        }
-
-        var v = Parent.transform.position - target.transform.position;
-        var distanceScore = 1.0f - v.sqrMagnitude / MaxDistance;
-
-        var angleScore = 1.0f - (Mathf.Abs(Vector3.Angle(Parent.transform.forward, v) - 180.0f)/180.0f);
-
-        return DistanceWeight * distanceScore + AngleWeight * angleScore;
     }
 }

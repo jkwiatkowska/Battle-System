@@ -319,6 +319,9 @@ public class BattleSystemDataEditor : EditorWindow
         public string NewResource;
         public string NewLifeResource;
 
+        public bool ShowTargeting;
+        public bool ShowSkills;
+
         public TriggerData.eTrigger NewTrigger;
 
         public EditorEntity(string id, EntityData data)
@@ -1488,6 +1491,31 @@ public class BattleSystemDataEditor : EditorWindow
 
         SelectFaction(ref entity.Data.Faction, "Faction:", Space);
         EditBool(ref entity.Data.IsTargetable, "Targetable");
+
+        entity.ShowTargeting = EditorGUILayout.Foldout(entity.ShowTargeting, "Targeting");
+        if (entity.ShowTargeting)
+        {
+            StartIndent();
+            EditEnum(ref entity.Data.Targeting.EnemyTargetPriority.TargetPriority, "Enemy Target Priority:", Space);
+            StartIndent();
+            EditFloat(ref entity.Data.Targeting.EnemyTargetPriority.PreferredDistanceMin, "Preferred Distance Min:", Space);
+            EditFloat(ref entity.Data.Targeting.EnemyTargetPriority.PreferredDistanceMax, "Preferred Distance Max:", Space);
+            EditBool(ref entity.Data.Targeting.EnemyTargetPriority.PreferredInFront, "Preferred In Front");
+            EndIndent();
+
+            EditEnum(ref entity.Data.Targeting.FriendlyTargetPriority.TargetPriority, "Friendly Target Priority:", Space);
+            StartIndent();
+            EditFloat(ref entity.Data.Targeting.FriendlyTargetPriority.PreferredDistanceMin, "Preferred Distance Min:", Space);
+            EditFloat(ref entity.Data.Targeting.FriendlyTargetPriority.PreferredDistanceMax, "Preferred Distance Max:", Space);
+            EditBool(ref entity.Data.Targeting.FriendlyTargetPriority.PreferredInFront, "Preferred In Front");
+            EndIndent();
+
+            EditFloat(ref entity.Data.Targeting.DetectDistance, "Detection Distance:", Space);
+            EditFloatSlider(ref entity.Data.Targeting.DetectFieldOfView, "Detection Field Of View:", 0.0f, 360.0f, Space);
+
+            EditFloat(ref entity.Data.Targeting.DisengageDistance, "Disengage Distance:", Space);
+            EndIndent();
+        }   
 
         entity.ShowPhysicalProperties = EditorGUILayout.Foldout(entity.ShowPhysicalProperties, "Physical Properties");
         if (entity.ShowPhysicalProperties)
