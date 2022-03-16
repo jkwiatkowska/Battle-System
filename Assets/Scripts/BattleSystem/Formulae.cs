@@ -61,6 +61,11 @@ public static class Formulae
 
     public static float ResourceRecoveryRate(Entity entity, string resource)
     {
+        if (resource == "shield")
+        {
+            return 0.0f;
+        }
+
         var recoveryRate = 0.005f;
 
         if (entity.IsInCombat())

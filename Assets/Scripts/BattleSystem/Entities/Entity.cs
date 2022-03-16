@@ -190,9 +190,10 @@ public class Entity : MonoBehaviour
                 {
                     if (ResourcesCurrent.ContainsKey(resource.Key))
                     {
-                        var recovery = Formulae.ResourceRecoveryRate(this, resource.Key) * Time.deltaTime;
-                        if (recovery != 0.0f)
+                        var recovery = Formulae.ResourceRecoveryRate(this, resource.Key);
+                        if (recovery > Constants.Epsilon || recovery < Constants.Epsilon)
                         {
+                            recovery *= Time.deltaTime;
                             ApplyChangeToResource(resource.Key, recovery);
                         }
                     }
@@ -896,6 +897,11 @@ public class Entity : MonoBehaviour
         }
 
         Locks[lockData.LockType].Add(key, lockData);
+
+        if (CurrentSkill.Interruptible && IsSkillLocked(CurrentSkill.SkillID))
+        {
+            CancelSkill();
+        }
     }
 
     public void RemoveLock(EffectLock lockData, string key)

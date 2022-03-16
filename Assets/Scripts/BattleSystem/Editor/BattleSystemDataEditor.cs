@@ -12,6 +12,14 @@ public class BattleSystemDataEditor : EditorWindow
     string Path = "Data/BattleData";
     const int Space = 150;
 
+    enum eReturnResult
+    {
+        None,
+        Remove,
+        Copy
+    }
+
+    #region Editor variables
     #region GameData
     bool ShowAttributes = false;
     List<string> EntityAttributes = new List<string>();
@@ -289,6 +297,68 @@ public class BattleSystemDataEditor : EditorWindow
     List<EditorStatusEffect> StatusEffects = new List<EditorStatusEffect>();
     #endregion
 
+    #region Entity Data
+    string NewEntity;
+    bool ShowEntities;
+
+    class EditorEntity
+    {
+        public string EntityID;
+        public string NewEntityID;
+        public bool ShowEntity;
+        public EntityData Data;
+
+        public bool ShowCategories;
+        public bool ShowAttributes;
+        public bool ShowResources;
+        public bool ShowTriggers;
+        public bool ShowPhysicalProperties;
+
+        public string NewCategory;
+        public string NewAttribute;
+        public string NewResource;
+        public string NewLifeResource;
+
+        public TriggerData.eTrigger NewTrigger;
+
+        public EditorEntity(string id, EntityData data)
+        {
+            EntityID = id;
+            NewEntityID = id;
+            Data = Copy(data);
+
+            if (Data.Categories == null)
+            {
+                Data.Categories = new List<string>();
+            }
+
+            if (Data.BaseAttributes == null)
+            {
+                Data.BaseAttributes = new Dictionary<string, Vector2>();
+            }
+
+            if (Data.Resources == null)
+            {
+                Data.Resources = new List<string>();
+            }
+
+            if (Data.LifeResources == null)
+            {
+                Data.LifeResources = new List<string>();
+            }
+
+            if (Data.Triggers == null)
+            {
+                Data.Triggers = new List<TriggerData>();
+            }
+        }
+    }
+
+    List<EditorEntity> Entities = new List<EditorEntity>();
+
+    #endregion
+    #endregion
+
     [MenuItem("Tools/Battle System Data")]
     public static void ShowWindow()
     {
@@ -427,6 +497,12 @@ public class BattleSystemDataEditor : EditorWindow
         {
             StatusEffects.Add(new EditorStatusEffect(status.Value));
         }
+
+        Entities = new List<EditorEntity>();
+        foreach (var entity in BattleData.Entities)
+        {
+            Entities.Add(new EditorEntity(entity.Key, entity.Value));
+        }
     }
 
     #region GameData
@@ -452,12 +528,12 @@ public class BattleSystemDataEditor : EditorWindow
         {
             if (ShowHelp)
             {
-                EditorGUILayout.HelpBox("Entity Attributes can be used to customise Values. Values apply to a variety of areas in the system, such as damage dealt, " +
-                                        "buffs granted or the max value of a resource.\n " +
-                                        "Attributes can also be applied to the functions in Formulae.cs to further customise how damage is calculated and customise" +
-                                        " other entity properties such as movement speed, jump height, skill cast speed or status effect duration.\n" +
-                                        "Entity Attributes can be affected by status effects. When using attributes to define values it's possible to use the base value " +
-                                        "(without attribute changes) or the current value (with attribute changes).", MessageType.None);
+                Help("Entity Attributes can be used to customise Values. Values apply to a variety of areas in the system, such as damage dealt, " +
+                     "buffs granted or the max value of a resource.\n " +
+                     "Attributes can also be applied to the functions in Formulae.cs to further customise how damage is calculated and customise" +
+                     " other entity properties such as movement speed, jump height, skill cast speed or status effect duration.\n" +
+                     "Entity Attributes can be affected by status effects. When using attributes to define values it's possible to use the base value " +
+                     "(without attribute changes) or the current value (with attribute changes).");
             }
 
             StartIndent();
@@ -504,10 +580,9 @@ public class BattleSystemDataEditor : EditorWindow
         {
             if (ShowHelp)
             {
-                EditorGUILayout.HelpBox("Resources are properties of an Entity that can change as a result of using Actions. " +
-                                        "Example resources include HP, MP, Shield and Stamina.\n" +
-                                        "When defining a resource, its max value has to be specified. The resource will not go above this value.",
-                                        MessageType.None);
+                Help("Resources are properties of an Entity that can change as a result of using Actions. " +
+                     "Example resources include HP, MP, Shield and Stamina.\n" +
+                     "When defining a resource, its max value has to be specified. The resource will not go above this value.");
             }
 
             StartIndent();
@@ -581,10 +656,10 @@ public class BattleSystemDataEditor : EditorWindow
         {
             if (ShowHelp)
             {
-                EditorGUILayout.HelpBox("Categories are custom properties that can describe Entities and Payloads." +
-                                    "These properties can be used to customise triggers and status effects.\n" +
-                                    "Example properties include elements such as fire and water, damage types " +
-                                    "such as piercing and blunt and skill types such as damage, healing and buff.", MessageType.None);
+                Help("Categories are custom properties that can describe Entities and Payloads." +
+                     "These properties can be used to customise triggers and status effects.\n" +
+                     "Example properties include elements such as fire and water, damage types " +
+                     "such as piercing and blunt and skill types such as damage, healing and buff.");
             }
 
             StartIndent();
@@ -630,9 +705,9 @@ public class BattleSystemDataEditor : EditorWindow
         {
             if (ShowHelp)
             {
-                EditorGUILayout.HelpBox("Payload flags can be used to customise damage or healing applied through Payloads in Formulae.cs.\n" +
-                                        "(A Payload defines all changes applied to an Entity that a Payload Action is used on, such as attribute " +
-                                        "changes and status effects.)", MessageType.None);
+                Help("Payload flags can be used to customise damage or healing applied through Payloads in Formulae.cs.\n" + 
+                     "(A Payload defines all changes applied to an Entity that a Payload Action is used on, such as attribute " + 
+                     "changes and status effects.)");
             }
 
             StartIndent();
@@ -689,7 +764,7 @@ public class BattleSystemDataEditor : EditorWindow
         {
             if (ShowHelp)
             {
-                EditorGUILayout.HelpBox("", MessageType.None);
+                Help("");
             }
 
             StartIndent();
@@ -728,7 +803,7 @@ public class BattleSystemDataEditor : EditorWindow
                 GUILayout.EndHorizontal();
 
                 EditListString(ref SkillGroups[i].NewSkill, SkillGroups[i].Skills, BattleData.Skills.Keys.ToList(),
-                               "", "No Skills in the Skill Group", "Add Skill:");
+                               "", "(No Skills in the Skill Group)", "Add Skill:");
             }
 
             // New skill group
@@ -754,7 +829,7 @@ public class BattleSystemDataEditor : EditorWindow
         {
             if (ShowHelp)
             {
-                EditorGUILayout.HelpBox("", MessageType.None);
+                Help("");
             }
 
             for (int i = 0; i < Skills.Count; i++)
@@ -877,7 +952,7 @@ public class BattleSystemDataEditor : EditorWindow
         {
             if (ShowHelp)
             {
-                EditorGUILayout.HelpBox("", MessageType.None);
+                Help("");
             }
 
             StartIndent();
@@ -916,7 +991,7 @@ public class BattleSystemDataEditor : EditorWindow
                 GUILayout.EndHorizontal();
 
                 EditListString(ref StatusGroups[i].NewStatus, StatusGroups[i].Statuses, BattleData.StatusEffects.Keys.ToList(),
-                               "", "No Status Effects in the Status Effect Group", "Add Status Effect:");
+                               "", "(No Status Effects in the Status Effect Group)", "Add Status Effect:");
             }
 
             // New status effect group
@@ -942,7 +1017,7 @@ public class BattleSystemDataEditor : EditorWindow
         {
             if (ShowHelp)
             {
-                EditorGUILayout.HelpBox("", MessageType.None);
+                Help("");
             }
 
             for (int i = 0; i < StatusEffects.Count; i++)
@@ -991,10 +1066,10 @@ public class BattleSystemDataEditor : EditorWindow
                     GUILayout.EndHorizontal();
 
                     StartIndent();
-                    EditEffects(status);
-
                     EditInt(ref status.Data.MaxStacks, "Max Stacks:", Space);
                     EditFloat(ref status.Data.Duration, "Duration:", Space);
+
+                    EditEffects(status);
 
                     EditPayloadFloatList(status.Data.OnInterval, ref status.ShowOnInterval, status.OnInterval, "On Interval:", "Interval:");
                     EditPayloadList(status.Data.OnCleared, ref status.ShowOnCleared, status.OnCleared, "On Cleared:");
@@ -1036,7 +1111,7 @@ public class BattleSystemDataEditor : EditorWindow
     {
         if (status.Data.Effects.Count == 0)
         {
-            Label("No Effects.");
+            Label("(No Effects.)");
         }
 
         for (int i = 0; i < status.Data.Effects.Count; i++)
@@ -1059,6 +1134,7 @@ public class BattleSystemDataEditor : EditorWindow
             status.Data.Effects.Add(newEffect);
         }
         GUILayout.EndHorizontal();
+        EditorDrawLine();
     }
 
     bool EditEffect(Effect effect)
@@ -1077,7 +1153,7 @@ public class BattleSystemDataEditor : EditorWindow
 
         if (ShowHelp && EffectHelp.ContainsKey(effect.EffectType))
         {
-            EditorGUILayout.HelpBox(EffectHelp[effect.EffectType], MessageType.None);
+            Help(EffectHelp[effect.EffectType]);
         }
 
         StartIndent();
@@ -1334,7 +1410,171 @@ public class BattleSystemDataEditor : EditorWindow
 
     void EditEntities()
     {
+        ShowEntities = EditorGUILayout.Foldout(ShowEntities, "Entities");
+        if (ShowEntities)
+        {
+            if (ShowHelp)
+            {
+                Help("");
+            }
 
+            StartIndent();
+            for (int i = 0; i < BattleData.Entities.Count; i++)
+            {
+                var entity = Entities[i];
+
+                entity.ShowEntity = EditorGUILayout.Foldout(entity.ShowEntity, entity.EntityID);
+                if (entity.ShowEntity)
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    EditString(ref entity.NewEntityID, "Entity ID:", 60, makeHorizontal: false);
+
+                    if (Button("Save Changes", 100))
+                    {
+                        var value = Copy(entity.Data);
+
+                        if (entity.NewEntityID != entity.EntityID && !BattleData.Entities.ContainsKey(entity.NewEntityID))
+                        {
+                            BattleData.Entities.Remove(entity.EntityID);
+                            entity.EntityID = entity.NewEntityID;
+                        }
+                        else
+                        {
+                            entity.NewEntityID = entity.EntityID;
+                        }
+
+                        BattleData.Entities[entity.EntityID] = value;
+                    }
+
+                    if (Button("Copy"))
+                    {
+                        var value = Copy(entity.Data);
+                        var copyNo = 2;
+                        var id = Entities[i].EntityID + copyNo;
+                        while(BattleData.Entities.ContainsKey(id))
+                        {
+                            copyNo++;
+                            id = Entities[i].EntityID + copyNo;
+                        }
+
+                        BattleData.Entities.Add(id, value);
+                        Entities.Add(new EditorEntity(id, value));
+                    }
+
+                    var remove = Remove();
+                    EditorGUILayout.EndHorizontal();
+
+                    if (remove)
+                    {
+                        BattleData.Entities.Remove(Entities[i].EntityID);
+                        Entities.RemoveAt(i);
+                        i--;
+                        continue;
+                    }
+
+                    StartIndent();
+                    EditEntity(entity);
+                    EndIndent();
+                }
+            }
+
+            EndIndent();
+        }
+    }
+
+    void EditEntity(EditorEntity entity)
+    {
+        EditEnum(ref entity.Data.EntityType, "Entity Type:", Space);
+
+        SelectFaction(ref entity.Data.Faction, "Faction:", Space);
+        EditBool(ref entity.Data.IsTargetable, "Targetable");
+
+        entity.ShowPhysicalProperties = EditorGUILayout.Foldout(entity.ShowPhysicalProperties, "Physical Properties");
+        if (entity.ShowPhysicalProperties)
+        {
+            StartIndent();
+            EditFloat(ref entity.Data.Radius, "Radius:");
+            EditFloat(ref entity.Data.Height, "Height:");
+            EditFloat(ref entity.Data.OriginHeight, "Origin Height:");
+
+            EditFloat(ref entity.Data.MovementSpeed, "Movement Speed:");
+            EditFloat(ref entity.Data.RotateSpeed, "Rotate Speed:");
+            EditFloat(ref entity.Data.JumpHeight, "Jump Height:");
+            EndIndent();
+        }
+
+        entity.ShowCategories = EditorGUILayout.Foldout(entity.ShowCategories, "Entity Categories");
+        if (entity.ShowCategories)
+        {
+            EditListString(ref entity.NewCategory, entity.Data.Categories, BattleData.Categories,
+                           "", "(No Categories)", "Add Category:");
+        }
+
+        EditAttributeDict(ref entity.NewAttribute, entity.Data.BaseAttributes, ref entity.ShowAttributes, "Base Attributes");
+
+        entity.ShowResources = EditorGUILayout.Foldout(entity.ShowResources, "Entity Resources");
+        if (entity.ShowResources)
+        {
+            StartIndent();
+            EditListString(ref entity.NewResource, entity.Data.Resources, BattleData.EntityResources.Keys.ToList(),
+                           "Resources:", "(No Resources)", "Add Category:");
+            EditListString(ref entity.NewLifeResource, entity.Data.LifeResources, BattleData.EntityResources.Keys.ToList(),
+                           "Life Resources:", "(No Life Resources)", "Add Category:");
+            EndIndent();
+        }
+
+        EditTriggerList(ref entity.NewTrigger, entity.Data.Triggers, ref entity.ShowTriggers, "Entity Triggers:");
+    }
+
+    void EditAttributeDict(ref string newAttribute, Dictionary<string, Vector2> dict, ref bool show, string label)
+    {
+        show = EditorGUILayout.Foldout(show, label);
+        if (show)
+        {
+            StartIndent();
+            var keys = dict.Keys.ToList();
+            for (int i = 0; i < dict.Count; i++)
+            {
+                var attribute = keys[i];
+                var value = dict[attribute];
+
+                GUILayout.BeginHorizontal();
+                EditFloat(ref value.x, $"Min {attribute}:", 130, makeHorizontal: false);
+                EditFloat(ref value.y, $"Max {attribute}:", 130, makeHorizontal: false);
+
+                if (keys[i] != attribute && !dict.ContainsKey(attribute))
+                {
+                    dict.Remove(keys[i]);
+                }
+                else
+                {
+                    attribute = keys[i];
+                }
+
+                dict[attribute] = value;
+
+                if (Remove())
+                {
+                    dict.Remove(keys[i]);
+                    i--;
+                    keys = dict.Keys.ToList();
+                }
+                GUILayout.EndHorizontal();
+            }
+
+            var options = BattleData.EntityAttributes.Where(a => !dict.ContainsKey(a)).ToList();
+            if (options.Count > 0)
+            {
+                GUILayout.BeginHorizontal();
+                SelectStringFromList(ref newAttribute, BattleData.EntityAttributes.Where(a => !dict.ContainsKey(a)).ToList(), "Add Attribute:", 130, makeHorizontal: false);
+                if (Add())
+                {
+                    dict.Add(newAttribute, Vector2.one);
+                }
+                GUILayout.EndHorizontal();
+            }
+            EndIndent();
+        }
     }
 
     #region Factions
@@ -1345,9 +1585,9 @@ public class BattleSystemDataEditor : EditorWindow
         {
             if (ShowHelp)
             {
-                EditorGUILayout.HelpBox("Each Entity is part of a faction. The lists of friendly and enemy Entities help " +
-                                        "determine which Entities can be affected by Actions used by an Entity, for example " +
-                                        "a healing spell can be set to only affect friendly entities.", MessageType.None);
+                Help("Each Entity is part of a faction. The lists of friendly and enemy Entities help " + 
+                     "determine which Entities can be affected by Actions used by an Entity, for example " + 
+                     "a healing spell can be set to only affect friendly entities.");
             }
 
             StartIndent();
@@ -1475,6 +1715,8 @@ public class BattleSystemDataEditor : EditorWindow
         }
         EndIndent();
     }
+
+
     #endregion
     #endregion
 
@@ -1509,7 +1751,7 @@ public class BattleSystemDataEditor : EditorWindow
 
         if (ShowHelp && ActionHelp.ContainsKey(action.ActionType))
         {
-            EditorGUILayout.HelpBox(ActionHelp[action.ActionType], MessageType.None);
+            Help(ActionHelp[action.ActionType]);
         }
 
         StartIndent();
@@ -1708,7 +1950,7 @@ public class BattleSystemDataEditor : EditorWindow
 
         // Shared attributes
         var options = BattleData.Entities[a.EntityID].BaseAttributes.Keys.Where(k => !a.SharedAttributes.Keys.Contains(k)).ToList();
-        EditFloatDict(a.SharedAttributes, "Inherited Attributes:", options, ref NewString, ": ", Space, $"Add Attribute:", Space, true);
+        EditFloatDict(a.SharedAttributes, "Inherited Attributes:", options, ref NewString, ": ", Space, $"Add Attribute:", Space);
 
         EditBool(ref a.LifeLink, "Kill Entity When Summoner Dies");
         EditBool(ref a.InheritFaction, "Inherit Summoner's Faction");
@@ -2219,7 +2461,7 @@ public class BattleSystemDataEditor : EditorWindow
         category = categories[EditorGUILayout.Popup(index, categories.ToArray(), GUILayout.Width(60))];
     }
 
-    void SelectFaction(ref string faction, bool showLabel = true)
+    void SelectFaction(ref string faction, string label = "", int labelWidth = 150, bool makeHorizontal = true)
     {
         if (BattleData.Factions.Count == 0)
         {
@@ -2227,10 +2469,16 @@ public class BattleSystemDataEditor : EditorWindow
             return;
         }
 
-        if (showLabel)
+        if (makeHorizontal)
         {
-            Label("Faction:", 52);
+            GUILayout.BeginHorizontal();
         }
+
+        if (!string.IsNullOrEmpty(label))
+        {
+            Label(label, labelWidth);
+        }
+
         var factionCopy = faction; // Copy the string to use it in a lambda expression
         var options = BattleData.Factions.Keys.ToList();
 
@@ -2242,7 +2490,12 @@ public class BattleSystemDataEditor : EditorWindow
                 index = 0;
             }
             faction = options[EditorGUILayout.Popup(index, options.ToArray(),
-                      GUILayout.Width(60))];
+                      GUILayout.Width(250))];
+        }
+
+        if (makeHorizontal)
+        {
+            GUILayout.EndHorizontal();
         }
     }
 
@@ -2289,13 +2542,13 @@ public class BattleSystemDataEditor : EditorWindow
     {
         StartIndent();
         EditListString(ref editorPayload.NewCategory, payload.Categories, Utility.CopyList(BattleData.Categories),
-                       "Payload Categories: ", "No Payload Categories", "Add Payload Category:");
+                       "Payload Categories: ", "(No Payload Categories)", "Add Payload Category:");
 
         EditValue(payload.PayloadValue, isSkill ? eEditorValueRange.SkillAction : eEditorValueRange.NonAction, "Payload Damage:");
         SelectResource(ref payload.ResourceAffected, "Resource Affected: ", 150);
 
         EditListString(ref editorPayload.NewFlag, payload.Flags, Utility.CopyList(BattleData.PayloadFlags),
-                       "Payload Flags: ", "No Payload Flags", "Add Payload Flag:");
+                       "Payload Flags: ", "(No Payload Flags)", "Add Payload Flag:");
 
         // Tag
         var tag = payload.Tag != null;
@@ -2323,19 +2576,19 @@ public class BattleSystemDataEditor : EditorWindow
             payload.ApplyStatus = new List<(string StatusID, int Stacks)>();
         }
         EditStatusStackList(payload.ApplyStatus, ref editorPayload.NewStatusApply,
-                            "Applied Status Effects:", "No Status Effects", "Add Status Effect:");
+                            "Applied Status Effects:", "(No Status Effects)", "Add Status Effect:");
         if (payload.RemoveStatusStacks == null)
         {
             payload.RemoveStatusStacks = new List<(string StatusID, int Stacks)>();
         }
         EditStatusStackList(payload.RemoveStatusStacks, ref editorPayload.NewStatusRemoveStack,
-                    "Removed Status Effects:", "No Status Effects", "Add Status Effect:");
+                    "Removed Status Effects:", "(No Status Effects)", "Add Status Effect:");
         if (payload.ClearStatus == null)
         {
             payload.ClearStatus = new List<(bool StatusGroup, string StatusID)>();
         }
         EditStatusList(payload.ClearStatus, ref editorPayload.NewStatusClear,
-                "Cleared Status Effects:", "No Status Effects", "Add:");
+                "Cleared Status Effects:", "(No Status Effects)", "Add:");
 
         // Kill/revive
         EditBool(ref payload.Instakill, "Instakill");
@@ -2624,7 +2877,36 @@ public class BattleSystemDataEditor : EditorWindow
     #endregion
 
     #region Triggers
-    bool EditTrigger(TriggerData trigger, string label, bool removable = false)
+    void EditTriggerList(ref TriggerData.eTrigger newTrigger, List<TriggerData> list, ref bool show, string label)
+    {
+        show = EditorGUILayout.Foldout(show, label);
+        if (show)
+        {
+            StartIndent();
+            for (int i = 0; i < list.Count; i++)
+            {
+                var result = EditTrigger(list[i], $"Trigger {i}", true);
+                if (result == eReturnResult.Remove)
+                {
+                    list.RemoveAt(i);
+                }
+                else if (result == eReturnResult.Copy)
+                {
+                    var copy = Copy(list[i]);
+                    list.Add(copy);
+                }
+            }
+            EndIndent();
+
+            EditEnum(ref newTrigger, "New Trigger:", Space);
+            if (Add())
+            {
+                list.Add(new TriggerData(newTrigger));
+            }
+        }
+    }
+
+    eReturnResult EditTrigger(TriggerData trigger, string label, bool listElement = false)
     {
         if (trigger == null)
         {
@@ -2633,12 +2915,13 @@ public class BattleSystemDataEditor : EditorWindow
 
         GUILayout.BeginHorizontal();
         Label(label, Space);
-        var remove = (removable && Remove());
+        var copy = (listElement && Button("Copy"));
+        var remove = (listElement && Remove());
         GUILayout.EndHorizontal();
 
         if (remove)
         {
-            return false;
+            return eReturnResult.Remove;
         }
 
         StartIndent();
@@ -2649,12 +2932,13 @@ public class BattleSystemDataEditor : EditorWindow
         EditFloat(ref trigger.Cooldown, "Trigger Cooldown", Space);
         EditInt(ref trigger.Limit, "Trigger Limit", Space);
 
-        EditFloatSlider(ref trigger.TriggerChance, "Trigger Chance:", 0.0f, 0.1f, Space);
+        EditFloatSlider(ref trigger.TriggerChance, "Trigger Chance:", 0.0f, 1.0f, Space);
 
         EditActionTimeline(trigger.Actions, ref NewAction, ref ShowValues, "On Trigger:");
 
         EndIndent();
-        return true;
+
+        return copy ? eReturnResult.Copy : eReturnResult.None;
     }
 
     void EditTriggerConditions(TriggerData.eTrigger trigger, List<TriggerData.TriggerCondition> conditions, string label, ref bool show)
@@ -2686,6 +2970,7 @@ public class BattleSystemDataEditor : EditorWindow
 
     bool EditTriggerCondition(TriggerData.TriggerCondition condition, TriggerData.eTrigger trigger, string label = "", bool removable = true)
     {
+        GUILayout.BeginHorizontal();
         if (!string.IsNullOrEmpty(label))
         {
             Label(label);
@@ -2695,6 +2980,7 @@ public class BattleSystemDataEditor : EditorWindow
         {
             return false;
         }
+        GUILayout.EndHorizontal();
 
         StartIndent();
         EditEnum(ref condition.ConditionType, condition.AvailableConditions(trigger), "Condition:");
@@ -2762,13 +3048,13 @@ public class BattleSystemDataEditor : EditorWindow
             case TriggerData.TriggerCondition.eConditionType.EntityResourceRatioMin:
             {
                 SelectStringFromList(ref condition.StringValue, BattleData.EntityResources.Keys.ToList(), "Resource: ", Space);
-                EditFloatSlider(ref condition.FloatValue, "Min Ratio:", 0.0f, 0.1f, Space);
+                EditFloatSlider(ref condition.FloatValue, "Min Ratio:", 0.0f, 1.0f, Space);
                 break;
             }
             case TriggerData.TriggerCondition.eConditionType.TriggerSourceResourceRatioMin:
             {
                 SelectStringFromList(ref condition.StringValue, BattleData.EntityResources.Keys.ToList(), "Resource: ", Space);
-                EditFloatSlider(ref condition.FloatValue, "Min Ratio:", 0.0f, 0.1f, Space);
+                EditFloatSlider(ref condition.FloatValue, "Min Ratio:", 0.0f, 1.0f, Space);
                 break;
             }
             case TriggerData.TriggerCondition.eConditionType.PayloadResultMin:
@@ -3494,6 +3780,11 @@ public class BattleSystemDataEditor : EditorWindow
     {
         GUILayout.EndVertical();
         GUILayout.EndHorizontal();
+    }
+
+    void Help(string message)
+    {
+        EditorGUILayout.HelpBox(message, MessageType.None);
     }
 
     static T Copy<T>(T classObject) where T : new()

@@ -307,4 +307,9 @@ public class TriggerData
         Conditions = new List<TriggerCondition>();
         Actions = new ActionTimeline();
     }
+
+    public TriggerData(eTrigger trigger) : this()
+    {
+        Trigger = trigger;
+    }
 }

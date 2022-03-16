@@ -389,7 +389,6 @@ public class BattleData
                     },
                     IsTargetable = true,
                     Faction = "Player",
-                    IsAI = false,
                     Radius = 0.05f,
                     Height = 1.0f,
                     OriginHeight = 0.5f,
@@ -421,7 +420,6 @@ public class BattleData
                     },
                     IsTargetable = false,
                     Faction = "Player",
-                    IsAI = false,
                     Radius = 0.05f,
                     Height = 0.1f,
                     LifeResources = new List<string>(),
@@ -465,7 +463,6 @@ public class BattleData
                     },
                     IsTargetable = true,
                     Faction = "Dummy",
-                    IsAI = false,
                     Radius = 0.25f,
                     Height = 1.0f,
                     OriginHeight = 0.5f,
@@ -510,7 +507,6 @@ public class BattleData
                     },
                     IsTargetable = true,
                     Faction = "Object",
-                    IsAI = false,
                     Radius = 0.35f,
                     Height = 0.7f,
                     OriginHeight = 0.45f,
@@ -1587,20 +1583,6 @@ public class BattleData
 
             foreach (var entity in Entities)
             {
-                if (entity.Value.IsAI)
-                {
-                    var aiEntity = entity.Value as AIEntityData;
-                    if (aiEntity == null)
-                    {
-                        Debug.LogError($"Entity {entity.Key} expected to be an AIEntity.");
-                    }
-
-                    var entitySkills = aiEntity.Skills;
-                    while (entitySkills.Contains(oldID))
-                    {
-                        entitySkills[entitySkills.IndexOf(oldID)] = newID;
-                    }
-                }
             }
         }
     }
@@ -1613,20 +1595,6 @@ public class BattleData
 
             foreach (var entity in Entities)
             {
-                if (entity.Value.IsAI)
-                {
-                    var aiEntity = entity.Value as AIEntityData;
-                    if (aiEntity == null)
-                    {
-                        Debug.LogError($"Entity {entity.Key} expected to be an AIEntity.");
-                    }
-
-                    var entitySkills = aiEntity.Skills;
-                    if (entitySkills.Contains(skillID))
-                    {
-                        entitySkills.RemoveAll(s => s == skillID);
-                    }
-                }
             }
         }
     }
