@@ -13,7 +13,8 @@ public class EntityData
     public eEntityType EntityType;                          // Specifies which entity script an entity should use.
 
     public EntityTargetingData Targeting;                   // Target priority and detect/disengage distance.
-    // Skill use 
+    public EntitySkillsData Skills;                         // Skills used by the entity and how they're used.
+    public EntityMovementData Movement;                     // Movement data - defines whether an entity can move and whether it's automatic.
 
     public List<string> Categories;                         // This doesn't do anything, but can be used in damage calculations.
     public Dictionary<string, Vector2> BaseAttributes;      // Attributes such as atk, def, hp, crit chance, speed, damage resistance, etc.
@@ -32,13 +33,11 @@ public class EntityData
     public float Height;                                    // Height of an entity. Used by area attacks and displaying UI elements above it.
     public float OriginHeight;                              // The middle of an entity's height, used by homing projectile attacks. 
 
-    public float MovementSpeed;
-    public float RotateSpeed;
-    public float JumpHeight;
-
     public EntityData()
     {
         Targeting = new EntityTargetingData();
+        Movement = new EntityMovementData();
+        Skills = new EntitySkillsData();
 
         Categories = new List<string>();
         BaseAttributes = new Dictionary<string, Vector2>();
@@ -48,27 +47,6 @@ public class EntityData
 
         Triggers = new List<TriggerData>();
     }
-}
-
-public class EntityMovementData
-{
-    public enum eMovementMode
-    {
-        Free,           // Can move freely.
-        Static,         // No movement.
-        AutoTurret,     // Rotate around/toward target.
-        GoToPos,        // Entity rotates and moves toward target or given position.
-    }
-
-    public eMovementMode MovementMode;
-
-    public float MovementMultiplier;
-    public float RotateMultiplier;
-    public float JumpHeightMultiplier;
-
-    // Go to pos
-    public float RangeFromPos;
-
 }
 
 public class EntityTargetingData
@@ -116,26 +94,114 @@ public class EntityTargetingData
     }
 }
 
-public class EntitySkillData
+public class EntityMovementData
+{
+    public enum eMovementMode
+    {
+        Static,         // Entity cannot move at all.
+        Turret,         // Entity can rotate.
+        Free,           // Entity can move freely.
+        Input,          // Player input controls the entity.
+    }
+
+    public eMovementMode MovementMode;
+
+    public float MovementSpeed;
+    public float MovementSpeedRunMultiplier;
+    public bool ConsumeResourceWhenRunning;
+    public string RunResource;
+    public Value RunResourcePerSecond;
+
+    public float RotateSpeed;
+    public float JumpHeight;
+
+    public class MovementInput
+    {
+        public enum eMovementType
+        {
+            Forward,
+            Backward,
+            Left,
+            Right,
+            RotateLeft,
+            RotateRight,
+            Jump,
+            Dash
+        }
+
+        public eMovementType MovementType;
+        public KeyCode KeyCode;
+    }
+
+    public EntityMovementData()
+    {
+        RunResourcePerSecond = new Value();
+    }
+}
+
+public class EntitySkillsData
 {
     public enum eSkillMode
     {
         None,           // Entity doesn't use skills on its own. The skill use can be implemented with custom code.
-        Input,          // Entity uses skills on input from player.
         AutoSequence,   // Entity uses skills automatically. It goes through the list in a sequence.
         AutoRandom,     // Entity uses skills from a list randomly.
         AutoBestRange,  // Entity will prioritise skills with the closest range to a suitable target.
+        Input,          // Entity uses skills on input from player.
     }
 
     public eSkillMode SkillMode;
-    public List<EntitySkill> Skills;
 
-    // Auto
-    public bool UseSkillOnSight;    // The entity will use its skills as soon as it spots a target they can be used on.
-    public bool MoveToTarget;       // The entity will move toward target if it's too far. Otherwise it will stay idle.
-}
+    public class SequenceSkill
+    {
+        public string SkillID;
+        public int UsesMin;
+        public int UsesMax;
 
-public class EntitySkill
-{
-    public string SkillID;
+        public SequenceSkill()
+        {
+            UsesMin = 1;
+            UsesMax = 1;
+        }
+
+        public SequenceSkill(string skill) : this()
+        {
+            SkillID = skill;
+        }
+    }
+
+    public class InputSkill
+    {
+        public string SkillID;
+        public KeyCode KeyCode;
+        public bool HoldToCharge;
+
+        public InputSkill()
+        {
+            HoldToCharge = true;
+        }
+
+        public InputSkill(string skill) : this()
+        {
+            SkillID = skill;
+        }
+    }
+
+    public List<string> Skills;                 // For random and range modes.
+    public List<SequenceSkill> SequenceSkills;  // For sequence mode.
+    public List<InputSkill> InputSkills;        // For input mode.
+
+    public ActionTimeline AutoAttack;           // When in combat and not casting skills, an entity will repeatedly use these actions.
+    public float AutoAttackInterval;            // Interval between the auto attacks.
+
+    public bool UseSkillOnSight;    // For auto skill modes.
+                                    // The entity will use its skills as soon as it spots a target they can be used on.
+
+    public EntitySkillsData()
+    {
+        Skills = new List<string>();
+        SequenceSkills = new List<SequenceSkill>();
+        InputSkills = new List<InputSkill>();
+        AutoAttack = new ActionTimeline();
+    }
 }

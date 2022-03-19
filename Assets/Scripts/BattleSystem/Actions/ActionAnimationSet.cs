@@ -62,7 +62,7 @@ public class ActionAnimationSet : Action
             }
             case eAnimationAction.SetFloatChargeRatio:
             {
-                animator.SetFloat(Name, entity.SkillChargeRatio);
+                animator.SetFloat(Name, entity.Skills.SkillChargeRatio);
                 actionResults[ActionID].Success = true;
                 return;
             }

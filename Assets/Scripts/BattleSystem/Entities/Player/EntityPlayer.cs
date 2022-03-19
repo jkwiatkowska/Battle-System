@@ -23,7 +23,7 @@ public class EntityPlayer : Entity
         };
     }
 
-    protected override void OnTargetOutOfRange()
+    public override void OnTargetOutOfRange()
     {
         base.OnTargetOutOfRange();
 

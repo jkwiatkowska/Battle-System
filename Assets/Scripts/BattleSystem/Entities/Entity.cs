@@ -8,10 +8,7 @@ public class Entity : MonoBehaviour
 {
     public enum eEntityState
     {
-        Idle,
-        Transition,
-        ChargingSkill,
-        CastingSkill,
+        Alive,
         Dead
     }
 
@@ -26,15 +23,6 @@ public class Entity : MonoBehaviour
     public Dictionary<string, float> BaseAttributes                         { get; protected set; }
     public Dictionary<string, float> ResourcesCurrent                       { get; protected set; }
     public Dictionary<string, float> ResourcesMax                           { get; protected set; }
-
-    // Skills
-    protected Dictionary<string, float> SkillAvailableTime;
-    public SkillData CurrentSkill                                           { get; protected set; }
-    protected Coroutine SkillCoroutine;
-    protected Coroutine SkillChargeCoroutine;
-    public SkillChargeData SkillCharge                                      { get; protected set; }
-    public float SkillStartTime                                             { get; protected set; }
-    public float SkillChargeRatio                                           { get; protected set; }
 
     // Status effects
     protected Dictionary<string, StatusEffect> StatusEffects;                                       // Key: Status ID.
@@ -54,6 +42,7 @@ public class Entity : MonoBehaviour
     public TargetingSystem EntityTargetingSystem                            { get; protected set; }
     public Targetable Targetable                                            { get; protected set; }
     public MovementEntity Movement                                          { get; protected set; }
+    public EntitySkills Skills                                              { get; protected set; }
 
     // State
     public eEntityState EntityState                                         { get; protected set; }
@@ -76,7 +65,7 @@ public class Entity : MonoBehaviour
         EntityUID = entityID + EntityCount.ToString();
         EntityCount++;
         EntityLevel = entityLevel;
-        EntityState = eEntityState.Idle;
+        EntityState = eEntityState.Alive;
         name = EntityUID;
         Faction = EntityData.Faction;
 
@@ -103,7 +92,7 @@ public class Entity : MonoBehaviour
         SetupResourcesStart();
 
         // Skills
-        SkillAvailableTime = new Dictionary<string, float>();
+        Skills = new EntitySkills(this);
 
         // Triggers
         Triggers = new Dictionary<TriggerData.eTrigger, List<Trigger>>();
@@ -199,19 +188,6 @@ public class Entity : MonoBehaviour
                 }
             }
 
-            // Skill cancelation
-            if (EntityState == eEntityState.CastingSkill)
-            {
-                if (CurrentSkill.MovementCancelsSkill)
-                {
-                    var skillCancelled = Movement != null && (SkillStartTime < Movement.LastJumped || SkillStartTime < Movement.LastMoved);
-                    if (skillCancelled)
-                    {
-                        CancelSkill();
-                    }
-                }
-            }
-
             // Status effects
             var effectsToRemove = new List<string>();
             foreach (var status in StatusEffects)
@@ -228,6 +204,9 @@ public class Entity : MonoBehaviour
                 OnStatusExpired(StatusEffects[key]);
                 RemoveStatusEffect(key);
             }
+
+            // Skills
+            Skills.Update();
         }
     }
 
@@ -242,179 +221,6 @@ public class Entity : MonoBehaviour
     }
 
     #region Skills
-    public virtual bool TryUseSkill(string skillID)
-    {
-        // Return if already using this skill
-        if (CurrentSkill != null && CurrentSkill.SkillID == skillID)
-        {
-            return false;
-        }
-
-        var skillData = BattleData.GetSkillData(skillID);
-
-        // Make sure the skill isn't on cooldown and any mandatory costs can be afforded. 
-        if (!CanUseSkill(skillData))
-        {
-            return false;
-        }
-
-        // If already casting another skill, interrupt it. 
-        CancelSkill();
-
-        // Ensure target if one is required.
-        EntityTargetingSystem.UpdateEntityLists();
-
-        if (skillData.NeedsTarget)
-        {
-            var hasTarget = EntityTargetingSystem.EnemySelected;
-
-            // If there is no target, try selecting one.
-            if (!hasTarget)
-            {
-                EntityTargetingSystem.SelectBestEnemy();
-            }
-
-            // If one couldn't be found, a skill cannot be used.
-            if (Target == null)
-            {
-                return false;
-            }
-        }
-
-        // Ensure target is in range if a target is required or a preferred target is selected
-        if (Target != null)
-        {
-            var checkRange = skillData.NeedsTarget;
-            if (checkRange)
-            {
-                // Return if target is out of range.
-                if (!Utility.IsInRange(this, Target, skillData.Range))
-                {
-                    OnTargetOutOfRange();
-                    return false;
-                }
-            }
-        }
-
-        SkillCoroutine = StartCoroutine(UseSkillCoroutine(skillData));
-        return true;
-    }
-
-    public virtual IEnumerator UseSkillCoroutine(SkillData skillData)
-    {
-        CurrentSkill = skillData;
-
-        // Rotate toward target
-        if (Target != null && Movement != null && skillData.PreferredTarget != SkillData.eTargetPreferrence.None)
-        {
-            yield return Movement.RotateTowardCoroutine(Target.transform.position);
-        }
-
-        // Charge skill
-        if (skillData.HasChargeTime)
-        {
-            yield return ChargeSkillCoroutine(skillData);
-        }
-
-        EntityState = eEntityState.CastingSkill;
-        SkillStartTime = BattleSystem.Time;
-
-        yield return skillData.SkillTimeline.ExecuteActions(this, Target);
-
-        CurrentSkill = null;
-        EntityState = eEntityState.Idle;
-    }
-
-    protected virtual IEnumerator ChargeSkillCoroutine(SkillData skillData)
-    {
-        EntityState = eEntityState.ChargingSkill;
-        SkillCharge = skillData.SkillChargeData;
-        SkillStartTime = BattleSystem.Time;
-
-        if (EntityCanvas != null)
-        {
-            EntityCanvas.StartSkillCharge(SkillCharge, skillData.SkillID);
-        }
-        SkillChargeCoroutine = StartCoroutine(SkillCharge.PreChargeTimeline.ExecuteActions(this, Target));
-
-        bool chargeComplete;
-        bool chargeCancelled;
-        var fullChargeTime = SkillCharge.FullChargeTimeForEntity(this);
-        do
-        {
-            chargeComplete = BattleSystem.Time > (SkillStartTime + fullChargeTime);
-            chargeCancelled = SkillCharge.MovementCancelsCharge && Movement != null && 
-                             (Movement.LastMoved > SkillStartTime || Movement.LastJumped > SkillStartTime);
-            yield return null;
-        }
-        while (!chargeComplete && !chargeCancelled);
-
-        if (EntityCanvas != null)
-        {
-            EntityCanvas.StopSkillCharge();
-        }
-
-        var timeElapsed = BattleSystem.Time - SkillStartTime;
-        var minCharge = SkillCharge.RequiredChargeTimeForEntity(this);
-        if (timeElapsed >= minCharge)
-        {
-            var fullCharge = SkillCharge.FullChargeTimeForEntity(this);
-            SkillChargeRatio = timeElapsed / fullCharge;
-
-            SkillCharge = null;
-        }
-        else
-        {
-            SkillCharge = null;
-            CurrentSkill = null;
-            StopCoroutine(SkillCoroutine);
-        }
-        yield return null;
-    }
-
-    public virtual void ModifySkillAvailableTime(string skillID, float change)
-    {
-        if (!IsSkillOnCooldown(skillID))
-        {
-            SkillAvailableTime[skillID] = BattleSystem.Time;
-        }
-
-        SkillAvailableTime[skillID] += change;
-    }
-
-    public virtual void SetSkillAvailableTime(string skillID, float time)
-    {
-        SkillAvailableTime[skillID] = time;
-    }
-
-    public virtual void CancelSkill()
-    {
-        if (CurrentSkill == null)
-        {
-            return;
-        }
-
-        if (EntityState == eEntityState.ChargingSkill)
-        {
-            if (EntityCanvas != null)
-            {
-                EntityCanvas.StopSkillCharge();
-            }
-
-            if (SkillChargeCoroutine != null)
-            {
-                StopCoroutine(SkillChargeCoroutine);
-            }
-        }
-
-        if (SkillCoroutine != null)
-        {
-            StopCoroutine(SkillCoroutine);
-        }
-
-        CurrentSkill = null;
-        EntityState = eEntityState.Idle;
-    }
 
     #endregion
 
@@ -500,7 +306,8 @@ public class Entity : MonoBehaviour
         if (!Alive)
         {
             StopAllCoroutines();
-            EntityState = eEntityState.Idle;
+            EntityState = eEntityState.Alive;
+            Skills.SkillState = EntitySkills.eSkillState.Idle;
 
             OnTrigger(TriggerData.eTrigger.OnReviveIncoming, triggerSource: payloadResult.Caster, payloadResult: payloadResult);
             payloadResult.Caster.OnReviveOutgoing(payloadResult);
@@ -617,7 +424,7 @@ public class Entity : MonoBehaviour
         HUDPopupTextHUD.Instance.DisplayImmune(this);
     }
 
-    protected virtual void OnTargetOutOfRange()
+    public virtual void OnTargetOutOfRange()
     {
     }
     #endregion
@@ -897,9 +704,9 @@ public class Entity : MonoBehaviour
 
         Locks[lockData.LockType].Add(key, lockData);
 
-        if (CurrentSkill.Interruptible && IsSkillLocked(CurrentSkill.SkillID))
+        if (Skills.CurrentSkill.Interruptible && IsSkillLocked(Skills.CurrentSkill.SkillID))
         {
-            CancelSkill();
+            Skills.CancelSkill();
         }
     }
 
@@ -911,7 +718,7 @@ public class Entity : MonoBehaviour
         }
     }
 
-    bool IsSkillLocked(string skillID)
+    public bool IsSkillLocked(string skillID)
     {
         if (Locks.ContainsKey(EffectLock.eLockType.SkillsAll) && Locks[EffectLock.eLockType.SkillsAll].Count > 0)
         {
@@ -1234,7 +1041,7 @@ public class Entity : MonoBehaviour
 
         // Replace the resource and update change if it's being shielded
         Shield shield = null;
-        if (change < 0.0f && Shields.ContainsKey(resource) && Shields[resource].Count > 0)
+        if (change < 0.0f && !payloadResult.PayloadData.IgnoreShield && Shields.ContainsKey(resource) && Shields[resource].Count > 0)
         {
             int best = -1;
 
@@ -1508,13 +1315,20 @@ public class Entity : MonoBehaviour
         }
     }
 
-    public Dictionary<string, float> EntityAttributes(string skillID, string actionID, string statusID, List<string> categories)
+    public Dictionary<string, float> EntityAttributes(string skillID, string actionID, string statusID, List<string> categories, List<string> ignoreAttributes = null)
     {
         var attributes = new Dictionary<string, float>();
 
         foreach (var attribute in BaseAttributes)
         {
-            attributes.Add(attribute.Key, Attribute(attribute.Key, skillID, actionID, statusID, categories));
+            if (ignoreAttributes != null && ignoreAttributes.Contains(attribute.Key))
+            {
+                attributes.Add(attribute.Key, 0.0f);
+            }
+            else
+            {
+                attributes.Add(attribute.Key, Attribute(attribute.Key, skillID, actionID, statusID, categories));
+            }
         }
 
         return attributes;
@@ -1571,88 +1385,6 @@ public class Entity : MonoBehaviour
     public virtual bool IsInCombat()
     {
         return false;
-    }
-
-    protected virtual bool IsSkillOnCooldown(string skillID)
-    {
-        // Not on cooldown if cooldown hasn't been registered
-        if (!SkillAvailableTime.ContainsKey(skillID))
-        {
-            return false;
-        }
-
-        return SkillAvailableTime[skillID] > BattleSystem.Time;
-    }
-
-    protected virtual bool CanUseSkillInCurrentState(SkillData skillData)
-    {
-        if (EntityState == eEntityState.Dead)
-        {
-            return false;
-        }
-
-        switch (skillData.CasterState)
-        {
-            case SkillData.eCasterState.Grounded:
-            {
-                return Movement.IsGrounded;
-            }
-            case SkillData.eCasterState.Jumping:
-            {
-                return !Movement.IsGrounded;
-            }
-            default:
-            {
-                return true;
-            }
-        }
-    }
-
-    protected virtual bool CanAffordCost(List<ActionCostCollection> costActions)
-    {
-        var costs = new Dictionary<string, float>();
-
-        foreach (var cost in costActions)
-        {
-            if (costs.ContainsKey(cost.ResourceName))
-            {
-                costs[cost.ResourceName] += cost.GetValue(this);
-            }
-            else
-            {
-                costs.Add(cost.ResourceName, cost.GetValue(this));
-            }
-        }
-        foreach (var cost in costs)
-        {
-            if (cost.Value > ResourcesCurrent[cost.Key])
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public virtual bool CanUseSkill(SkillData skillData)
-    {
-        if (IsSkillOnCooldown(skillData.SkillID))
-        {
-            return false;
-        }
-
-        if (IsSkillLocked(skillData.SkillID))
-        {
-            return false;
-        }
-
-        if (!CanUseSkillInCurrentState(skillData))
-
-        if (!CanAffordCost(BattleData.GetSkillData(skillData.SkillID).SkillCost))
-        {
-            return false;
-        }
-
-        return true;
     }
 
     public virtual bool IsEnemy(string targetFaction)

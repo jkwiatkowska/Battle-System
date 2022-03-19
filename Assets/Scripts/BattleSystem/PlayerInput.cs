@@ -72,6 +72,33 @@ public class PlayerInput : MonoBehaviour
     {
         if (Input.GetAxis("Horizontal") != 0.0f || Input.GetAxis("Vertical") != 0.0f)
         {
+            if (Input.GetKey(KeyCode.LeftShift))
+            {
+                var movementData = Player.EntityData.Movement;
+                if (movementData.ConsumeResourceWhenRunning)
+                {
+                    var drain = movementData.RunResourcePerSecond.IncomingValue(Player) * Time.fixedDeltaTime;
+                    if (Player.ResourcesCurrent.ContainsKey(movementData.RunResource) &&
+                        Player.ResourcesCurrent[movementData.RunResource] >= drain)
+                    {
+                        Player.ApplyChangeToResource(movementData.RunResource, -drain);
+                        Player.Movement.IsRunning = true;
+                    }
+                    else
+                    {
+                        Player.Movement.IsRunning = false;
+                    }
+                }
+                else
+                {
+                    Player.Movement.IsRunning = true;
+                }
+            }
+            else
+            {
+                Player.Movement.IsRunning = false;
+            }
+
             PlayerMovement.MovePlayer(new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")));
         }
 
@@ -83,22 +110,10 @@ public class PlayerInput : MonoBehaviour
 
     void PlayerControls()
     {
-        if (ReadInput())
+        if (Input.GetKeyDown(KeyCode.Tab))
         {
-            if (Input.GetKey(KeyCode.Tab))
-            {
-                PlayerTargetingSystem.SwitchTarget();
-                OnInput();
-            }
-
-            foreach (var skill in Player.PlayerSkills)
-            {
-                if (Input.GetKeyDown(skill.Key))
-                {
-                    Player.TryUseSkill(skill.Value);
-                    OnInput();
-                }
-            }
+            PlayerTargetingSystem.SwitchTarget();
+            OnInput();
         }
     }
 
@@ -107,8 +122,4 @@ public class PlayerInput : MonoBehaviour
         LastInput = BattleSystem.Time + InputCooldown;
     }
 
-    bool ReadInput()
-    {
-        return LastInput - BattleSystem.Time <= 0.0f;
-    }
 }

@@ -13,6 +13,8 @@ public class MovementEntity : MonoBehaviour
     public bool IsGrounded                              { get; protected set; }
     Vector3 GroundCheckSphereOffset;
 
+    public bool IsRunning;
+
     public float LastMoved                              { get; protected set; }
     public float LastJumped                             { get; protected set; }
 
@@ -51,7 +53,7 @@ public class MovementEntity : MonoBehaviour
 
     public static float GetEntityMovement(Entity entity, float timeElapsed, float speedMultiplier = 1.0f)
     {
-        return Formulae.EntityMovementSpeed(entity) * speedMultiplier * timeElapsed;
+        return Formulae.EntityMovementSpeed(entity, entity.Movement.IsRunning) * speedMultiplier * timeElapsed;
     }
 
     public void Jump()

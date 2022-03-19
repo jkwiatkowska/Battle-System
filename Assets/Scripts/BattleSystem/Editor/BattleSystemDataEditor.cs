@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -131,6 +132,7 @@ public class BattleSystemDataEditor : EditorWindow
     class EditorPayload
     {
         public string NewCategory = "";
+        public string NewAttribute = "";
         public string NewFlag = "";
         public string NewStatusApply = "";
         public string NewStatusRemoveStack = "";
@@ -318,9 +320,11 @@ public class BattleSystemDataEditor : EditorWindow
         public string NewAttribute;
         public string NewResource;
         public string NewLifeResource;
+        public string NewSkill;
 
         public bool ShowTargeting;
         public bool ShowSkills;
+        public bool ShowMovement;
 
         public TriggerData.eTrigger NewTrigger;
 
@@ -368,8 +372,10 @@ public class BattleSystemDataEditor : EditorWindow
         GetWindow(typeof(BattleSystemDataEditor));
     }
 
-    void Awake()
+    void Load()
     {
+        GUI.FocusControl(null);
+
         var pathSaved = PlayerPrefs.HasKey(PathPlayerPrefs) || string.IsNullOrEmpty(PlayerPrefs.GetString(PathPlayerPrefs));
         if (!pathSaved)
         {
@@ -377,6 +383,17 @@ public class BattleSystemDataEditor : EditorWindow
         }
         Path = PlayerPrefs.GetString(PathPlayerPrefs);
         BattleData.LoadData(Path);
+        UpdateValues();
+    }
+
+    void Save()
+    {
+        GUI.FocusControl(null);
+
+        if (!string.IsNullOrEmpty(Path))
+        {
+            BattleData.SaveData(Path);
+        }
         UpdateValues();
     }
 
@@ -390,21 +407,12 @@ public class BattleSystemDataEditor : EditorWindow
 
         if (GUILayout.Button("Load"))
         {
-            GUI.FocusControl(null);
-
-            BattleData.LoadData(Path);
-            UpdateValues();
+            Load();
         }
 
         if (GUILayout.Button("Save"))
         {
-            GUI.FocusControl(null);
-
-            if (!string.IsNullOrEmpty(Path))
-            {
-                BattleData.SaveData(Path);
-            }
-            UpdateValues();
+            Save();
         }
         GUILayout.EndHorizontal();
 
@@ -417,6 +425,12 @@ public class BattleSystemDataEditor : EditorWindow
         GUILayout.EndHorizontal();
 
         ScrollPos = EditorGUILayout.BeginScrollView(ScrollPos);
+
+        var notLoaded = Entities.Count != BattleData.Entities.Count;
+        if (notLoaded)
+        {
+            UpdateValues();
+        }
 
         switch (Tab)
         {
@@ -1492,8 +1506,32 @@ public class BattleSystemDataEditor : EditorWindow
         SelectFaction(ref entity.Data.Faction, "Faction:", Space);
         EditBool(ref entity.Data.IsTargetable, "Targetable");
 
-        entity.ShowTargeting = EditorGUILayout.Foldout(entity.ShowTargeting, "Targeting");
-        if (entity.ShowTargeting)
+        if (EditFoldout(ref entity.ShowSkills, "Skills"))
+        {
+            StartIndent();
+            EditEnum(ref entity.Data.Skills.SkillMode, "Skill Use Mode:", Space);
+            if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoRandom ||
+                entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoBestRange)
+            {
+                EditBool(ref entity.Data.Skills.UseSkillOnSight, "Use Skills On Sight");
+                EditListString(ref entity.NewSkill, entity.Data.Skills.Skills, BattleData.Skills.Keys.ToList(),
+                               "Enity Skills:", "(No Skills)", "Add Skill:");
+            }
+            else if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoSequence)
+            {
+                EditBool(ref entity.Data.Skills.UseSkillOnSight, "Use Skills On Sight");
+                EditList(ref entity.NewSkill, entity.Data.Skills.SequenceSkills, BattleData.Skills.Keys.ToList(),
+                         EditSequenceSkill, NewSequenceSkill, "Enity Skills:", "(No Skills)", "Add Skill:");
+            }
+            else if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.Input)
+            {
+                EditList(ref entity.NewSkill, entity.Data.Skills.InputSkills, BattleData.Skills.Keys.ToList(),
+                        EditInputSkill, NewInputSkill, "Enity Skills:", "(No Skills)", "Add Skill:");
+            }
+            EndIndent();
+        }
+
+        if (EditFoldout(ref entity.ShowTargeting, "Targeting"))
         {
             StartIndent();
             EditEnum(ref entity.Data.Targeting.EnemyTargetPriority.TargetPriority, "Enemy Target Priority:", Space);
@@ -1517,22 +1555,39 @@ public class BattleSystemDataEditor : EditorWindow
             EndIndent();
         }   
 
-        entity.ShowPhysicalProperties = EditorGUILayout.Foldout(entity.ShowPhysicalProperties, "Physical Properties");
-        if (entity.ShowPhysicalProperties)
+        if (EditFoldout(ref entity.ShowMovement, "Movement"))
         {
             StartIndent();
-            EditFloat(ref entity.Data.Radius, "Radius:");
-            EditFloat(ref entity.Data.Height, "Height:");
-            EditFloat(ref entity.Data.OriginHeight, "Origin Height:");
-
-            EditFloat(ref entity.Data.MovementSpeed, "Movement Speed:");
-            EditFloat(ref entity.Data.RotateSpeed, "Rotate Speed:");
-            EditFloat(ref entity.Data.JumpHeight, "Jump Height:");
+            EditEnum(ref entity.Data.Movement.MovementMode, "Movement Mode:", Space);
+            EditFloat(ref entity.Data.Movement.MovementSpeed, "Movement Speed:", Space);
+            EditFloat(ref entity.Data.Movement.MovementSpeedRunMultiplier, "Running Speed Multiplier:", Space);
+            EditBool(ref entity.Data.Movement.ConsumeResourceWhenRunning, "Consume Resource When Running");
+            if (entity.Data.Movement.ConsumeResourceWhenRunning)
+            {
+                StartIndent();
+                SelectResource(ref entity.Data.Movement.RunResource, "Resource:", Space);
+                if (entity.Data.Movement.RunResourcePerSecond == null)
+                {
+                    entity.Data.Movement.RunResourcePerSecond = new Value();
+                }
+                EditValue(entity.Data.Movement.RunResourcePerSecond, eEditorValueRange.CasterOnly, $"{entity.Data.Movement.RunResource} Drained per Second:");
+                EndIndent();
+            }
+            EditFloat(ref entity.Data.Movement.RotateSpeed, "Rotate Speed:", Space);
+            EditFloat(ref entity.Data.Movement.JumpHeight, "Jump Height:", Space);
             EndIndent();
         }
 
-        entity.ShowCategories = EditorGUILayout.Foldout(entity.ShowCategories, "Entity Categories");
-        if (entity.ShowCategories)
+        if (EditFoldout(ref entity.ShowPhysicalProperties, "Physical Properties"))
+        {
+            StartIndent();
+            EditFloat(ref entity.Data.Radius, "Radius:", Space);
+            EditFloat(ref entity.Data.Height, "Height:", Space);
+            EditFloat(ref entity.Data.OriginHeight, "Origin Height:", Space);
+            EndIndent();
+        }
+
+        if (EditFoldout(ref entity.ShowCategories, "Entity Categories"))
         {
             EditListString(ref entity.NewCategory, entity.Data.Categories, BattleData.Categories,
                            "", "(No Categories)", "Add Category:");
@@ -1540,8 +1595,7 @@ public class BattleSystemDataEditor : EditorWindow
 
         EditAttributeDict(ref entity.NewAttribute, entity.Data.BaseAttributes, ref entity.ShowAttributes, "Base Attributes");
 
-        entity.ShowResources = EditorGUILayout.Foldout(entity.ShowResources, "Entity Resources");
-        if (entity.ShowResources)
+        if (EditFoldout(ref entity.ShowResources, "Entity Resources"))
         {
             StartIndent();
             EditListString(ref entity.NewResource, entity.Data.Resources, BattleData.EntityResources.Keys.ToList(),
@@ -1552,6 +1606,72 @@ public class BattleSystemDataEditor : EditorWindow
         }
 
         EditTriggerList(ref entity.NewTrigger, entity.Data.Triggers, ref entity.ShowTriggers, "Entity Triggers:");
+    }
+
+    eReturnResult EditSequenceSkill(EntitySkillsData.SequenceSkill skill)
+    {
+        EditorGUILayout.BeginHorizontal();
+        SelectSkill(ref skill.SkillID, "Skill ID:", 80);
+        var copy = Button("Copy");
+        var remove = Remove();
+        EditorGUILayout.EndHorizontal();
+
+        StartIndent();
+        EditorGUILayout.BeginHorizontal();
+        EditInt(ref skill.UsesMin, "Uses Min:", 60, makeHorizontal: false);
+        EditInt(ref skill.UsesMax, "Uses Max:", 60, makeHorizontal: false);
+        EditorGUILayout.EndHorizontal();
+        EndIndent();
+
+        if (copy)
+        {
+            return eReturnResult.Copy;
+        }
+        else if (remove)
+        {
+            return eReturnResult.Remove;
+        }
+        return eReturnResult.None;
+    }
+
+    EntitySkillsData.SequenceSkill NewSequenceSkill(string skillID)
+    {
+        return new EntitySkillsData.SequenceSkill(skillID);
+    }
+
+    eReturnResult EditInputSkill(EntitySkillsData.InputSkill skill)
+    {
+        EditorGUILayout.BeginHorizontal();
+        SelectSkill(ref skill.SkillID, "Skill ID:", 70);
+        var copy = Button("Copy");
+        var remove = Remove();
+        EditorGUILayout.EndHorizontal();
+
+        StartIndent();
+        EditorGUILayout.BeginHorizontal();
+        EditEnum(ref skill.KeyCode, $"{skill.SkillID} Input:", Space);
+        if (BattleData.GetSkillData(skill.SkillID).HasChargeTime)
+        {
+            EditBool(ref skill.HoldToCharge, "Hold to Charge");
+        }
+        EditorGUILayout.EndHorizontal();
+        EndIndent();
+
+        if (copy)
+        {
+            return eReturnResult.Copy;
+        }
+        else if (remove)
+        {
+            return eReturnResult.Remove;
+        }
+
+        return eReturnResult.None;
+    }
+
+    EntitySkillsData.InputSkill NewInputSkill(string skillID)
+    {
+        return new EntitySkillsData.InputSkill(skillID);
     }
 
     void EditAttributeDict(ref string newAttribute, Dictionary<string, Vector2> dict, ref bool show, string label)
@@ -2575,6 +2695,11 @@ public class BattleSystemDataEditor : EditorWindow
         EditValue(payload.PayloadValue, isSkill ? eEditorValueRange.SkillAction : eEditorValueRange.NonAction, "Payload Damage:");
         SelectResource(ref payload.ResourceAffected, "Resource Affected: ", 150);
 
+        EditBool(ref payload.IgnoreShield, "Ignore Shield");
+
+        EditListString(ref editorPayload.NewAttribute, payload.TargetAttributesIgnored, Utility.CopyList(BattleData.EntityAttributes),
+                       "Target Attributes Ignored: ", "(No Ignored Attributes)", "Add Ignored Attribute:");
+
         EditListString(ref editorPayload.NewFlag, payload.Flags, Utility.CopyList(BattleData.PayloadFlags),
                        "Payload Flags: ", "(No Payload Flags)", "Add Payload Flag:");
 
@@ -3413,6 +3538,7 @@ public class BattleSystemDataEditor : EditorWindow
     {
         SkillAction = -1,
         Resource = 3,
+        CasterOnly = 5,
         NonAction = 7
     }
 
@@ -3662,6 +3788,11 @@ public class BattleSystemDataEditor : EditorWindow
         EndIndent();
     }
 
+    bool EditFoldout(ref bool show, string label)
+    {
+        show = EditorGUILayout.Foldout(show, label);
+        return show;
+    }
     void EditInt(ref int value, string label, int labelWidth = 200, int inputWidth = 70, bool makeHorizontal = true)
     {
         if (makeHorizontal)
@@ -3692,6 +3823,65 @@ public class BattleSystemDataEditor : EditorWindow
     void Label(string label, int width = 0)
     {
         GUILayout.Label(label, GUILayout.Width(width));
+    }
+
+    void EditList<T>(ref string newElement, List<T> list, List<string> options, Func<T, eReturnResult> editElementFunction, 
+                     Func<string, T> newElementFunction, string label = "", string noLabel = "", string addLabel = "") where T : new()
+    {
+        if (!string.IsNullOrEmpty(label))
+        {
+            Label(label);
+        }
+
+        StartIndent();
+        if (list.Count > 0)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                var result = editElementFunction(list[i]);
+
+                if (result == eReturnResult.Remove)
+                {
+                    list.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+                else if (result == eReturnResult.Copy)
+                {
+                    list.Add(Copy(list[i]));
+                }
+            }
+        }
+        else if (!string.IsNullOrEmpty(noLabel))
+        {
+            Label(noLabel);
+        }
+
+        if (options != null && options.Count > 0)
+        {
+            GUILayout.BeginHorizontal();
+            if (!string.IsNullOrEmpty(addLabel))
+            {
+                Label(addLabel, addLabel.Count() * 8);
+            }
+
+            var copy = newElement; // This is needed for the lambda expression to work.
+            var index = options.FindIndex(0, a => a.Equals(copy));
+            if (index < 0)
+            {
+                index = 0;
+            }
+            newElement = options[EditorGUILayout.Popup(index, options.ToArray(),
+                         GUILayout.Width(250))];
+
+            if (Button("+", 20) && newElement != null)
+            {
+                list.Add(newElementFunction(newElement));
+            }
+
+            GUILayout.EndHorizontal();
+        }
+        EndIndent();
     }
 
     void EditListString(ref string newElement, List<string> list, List<string> options,

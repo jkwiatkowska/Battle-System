@@ -8,6 +8,8 @@ public class PayloadData
 
     public Value PayloadValue;                          // The value components are added together. Example: 20% TargetMaxHP + 1000 (FlatValue)
     public string ResourceAffected;                     // Typically hp, but can be other things like energy
+    public List<string> TargetAttributesIgnored;        // Target attributes such as defense can be ignored. 
+    public bool IgnoreShield;                           // True damage.
 
     public List<string> Flags;                          // Flags to customise the payload 
 
@@ -34,6 +36,7 @@ public class PayloadData
         PayloadValue = new Value();
         Flags = new List<string>();
         SuccessChance = 1.0f;
+        TargetAttributesIgnored = new List<string>();
 
         ApplyStatus = new List<(string StatusID, int Stacks)>();
         ClearStatus = new List<(bool StatusGroup, string StatusID)>();

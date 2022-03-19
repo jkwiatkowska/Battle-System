@@ -16,7 +16,8 @@ public static class Formulae
     {
         var payloadData = payload.PayloadData;
         var flags = payloadData.Flags;
-        var targetAttributes = target.EntityAttributes(payload.Action.SkillID, payload.Action.ActionID, payload.StatusID, payload.PayloadData.Categories);
+        var targetAttributes = target.EntityAttributes(payload.Action.SkillID, payload.Action.ActionID, payload.StatusID, 
+                               payload.PayloadData.Categories, payload.PayloadData.TargetAttributesIgnored);
 
         var isCrit = flags.Contains("canCrit") && payload.CasterAttributes["critChance"] >= Random.value;
         if (isCrit)
@@ -25,7 +26,7 @@ public static class Formulae
         }
         var critMultiplier = isCrit ? (1.0f + payload.CasterAttributes["critDamage"]) : 1.0f;
 
-        var defMultiplier = flags.Contains("ignoreDef") ? 1.0f : 1.0f - targetAttributes["def"] / (targetAttributes["def"] + 5 * caster.Level + 500.0f);
+        var defMultiplier = 1.0f - targetAttributes["def"] / (targetAttributes["def"] + 5 * caster.Level + 500.0f);
         var incomingDamage = rawDamage * critMultiplier * defMultiplier;
 
         return incomingDamage;
@@ -121,23 +122,27 @@ public static class Formulae
         return successChance;
     }
 
-    public static float EntityMovementSpeed(Entity entity)
+    public static float EntityMovementSpeed(Entity entity, bool running = false)
     {
-        var speed = entity.EntityData.MovementSpeed;
+        var speed = entity.EntityData.Movement.MovementSpeed;
+        if (running)
+        {
+            speed *= entity.EntityData.Movement.MovementSpeedRunMultiplier;
+        }
 
         return speed;
     }
 
     public static float EntityRotateSpeed(Entity entity)
     {
-        var speed = entity.EntityData.RotateSpeed;
+        var speed = entity.EntityData.Movement.RotateSpeed;
 
         return speed;
     }
 
     public static float EntityJumpHeight(Entity entity)
     {
-        var height = entity.EntityData.JumpHeight;
+        var height = entity.EntityData.Movement.JumpHeight;
 
         return height;
     }

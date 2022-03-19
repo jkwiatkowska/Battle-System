@@ -399,10 +399,7 @@ public class BattleData
                     Triggers = new List<TriggerData>()
                     {
 
-                    },
-                    MovementSpeed = 4.0f,
-                    RotateSpeed = 5.0f,
-                    JumpHeight = 1.0f
+                    }
                 }
             },
             {
@@ -442,10 +439,7 @@ public class BattleData
                             },
                             Conditions = new List<TriggerData.TriggerCondition>()
                         }
-                    },
-                    MovementSpeed = 4.0f,
-                    RotateSpeed = 5.0f,
-                    JumpHeight = 1.0f
+                    }
                 }
             },
             {

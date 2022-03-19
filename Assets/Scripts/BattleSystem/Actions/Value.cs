@@ -208,6 +208,11 @@ public class Value : List<ValueComponent>
             {
                 totalValue += component.GetValue(caster: null, target, casterAttributes: null, actionResults: null);
             }
+            else if (component.ComponentType == ValueComponent.eValueComponentType.CasterResourceCurrent ||
+                     component.ComponentType == ValueComponent.eValueComponentType.CasterResourceMax)
+            {
+                totalValue += component.GetValue(caster: target, target: null, casterAttributes: null, actionResults: null);
+            }
             else
             {
                 Debug.LogError($"Incoming value can only be calculated on a value obtained through the OutgoingValue function.");

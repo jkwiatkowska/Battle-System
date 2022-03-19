@@ -36,12 +36,12 @@ public class ActionCooldown : Action
             {
                 if (ChangeMode == eChangeMode.Modify)
                 {
-                    entity.ModifySkillAvailableTime(CooldownTargetName, Cooldown);
+                    entity.Skills.ModifySkillAvailableTime(CooldownTargetName, Cooldown);
                 }
                 else
                 {
                     var availableTime = BattleSystem.Time + Formulae.CooldownTime(entity, CooldownTargetName, this);
-                    entity.SetSkillAvailableTime(CooldownTargetName, availableTime);
+                    entity.Skills.SetSkillAvailableTime(CooldownTargetName, availableTime);
                 }
 
                 break;
@@ -58,12 +58,12 @@ public class ActionCooldown : Action
                 {
                     if (ChangeMode == eChangeMode.Modify)
                     {
-                        entity.ModifySkillAvailableTime(skill, Cooldown);
+                        entity.Skills.ModifySkillAvailableTime(skill, Cooldown);
                     }
                     else
                     {
                         var availableTime = BattleSystem.Time + Formulae.CooldownTime(entity, skill, this);
-                        entity.SetSkillAvailableTime(skill, availableTime);
+                        entity.Skills.SetSkillAvailableTime(skill, availableTime);
                     }
                 }
                 break;
