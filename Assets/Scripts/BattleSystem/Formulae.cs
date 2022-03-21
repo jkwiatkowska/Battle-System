@@ -5,6 +5,7 @@ using UnityEngine;
 public static class Formulae
 {
     // This class can be used to customise skill-related values such as damage and casting time based on entity attributes, payload flags and other variables. 
+    #region Damage
     public static float OutgoingDamage(Entity caster, float rawDamage, PayloadData payloadData)
     {
         var outgoingDamage = rawDamage;
@@ -31,6 +32,7 @@ public static class Formulae
 
         return incomingDamage;
     }
+    #endregion
 
     public static float EntityBaseAttribute(Entity entity, string attribute)
     {
@@ -41,6 +43,7 @@ public static class Formulae
         return baseAttribute;
     }
 
+    #region Resources
     public static float ResourceMaxValue(Entity entity, Dictionary<string, float> entityAttributes, string resource)
     {
         if (BattleData.EntityResources.ContainsKey(resource))
@@ -85,7 +88,9 @@ public static class Formulae
             }
         }
     }
+    #endregion
 
+    #region Action time and speed
     public static float ActionTime(Entity entity, float actionTimestamp)
     {
         var timeMultiplier = 1.0f;
@@ -122,6 +127,15 @@ public static class Formulae
         return duration;
     }
 
+    public static float AutoAttackInterval(Entity caster, Entity target)
+    {
+        // Depending on the auto attack settings target might be null.
+        var interval = caster.EntityData.Skills.AutoAttackInterval;
+
+        return interval;
+    }
+    #endregion
+
     public static float PayloadSuccessChance(PayloadData payloadData, Entity caster, Entity target)
     {
         var successChance = payloadData.SuccessChance;
@@ -129,6 +143,7 @@ public static class Formulae
         return successChance;
     }
 
+    #region Movement
     public static float EntityMovementSpeed(Entity entity, bool running = false)
     {
         var speed = entity.EntityData.Movement.MovementSpeed;
@@ -153,4 +168,5 @@ public static class Formulae
 
         return height;
     }
+    #endregion
 }

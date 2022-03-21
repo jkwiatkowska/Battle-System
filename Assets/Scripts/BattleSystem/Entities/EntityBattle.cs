@@ -36,6 +36,8 @@ public class EntityBattle
     protected float PrepareStartTime;
     protected SkillData PrepareSkill;
 
+    protected float AutoAttackTime;
+
     public EntityBattle(Entity entity)
     {
         Entity = entity;
@@ -54,6 +56,7 @@ public class EntityBattle
             Movement.SetRunning(false);
         }
         SkillState = eSkillState.Idle;
+        StartAutoAttack();
     }
 
     void SetPrepare(Entity target, SkillData skillData)
@@ -74,6 +77,7 @@ public class EntityBattle
         var entityData = entity.EntityData;
         if (entityData.IsTargetable && entityData.CanEngage)
         {
+
             EngagedEntities.Add(entity.EntityUID, entity);
         }
     }
@@ -82,6 +86,10 @@ public class EntityBattle
     {
         if (EngagedEntities.ContainsKey(entityUID))
         {
+            if (!InCombat)
+            {
+                StartAutoAttack();
+            }
             EngagedEntities.Remove(entityUID);
         }
     }
@@ -96,16 +104,51 @@ public class EntityBattle
             }
         }
     }
+
+    void StartAutoAttack()
+    {
+        if (Data.AutoAttack != null)
+        {
+            AutoAttackTime = BattleSystem.Time + Formulae.AutoAttackInterval(Entity, Target);
+        }
+    }
     #endregion
 
     #region Update
     public void Update()
     {
+        // If idle and in battle, the entity can perform actions at given interval.
+        PerformAutoAttack();
+
         // Check if an entity should use a skill and which.
         PickSkill();
 
         // Skill and skill charge cancelation if a skill is being cast.
         CheckForSkillCancel();
+    }
+
+    public void PerformAutoAttack()
+    {
+        if (SkillState == eSkillState.Idle && InCombat && Data.AutoAttack != null && AutoAttackTime <= BattleSystem.Time)
+        {
+            if (Data.AutoAttackRequiredTarget)
+            {
+                if (Target == null || !EngagedEntities.ContainsKey(Target.EntityUID))
+                {
+                    return;
+                }
+                var maxDist = Data.AutoAttackRange * Data.AutoAttackRange;
+                var dist = (Target.transform.position - Entity.transform.position).sqrMagnitude;
+
+                if (dist > maxDist)
+                {
+                    return;
+                }
+            }
+
+            Entity.StartCoroutine(Data.AutoAttack.ExecuteActions(Entity, Target));
+            StartAutoAttack();
+        }
     }
 
     public void FixedUpdate()

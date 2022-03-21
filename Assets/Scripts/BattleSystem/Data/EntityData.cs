@@ -255,9 +255,10 @@ public class EntitySkillsData
 
     public ActionTimeline AutoAttack;           // When in combat and not casting skills, an entity will repeatedly use these actions.
     public float AutoAttackInterval;            // Interval between the auto attacks.
-    public float AutoAttackTargetDistance;      // Max distance from target for an auto attack to be used.
+    public bool AutoAttackRequiredTarget;       // Auto attack will only trigger if an enemy is selected.
+    public float AutoAttackRange;               // Max distance from target for an auto attack to be used.
 
-    public bool EngageOnSight;                // For auto skill modes.
+    public bool EngageOnSight;                  // For auto skill modes.
                                                 // The entity will use its skills as soon as it spots a target they can be used on.
 
     public bool MoveToTargetIfNotInRange;       // Allows the entity to move toward targets that are too far away.
@@ -274,5 +275,7 @@ public class EntitySkillsData
 
         AutoSelectTargetOnSkillUse = true;
         RotateToTargetIfNotWithinAngle = true;
+
+        AutoAttackRequiredTarget = true;
     }
 }

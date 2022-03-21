@@ -38,6 +38,7 @@ public class TargetingSystem : MonoBehaviour
                 if (entity != null)
                 {
                     Entity.EntityBattle.Disengage(entity.EntityUID);
+                    entity.EntityBattle.Disengage(Entity.EntityUID);
                 }
 
                 if (SelectedTarget == entity)

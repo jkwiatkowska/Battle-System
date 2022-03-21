@@ -80,7 +80,7 @@ public class TargetingSystemPlayer : TargetingSystem
 
         if (entity != null && entity.EntityCanvas != null)
         {
-                TargetHUD.ClearSelection(entity.EntityCanvas);
+            TargetHUD.ClearSelection(entity.EntityCanvas);
         }
     }
 

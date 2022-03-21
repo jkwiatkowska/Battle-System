@@ -1610,7 +1610,13 @@ public class BattleSystemDataEditor : EditorWindow
                 }
                 StartIndent();
                 EditFloat(ref entity.Data.Skills.AutoAttackInterval, "Auto Attack Inteval:", Space);
-                EditFloat(ref entity.Data.Skills.AutoAttackTargetDistance, "Auto Attack Range:", Space);
+                EditBool(ref entity.Data.Skills.AutoAttackRequiredTarget, "Auto Attack requires Enemy Target");
+                if (entity.Data.Skills.AutoAttackRequiredTarget)
+                {
+                    StartIndent();
+                    EditFloat(ref entity.Data.Skills.AutoAttackRange, "Auto Attack Range:", Space);
+                    EndIndent();
+                }
                 EditActionTimeline(entity.Data.Skills.AutoAttack, ref NewAction, ref ShowValues, "Auto Attack Timeline");
                 EndIndent();
             }
@@ -2744,7 +2750,7 @@ public class BattleSystemDataEditor : EditorWindow
             index = 0;
         }
         attribute = BattleData.EntityAttributes[EditorGUILayout.Popup(index, BattleData.EntityAttributes.ToArray(),
-                    GUILayout.Width(60))];
+                    GUILayout.Width(90))];
     }
 
     void SelectCategory(ref string category, bool showLabel = true)
