@@ -60,23 +60,30 @@ public static class Formulae
         return startValue;
     }
 
-    public static float ResourceRecoveryRate(Entity entity, string resource)
+    public static float ResourceRecoveryRate(Entity entity, EntityData.EntityResource resource)
     {
-        if (resource == "shield")
+        if (entity.EntityBattle.InCombat)
         {
-            return 0.0f;
+            if (resource != null && resource.ChangePerSecondInCombat != null && resource.ChangePerSecondInCombat.Count > 0)
+            {
+                return resource.ChangePerSecondInCombat.IncomingValue(entity);
+            }
+            else
+            {
+                return 0.0f;
+            }
         }
-
-        var recoveryRate = 0.005f;
-
-        if (entity.IsInCombat())
+        else
         {
-            recoveryRate = 0.0f;
+            if (resource != null && resource.ChangePerSecondOutOfCombat != null && resource.ChangePerSecondOutOfCombat.Count > 0)
+            {
+                return resource.ChangePerSecondOutOfCombat.IncomingValue(entity);
+            }
+            else
+            {
+                return 0.0f;
+            }
         }
-
-        recoveryRate *= entity.ResourcesMax[resource];
-
-        return recoveryRate;
     }
 
     public static float ActionTime(Entity entity, float actionTimestamp)

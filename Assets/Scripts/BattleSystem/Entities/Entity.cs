@@ -42,7 +42,7 @@ public class Entity : MonoBehaviour
     public TargetingSystem EntityTargetingSystem                            { get; protected set; }
     public Targetable Targetable                                            { get; protected set; }
     public MovementEntity Movement                                          { get; protected set; }
-    public EntitySkills Skills                                              { get; protected set; }
+    public EntityBattle EntityBattle                                        { get; protected set; }
 
     // State
     public eEntityState EntityState                                         { get; protected set; }
@@ -87,12 +87,11 @@ public class Entity : MonoBehaviour
         EffectTriggers      = new Dictionary<TriggerData.eTrigger, Dictionary<string, Trigger>>();
 
         // Resources
-
         SetupResourcesMax();
         SetupResourcesStart();
 
         // Skills
-        Skills = new EntitySkills(this);
+        EntityBattle = new EntityBattle(this);
 
         // Triggers
         Triggers = new Dictionary<TriggerData.eTrigger, List<Trigger>>();
@@ -174,11 +173,11 @@ public class Entity : MonoBehaviour
             // Resource recovery
             if (ResourcesCurrent != null)
             {
-                foreach (var resource in BattleData.EntityResources)
+                foreach (var resource in EntityData.Resources)
                 {
                     if (ResourcesCurrent.ContainsKey(resource.Key))
                     {
-                        var recovery = Formulae.ResourceRecoveryRate(this, resource.Key);
+                        var recovery = Formulae.ResourceRecoveryRate(this, resource.Value);
                         if (recovery > Constants.Epsilon || recovery < Constants.Epsilon)
                         {
                             recovery *= Time.deltaTime;
@@ -206,7 +205,7 @@ public class Entity : MonoBehaviour
             }
 
             // Skills
-            Skills.Update();
+            EntityBattle.Update();
         }
     }
 
@@ -217,7 +216,7 @@ public class Entity : MonoBehaviour
 
     protected virtual void FixedUpdate()
     {
-        Skills.FixedUpdate();
+        EntityBattle.FixedUpdate();
     }
 
     #region Skills
@@ -269,6 +268,12 @@ public class Entity : MonoBehaviour
             return;
         }
 
+        var entity = payloadResult.Target;
+        if (entity.IsEnemy(Faction))
+        {
+            EntityBattle.Engage(entity);
+        }
+
         OnTrigger(TriggerData.eTrigger.OnPayloadApplied, triggerSource: payloadResult.Target);
     }
 
@@ -277,6 +282,12 @@ public class Entity : MonoBehaviour
         if (payloadResult == null)
         {
             return;
+        }
+
+        var entity = payloadResult.Caster;
+        if (entity.IsEnemy(Faction))
+        {
+            EntityBattle.Engage(entity);
         }
 
         OnTrigger(TriggerData.eTrigger.OnPayloadReceived, triggerSource: payloadResult.Caster);
@@ -306,7 +317,7 @@ public class Entity : MonoBehaviour
         if (!Alive)
         {
             EntityState = eEntityState.Alive;
-            Skills.SetIdle();
+            EntityBattle.SetIdle();
 
             OnTrigger(TriggerData.eTrigger.OnReviveIncoming, triggerSource: payloadResult.Caster, payloadResult: payloadResult);
             payloadResult.Caster.OnReviveOutgoing(payloadResult);
@@ -352,7 +363,9 @@ public class Entity : MonoBehaviour
     {
         StopAllCoroutines();
         EntityState = eEntityState.Dead;
-        Skills.SetIdle();
+        EntityBattle.SetIdle();
+
+        EntityBattle.DisengageAll();
 
         OnTrigger(TriggerData.eTrigger.OnDeath, triggerSource: source, payloadResult: payloadResult);
 
@@ -705,9 +718,9 @@ public class Entity : MonoBehaviour
 
         Locks[lockData.LockType].Add(key, lockData);
 
-        if (Skills.CurrentSkill.Interruptible && IsSkillLocked(Skills.CurrentSkill.SkillID))
+        if (EntityBattle.CurrentSkill.Interruptible && IsSkillLocked(EntityBattle.CurrentSkill.SkillID))
         {
-            Skills.CancelSkill();
+            EntityBattle.CancelSkill();
         }
     }
 
@@ -1017,7 +1030,7 @@ public class Entity : MonoBehaviour
         ResourcesMax = new Dictionary<string, float>();
         var attributes = EntityAttributes(skillID: null, actionID: null, statusID: null, categories: null);
 
-        foreach (var resource in BattleData.EntityResources)
+        foreach (var resource in EntityData.Resources)
         {
             ResourcesMax.Add(resource.Key, Formulae.ResourceMaxValue(this, attributes, resource.Key));
         }
@@ -1028,7 +1041,7 @@ public class Entity : MonoBehaviour
         ResourcesCurrent = new Dictionary<string, float>();
         var attributes = EntityAttributes(skillID: null, actionID: null, statusID: null, categories: null);
 
-        foreach (var resource in BattleData.EntityResources)
+        foreach (var resource in EntityData.Resources)
         {
             ResourcesCurrent.Add(resource.Key, Formulae.ResourceMaxValue(this, attributes, resource.Key));
         }
@@ -1390,7 +1403,7 @@ public class Entity : MonoBehaviour
 
     public virtual bool IsEnemy(string targetFaction)
     {
-        return (BattleSystem.IsEnemy(CurrentFaction, targetFaction));
+        return (BattleSystem.IsEnemy(CurrentFaction, targetFaction) || BattleSystem.IsEnemy(targetFaction, CurrentFaction));
     }
 
     public virtual bool IsFriendly(string targetFaction)

@@ -19,7 +19,7 @@ public class TargetingSystemPlayer : TargetingSystem
 
         base.Setup(parent);
 
-        Player = Parent.GetComponentInChildren<MovementEntity>();
+        Player = Entity.GetComponentInChildren<MovementEntity>();
         if (Player == null)
         {
             Debug.LogError("Player entity does not have a player controller component.");

@@ -21,10 +21,27 @@ public class EntityData
     public Dictionary<string, Vector2> BaseAttributes;      // Attributes such as atk, def, hp, crit chance, speed, damage resistance, etc.
                                                             // Used to calculate damage. Minimum and maximum values can be stored.
 
-    public List<string> Resources;                          // Resources available to this entity.
+    public class EntityResource
+    {
+        public string Resource;
+        public Value ChangePerSecondOutOfCombat;
+        public Value ChangePerSecondInCombat;
+        public EntityResource()
+        {
+            ChangePerSecondOutOfCombat = new Value();
+            ChangePerSecondInCombat = new Value();
+        }
+
+        public EntityResource(string resource) : this()
+        {
+            Resource = resource;
+        }
+    }
+    public Dictionary<string, EntityResource> Resources;    // Resources available to this entity and the rate at which they recover.
     public List<string> LifeResources;                      // If any of these resources reaches 0, the entity dies.
 
     public bool IsTargetable;                               // If true, skills can be used on the entity.
+    public bool CanEngage;                                  // If true, attacking the entity will enter combat.
 
     public string Faction;
 
@@ -43,7 +60,7 @@ public class EntityData
         Categories = new List<string>();
         BaseAttributes = new Dictionary<string, Vector2>();
 
-        Resources = new List<string>();
+        Resources = new Dictionary<string, EntityResource>();
         LifeResources = new List<string>();
 
         Triggers = new List<TriggerData>();
@@ -172,7 +189,6 @@ public class EntitySkillsData
             SkillID = skill;
         }
     }
-
     public class InputSkill
     {
         public string SkillID;
@@ -189,7 +205,6 @@ public class EntitySkillsData
             SkillID = skill;
         }
     }
-
     public class RandomSkill
     {
         public string SkillID;
@@ -242,7 +257,7 @@ public class EntitySkillsData
     public float AutoAttackInterval;            // Interval between the auto attacks.
     public float AutoAttackTargetDistance;      // Max distance from target for an auto attack to be used.
 
-    public bool UseSkillOnSight;                // For auto skill modes.
+    public bool EngageOnSight;                // For auto skill modes.
                                                 // The entity will use its skills as soon as it spots a target they can be used on.
 
     public bool MoveToTargetIfNotInRange;       // Allows the entity to move toward targets that are too far away.

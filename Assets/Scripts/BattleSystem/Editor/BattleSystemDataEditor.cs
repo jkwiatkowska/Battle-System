@@ -352,7 +352,7 @@ public class BattleSystemDataEditor : EditorWindow
 
             if (Data.Resources == null)
             {
-                Data.Resources = new List<string>();
+                Data.Resources = new Dictionary<string, EntityData.EntityResource>();
             }
 
             if (Data.LifeResources == null)
@@ -1565,6 +1565,7 @@ public class BattleSystemDataEditor : EditorWindow
 
         SelectFaction(ref entity.Data.Faction, "Faction:", Space);
         EditBool(ref entity.Data.IsTargetable, "Targetable");
+        EditBool(ref entity.Data.CanEngage, "Engage on Attack");
 
         if (EditFoldout(ref entity.ShowSkills, "Skills"))
         {
@@ -1577,19 +1578,19 @@ public class BattleSystemDataEditor : EditorWindow
 
             if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoBestRange)
             {
-                EditBool(ref entity.Data.Skills.UseSkillOnSight, "Use Skills On Sight");
+                EditBool(ref entity.Data.Skills.EngageOnSight, "Use Skills On Sight");
                 EditListString(ref entity.NewSkill, entity.Data.Skills.Skills, BattleData.Skills.Keys.ToList(),
                                "Enity Skills:", "(No Skills)", "Add Skill:");
             }
             else if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoRandom)
             {
-                EditBool(ref entity.Data.Skills.UseSkillOnSight, "Use Skills On Sight");
+                EditBool(ref entity.Data.Skills.EngageOnSight, "Use Skills On Sight");
                 EditList(ref entity.NewSkill, entity.Data.Skills.RandomSkills, BattleData.Skills.Keys.ToList(),
                          EditRandomSkill, NewRandomSkill, "Enity Skills:", "(No Skills)", "Add Skill:");
             }
             else if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoSequence)
             {
-                EditBool(ref entity.Data.Skills.UseSkillOnSight, "Use Skills On Sight");
+                EditBool(ref entity.Data.Skills.EngageOnSight, "Use Skills On Sight");
                 EditList(ref entity.NewSkill, entity.Data.Skills.SequenceSkills, BattleData.Skills.Keys.ToList(),
                          EditSequenceSkill, NewSequenceSkill, "Enity Skills:", "(No Skills)", "Add Skill:");
             }
@@ -1686,14 +1687,47 @@ public class BattleSystemDataEditor : EditorWindow
         if (EditFoldout(ref entity.ShowResources, "Entity Resources"))
         {
             StartIndent();
-            EditListString(ref entity.NewResource, entity.Data.Resources, BattleData.EntityResources.Keys.ToList(),
-                           "Resources:", "(No Resources)", "Add Category:");
+            var resourceList = entity.Data.Resources.Values.ToList();
+            EditList(ref entity.NewResource, resourceList, BattleData.EntityResources.Keys.Where((r) => !entity.Data.Resources.ContainsKey(r)).ToList(),
+                     EditEntityResource, NewEntityResource, "Resources:", "(No Resources)", "Add Resource:");
+            entity.Data.Resources.Clear();
+            foreach(var resource in resourceList)
+            {
+                entity.Data.Resources.Add(resource.Resource, resource);
+            }
             EditListString(ref entity.NewLifeResource, entity.Data.LifeResources, BattleData.EntityResources.Keys.ToList(),
-                           "Life Resources:", "(No Life Resources)", "Add Category:");
+                           "Life Resources:", "(No Life Resources)", "Add Life Resource:");
             EndIndent();
         }
 
         EditTriggerList(ref entity.NewTrigger, entity.Data.Triggers, ref entity.ShowTriggers, "Entity Triggers");
+    }
+
+    eReturnResult EditEntityResource(EntityData.EntityResource resource)
+    {
+        EditorGUILayout.BeginHorizontal();
+        SelectResource(ref resource.Resource, "Resource:", 90, makeHorizontal: false);
+        var copy = Button("Copy");
+        var remove = Remove();
+        EditorGUILayout.EndHorizontal();
+
+        EditValue(resource.ChangePerSecondOutOfCombat, eEditorValueRange.CasterOnly, "Out of Combat Recovery/Drain per second:");
+        EditValue(resource.ChangePerSecondInCombat, eEditorValueRange.CasterOnly, "In Combat Recovery/Drain per second:");
+
+        if (copy)
+        {
+            return eReturnResult.Copy;
+        }
+        else if (remove)
+        {
+            return eReturnResult.Remove;
+        }
+        return eReturnResult.None;
+    }
+
+    EntityData.EntityResource NewEntityResource(string resource)
+    {
+        return new EntityData.EntityResource(resource);
     }
 
     eReturnResult EditSequenceSkill(EntitySkillsData.SequenceElement skill)

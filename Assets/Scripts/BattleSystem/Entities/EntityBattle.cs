@@ -2,13 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EntitySkills
+public class EntityBattle
 {
     Entity Entity;
     EntitySkillsData Data => Entity.EntityData.Skills;
     TargetingSystem Targeting => Entity.TargetingSystem;
     Entity Target => Targeting.SelectedTarget;
     MovementEntity Movement => Entity.Movement;
+
+    public Dictionary<string, Entity> EngagedEntities { get; protected set; }
+    public bool InCombat => EngagedEntities.Count > 0;
 
     public enum eSkillState
     {
@@ -33,11 +36,12 @@ public class EntitySkills
     protected float PrepareStartTime;
     protected SkillData PrepareSkill;
 
-    public EntitySkills(Entity entity)
+    public EntityBattle(Entity entity)
     {
         Entity = entity;
         SkillState = eSkillState.Idle;
         SkillAvailableTime = new Dictionary<string, float>();
+        EngagedEntities = new Dictionary<string, Entity>();
     }
 
     #region States
@@ -59,8 +63,42 @@ public class EntitySkills
         Targeting.SelectTarget(target);
         PrepareSkill = skillData;
     }
+
+    public void Engage(Entity entity)
+    {
+        if (EngagedEntities.ContainsKey(entity.EntityUID) || !entity.Alive)
+        {
+            return;
+        }
+
+        var entityData = entity.EntityData;
+        if (entityData.IsTargetable && entityData.CanEngage)
+        {
+            EngagedEntities.Add(entity.EntityUID, entity);
+        }
+    }
+
+    public void Disengage(string entityUID)
+    {
+        if (EngagedEntities.ContainsKey(entityUID))
+        {
+            EngagedEntities.Remove(entityUID);
+        }
+    }
+
+    public void DisengageAll()
+    {
+        foreach (var entity in EngagedEntities)
+        {
+            if (entity.Value != null)
+            {
+                entity.Value.EntityBattle.Disengage(Entity.EntityUID);
+            }
+        }
+    }
     #endregion
 
+    #region Update
     public void Update()
     {
         // Check if an entity should use a skill and which.
@@ -208,35 +246,9 @@ public class EntitySkills
             }
         }
     }
+    #endregion
 
-    protected bool IsInSkillRange(Entity target, SkillData skillData)
-    {
-        // No range requirement
-        if (skillData.Range < 0.0f + Constants.Epsilon)
-        {
-            return true;
-        }
-
-        // Check if target is in range
-        var distance = (target.Origin - Entity.Origin).sqrMagnitude;
-        return distance < skillData.Range * skillData.Range;
-    }
-
-    protected bool IsInSkillAngleRange(Entity target, SkillData skillData)
-    {
-        var maxAngle = skillData.MaxAngleFromTarget + Constants.Epsilon;
-
-        // No angle requirement
-        if (maxAngle >= 180.0f)
-        {
-            return true;
-        }
-
-        // Check if target is in angle range
-        var angle = Vector3.Angle(Entity.transform.forward, (target.transform.position - Entity.transform.position).normalized);
-        return angle <= maxAngle;
-    }
-
+    #region Skill Use
     // Returns true if a state change is triggered.
     public virtual bool TryUseSkill(string skillID)
     {
@@ -430,6 +442,7 @@ public class EntitySkills
 
         SetIdle();
     }
+    #endregion
 
     #region Cooldowns
     public virtual void ModifySkillAvailableTime(string skillID, float change)
@@ -449,6 +462,34 @@ public class EntitySkills
     #endregion
 
     #region Checks
+    protected bool IsInSkillRange(Entity target, SkillData skillData)
+    {
+        // No range requirement
+        if (skillData.Range < 0.0f + Constants.Epsilon)
+        {
+            return true;
+        }
+
+        // Check if target is in range
+        var distance = (target.Origin - Entity.Origin).sqrMagnitude;
+        return distance < skillData.Range * skillData.Range;
+    }
+
+    protected bool IsInSkillAngleRange(Entity target, SkillData skillData)
+    {
+        var maxAngle = skillData.MaxAngleFromTarget + Constants.Epsilon;
+
+        // No angle requirement
+        if (maxAngle >= 180.0f)
+        {
+            return true;
+        }
+
+        // Check if target is in angle range
+        var angle = Vector3.Angle(Entity.transform.forward, (target.transform.position - Entity.transform.position).normalized);
+        return angle <= maxAngle;
+    }
+
     public virtual bool CanUseSkill(SkillData skillData)
     {
         if (IsSkillOnCooldown(skillData.SkillID))

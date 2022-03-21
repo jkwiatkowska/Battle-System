@@ -72,7 +72,7 @@ public class ActionCondition
                 {
                     case eConditionValueType.ChargeRatio:
                     {
-                        return ConditionValueBoundary <= entity.Skills.SkillChargeRatio;
+                        return ConditionValueBoundary <= entity.EntityBattle.SkillChargeRatio;
                     }
                     case eConditionValueType.ResourceRatio:
                     {
@@ -99,7 +99,7 @@ public class ActionCondition
                 {
                     case eConditionValueType.ChargeRatio:
                     {
-                        return ConditionValueBoundary >= entity.Skills.SkillChargeRatio;
+                        return ConditionValueBoundary >= entity.EntityBattle.SkillChargeRatio;
                     }
                     case eConditionValueType.ResourceRatio:
                     {

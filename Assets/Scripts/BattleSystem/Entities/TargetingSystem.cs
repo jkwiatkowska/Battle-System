@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class TargetingSystem : MonoBehaviour
 {
-    public Entity Parent                        { get; protected set; }
+    public Entity Entity                        { get; protected set; }
     public Entity SelectedTarget                { get; protected set; }
 
     public List<Entity> EnemyEntities           { get; protected set; }
@@ -14,14 +14,40 @@ public class TargetingSystem : MonoBehaviour
     public List<Entity> DetectedEntities        { get; protected set; }
     List<Entity> PotentialTargets => BattleSystem.TargetableEntities;
 
-    EntityTargetingData Targeting => Parent.EntityData.Targeting;
+    EntityTargetingData Targeting => Entity.EntityData.Targeting;
 
-    public virtual void Setup(Entity parent)
+    public virtual void Setup(Entity entity)
     {
-        Parent = parent;
+        Entity = entity;
         EnemyEntities = new List<Entity>();
         FriendlyEntities = new List<Entity>();
         DetectedEntities = new List<Entity>();
+    }
+
+    void Update()
+    {
+        var disengageDist = Targeting.DisengageDistance;
+
+        for (int i = 0; i < DetectedEntities.Count; i++)
+        {
+            var entity = DetectedEntities[i];
+
+            if (entity == null || (Entity.transform.position - entity.transform.position).sqrMagnitude > disengageDist)
+            {
+                DetectedEntities.Remove(entity);
+                if (entity != null)
+                {
+                    Entity.EntityBattle.Disengage(entity.EntityUID);
+                }
+
+                if (SelectedTarget == entity)
+                {
+                    ClearSelection();
+                }
+
+                i--;
+            }
+        }
     }
 
     public virtual void SelectTarget(Entity entity)
@@ -29,7 +55,7 @@ public class TargetingSystem : MonoBehaviour
         ClearSelection();
         SelectedTarget = entity;
         var targetable = entity.GetComponentInChildren<Targetable>();
-        targetable.Target(true, Parent);
+        targetable.Target(true, Entity);
     }
 
     public virtual void ClearSelection(bool selfOnly = false)
@@ -37,7 +63,7 @@ public class TargetingSystem : MonoBehaviour
         if (!selfOnly && SelectedTarget != null)
         {
             var targetable = SelectedTarget.GetComponentInChildren<Targetable>();
-            targetable.Target(false, Parent);
+            targetable.Target(false, Entity);
         }
         SelectedTarget = null;
     }
@@ -111,8 +137,8 @@ public class TargetingSystem : MonoBehaviour
 
         if (potentialTargets.Count == 0)
         {
-            var selectParent = selectSelf && Parent.EntityData.IsTargetable;
-            return selectParent ? Parent : null;
+            var selectParent = selectSelf && Entity.EntityData.IsTargetable;
+            return selectParent ? Entity : null;
         }
         if (potentialTargets.Count > 1 && SelectedTarget == potentialTargets[0])
         {
@@ -140,53 +166,51 @@ public class TargetingSystem : MonoBehaviour
     public virtual void UpdateEntityLists()
     {
         var targeting = Targeting;
-        var parentPos = Parent.Origin;
+        var entityPos = Entity.Origin;
         var detectDist = targeting.DetectDistance * targeting.DetectDistance;
         var detectFov = targeting.DetectFieldOfView;
-        var disengageDist = targeting.DisengageDistance;
 
         // See if any entity got in or out of reach.
-        foreach (var entity in PotentialTargets)
+        foreach (var target in PotentialTargets)
         {
-            if (entity == Parent)
+            if (target == Entity)
             {
                 continue;
             }
 
-            var targetPos = entity.Origin;
-            var dist = (parentPos - targetPos).sqrMagnitude;
-            if (!DetectedEntities.Contains(entity))
+            var targetPos = target.Origin;
+            var dist = (entityPos - targetPos).sqrMagnitude;
+            if (!DetectedEntities.Contains(target))
             {
                 if (dist <= detectDist)
                 {
                     if (detectFov >= 360.0f - Constants.Epsilon)
                     {
-                        DetectedEntities.Add(entity);
+                        DetectedEntities.Add(target);
+                        if (Entity.EntityData.Skills.EngageOnSight && target.EntityData.CanEngage)
+                        {
+                            Entity.EntityBattle.Engage(target);
+                            target.EntityBattle.Engage(Entity);
+                        }
                     }
                     else
                     {
-                        var dir1 = (targetPos - parentPos).normalized;
-                        var dir2 = Parent.transform.forward;
+                        var dir1 = (targetPos - entityPos).normalized;
+                        var dir2 = Entity.transform.forward;
                         var angle = Vector3.Angle(dir1, dir2);
 
                         if (angle * 2.0f < detectFov)
                         {
-                            DetectedEntities.Add(entity);
+                            DetectedEntities.Add(target);
+                            if (Entity.EntityData.Skills.EngageOnSight && target.EntityData.CanEngage)
+                            {
+                                Entity.EntityBattle.Engage(target);
+                                target.EntityBattle.Engage(Entity);
+                            }
                         }
                     }
                 }
             }
-            else
-            {
-                if (dist > disengageDist)
-                {
-                    DetectedEntities.Remove(entity);
-                    if (SelectedTarget == entity)
-                    {
-                        ClearSelection();
-                    }
-                }
-            }    
         }
 
         EnemyEntities.Clear();
@@ -195,11 +219,11 @@ public class TargetingSystem : MonoBehaviour
         // Go through detected entities and add them to the lists
         foreach(var target in DetectedEntities)
         {
-            if (Parent.IsEnemy(target.Faction))
+            if (Entity.IsEnemy(target.Faction))
             {
                 EnemyEntities.Add(target);
             }
-            else if (Parent.IsFriendly(target.Faction))
+            else if (Entity.IsFriendly(target.Faction))
             {
                 FriendlyEntities.Add(target);
             }
@@ -243,7 +267,7 @@ public class TargetingSystem : MonoBehaviour
 
         var score = 0.0f;
 
-        var v = target.Origin - Parent.Origin;
+        var v = target.Origin - Entity.Origin;
         var dist = v.sqrMagnitude;
         var maxDist = targeting.PreferredDistanceMax * targeting.PreferredDistanceMax;
         var minDist = targeting.PreferredDistanceMin * targeting.PreferredDistanceMin;
@@ -255,7 +279,7 @@ public class TargetingSystem : MonoBehaviour
 
         if (targeting.PreferredInFront)
         {
-            var dot = Vector3.Dot(Parent.transform.forward, v);
+            var dot = Vector3.Dot(Entity.transform.forward, v);
             if (dot < 0.0f)
             {
                 score -= 5.0f;
@@ -278,7 +302,7 @@ public class TargetingSystem : MonoBehaviour
             }
             case EntityTargetingData.TargetingPriority.eTargetPriority.LineOfSight:
             {
-                return score + 1.0f - (Vector3.Angle(Parent.transform.forward, v.normalized) - 180.0f) / 180.0f;
+                return score + 1.0f - (Vector3.Angle(Entity.transform.forward, v.normalized) - 180.0f) / 180.0f;
             }
         }
 
@@ -294,7 +318,7 @@ public class TargetingSystem : MonoBehaviour
                 return false;
             }
 
-            return Parent.IsFriendly(SelectedTarget.Faction);
+            return Entity.IsFriendly(SelectedTarget.Faction);
         }
     }
 
@@ -307,7 +331,7 @@ public class TargetingSystem : MonoBehaviour
                 return false;
             }
 
-            return Parent.IsEnemy(SelectedTarget.Faction);
+            return Entity.IsEnemy(SelectedTarget.Faction);
         }
     }
 }
