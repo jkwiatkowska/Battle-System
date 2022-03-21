@@ -13,8 +13,9 @@ public class EntitySkills
     public enum eSkillState
     {
         Idle,
-        ChargingSkill,
-        CastingSkill,
+        SkillPrepare,
+        SkillCharge,
+        SkillCast,
     }
 
     public eSkillState SkillState;
@@ -23,10 +24,14 @@ public class EntitySkills
     public SkillData CurrentSkill { get; protected set; }
     bool ChargeCancelled;
     protected Coroutine SkillCoroutine;
+
     protected Coroutine SkillChargeCoroutine;
     public SkillChargeData SkillCharge { get; protected set; }
     public float SkillStartTime { get; protected set; }
     public float SkillChargeRatio { get; protected set; }
+
+    protected float PrepareStartTime;
+    protected SkillData PrepareSkill;
 
     public EntitySkills(Entity entity)
     {
@@ -35,14 +40,53 @@ public class EntitySkills
         SkillAvailableTime = new Dictionary<string, float>();
     }
 
+    #region States
+    public void SetIdle()
+    {
+        CurrentSkill = null;
+        PrepareSkill = null;
+        if (Movement != null)
+        {
+            Movement.SetRunning(false);
+        }
+        SkillState = eSkillState.Idle;
+    }
+
+    void SetPrepare(Entity target, SkillData skillData)
+    {
+        PrepareStartTime = BattleSystem.Time + 1.0f;
+        SkillState = eSkillState.SkillPrepare;
+        Targeting.SelectTarget(target);
+        PrepareSkill = skillData;
+    }
+    #endregion
+
     public void Update()
     {
-        // Skill use and behaviour
+        // Check if an entity should use a skill and which.
+        PickSkill();
+
+        // Skill and skill charge cancelation if a skill is being cast.
+        CheckForSkillCancel();
+    }
+
+    public void FixedUpdate()
+    {
+        // Movement and rotation toward target before a skill is cast.
+        if (SkillState == eSkillState.SkillPrepare && !PrepareToUseSkill())
+        {
+            SetIdle();
+        }
+    }
+
+    protected virtual void PickSkill()
+    {
+        // Read input in input mode and use skills if a corresponding key was pressed
         if (Data.SkillMode == EntitySkillsData.eSkillMode.Input)
         {
             foreach (var skill in Data.InputSkills)
             {
-                if (SkillState == eSkillState.ChargingSkill && CurrentSkill != null && CurrentSkill.SkillID == skill.SkillID)
+                if (SkillState == eSkillState.SkillCharge && CurrentSkill != null && CurrentSkill.SkillID == skill.SkillID)
                 {
                     if (Input.GetKeyUp(skill.KeyCode))
                     {
@@ -53,30 +97,106 @@ public class EntitySkills
                 if (Input.GetKeyDown(skill.KeyCode))
                 {
                     TryUseSkill(skill.SkillID);
+                    return;
                 }
             }
         }
+        // Otherwise select skills automatically.
         else if (Data.SkillMode != EntitySkillsData.eSkillMode.None)
         {
-            switch (Data.SkillMode)
+            if (SkillState == eSkillState.Idle)
             {
-                case EntitySkillsData.eSkillMode.AutoSequence:
+                switch (Data.SkillMode)
                 {
-                    break;
+                    case EntitySkillsData.eSkillMode.AutoSequence:
+                    {
+                        break;
+                    }
+                    case EntitySkillsData.eSkillMode.AutoRandom:
+                    {
+                        break;
+                    }
+                    case EntitySkillsData.eSkillMode.AutoBestRange:
+                    {
+                        break;
+                    }
                 }
-                case EntitySkillsData.eSkillMode.AutoRandom:
-                {
-                    break;
-                }
-                case EntitySkillsData.eSkillMode.AutoBestRange:
-                {
-                    break;
-                }
+            }
+        }
+    }
+
+    protected virtual bool PrepareToUseSkill()
+    {
+        // Returns false if the skill can no longer be used
+        var target = Targeting.SelectedTarget;
+        if (target == null)
+        {
+            return false;
+        }
+
+        if ((PrepareSkill.PreferredTargetState == SkillData.eTargetStatePreferrence.Alive && !target.Alive) ||
+            (PrepareSkill.PreferredTargetState == SkillData.eTargetStatePreferrence.Dead && target.Alive))
+        {
+            return false;
+        }
+
+        if (!CanUseSkill(PrepareSkill))
+        {
+            return false;
+        }
+
+        var forward = Entity.transform.forward;
+        var dir = (target.Origin - Entity.Origin).normalized;
+
+        var dot = Vector3.Dot(forward, dir);
+
+        var inRange = IsInSkillRange(target, PrepareSkill);
+        if (!inRange)
+        {
+            // Target out of range and the entity cannot move.
+            if (!Data.MoveToTargetIfNotInRange)
+            {
+                return false;
+            }
+            // Move toward the target if it's in front of the entity
+            else if (dot > 0.0f)
+            {
+                Movement.SetRunning(true);
+                Movement.Move(Entity.transform.forward, updateRotation: false, speedMultiplier: 1.0f, updateLastMoved: false);
             }
         }
 
-        // Skill cancelation
-        if (SkillState == eSkillState.CastingSkill)
+        var inAngleRange = IsInSkillAngleRange(target, PrepareSkill);
+        if (!inAngleRange || !inRange)
+        {
+            Movement.RotateTowardPosition(target.Origin);
+        }
+        else if (inRange && inAngleRange)
+        {
+            UseSkill(PrepareSkill, target);
+        }
+
+        return true;
+    }
+
+    protected virtual void CheckForSkillCancel()
+    {
+        if (SkillState == eSkillState.SkillPrepare)
+        {
+            if (Movement != null && (Movement.LastMoved > PrepareStartTime || Movement.LastJumped > PrepareStartTime))
+            {
+                CancelSkill();
+            }
+        }
+        else if (SkillState == eSkillState.SkillCharge)
+        {
+            if (SkillCharge.MovementCancelsCharge && Movement != null &&
+               (Movement.LastMoved > SkillStartTime || Movement.LastJumped > SkillStartTime))
+            {
+                ChargeCancelled = true;
+            }
+        }
+        else if (SkillState == eSkillState.SkillCast)
         {
             if (CurrentSkill.MovementCancelsSkill)
             {
@@ -87,16 +207,37 @@ public class EntitySkills
                 }
             }
         }
-        else if (SkillState == eSkillState.ChargingSkill)
-        {
-            if (SkillCharge.MovementCancelsCharge && Movement != null &&
-               (Movement.LastMoved > SkillStartTime || Movement.LastJumped > SkillStartTime))
-            {
-                ChargeCancelled = true;
-            }
-        }
     }
 
+    protected bool IsInSkillRange(Entity target, SkillData skillData)
+    {
+        // No range requirement
+        if (skillData.Range < 0.0f + Constants.Epsilon)
+        {
+            return true;
+        }
+
+        // Check if target is in range
+        var distance = (target.Origin - Entity.Origin).sqrMagnitude;
+        return distance < skillData.Range * skillData.Range;
+    }
+
+    protected bool IsInSkillAngleRange(Entity target, SkillData skillData)
+    {
+        var maxAngle = skillData.MaxAngleFromTarget + Constants.Epsilon;
+
+        // No angle requirement
+        if (maxAngle >= 180.0f)
+        {
+            return true;
+        }
+
+        // Check if target is in angle range
+        var angle = Vector3.Angle(Entity.transform.forward, (target.transform.position - Entity.transform.position).normalized);
+        return angle <= maxAngle;
+    }
+
+    // Returns true if a state change is triggered.
     public virtual bool TryUseSkill(string skillID)
     {
         // Return if already using this skill
@@ -119,31 +260,69 @@ public class EntitySkills
         // Ensure target if one is required.
         Targeting.UpdateEntityLists();
 
+        var target = Targeting.SelectedTarget;
+
         if (skillData.NeedsTarget)
         {
-            var hasTarget = Targeting.EnemySelected;
-
-            // If there is no target, try selecting one.
-            if (!hasTarget)
+            if (skillData.PreferredTarget == SkillData.eTargetPreferrence.Enemy || 
+                skillData.PreferredTarget == SkillData.eTargetPreferrence.Any)
             {
-                Targeting.SelectBestEnemy();
+                var hasTarget = skillData.PreferredTarget == SkillData.eTargetPreferrence.Any ? 
+                                Targeting.SelectedTarget != null : Targeting.EnemySelected;
+
+                // If an enemy is not selected, try selecting one.
+                if (!hasTarget && Data.AutoSelectTargetOnSkillUse)
+                {
+                    target = Targeting.GetBestEnemy(skillData.PreferredTargetState);
+                }
+            }
+            else if (skillData.PreferredTarget == SkillData.eTargetPreferrence.Friendly)
+            {
+                var hasTarget = Targeting.FriendlySelected;
+
+                // If a friendly entity is not selected, try selecting one.
+                if (!hasTarget && Data.AutoSelectTargetOnSkillUse)
+                {
+                    target = Targeting.GetBestFriend(skillData.PreferredTargetState);
+                }
             }
 
-            // If one couldn't be found, a skill cannot be used.
-            if (Target == null)
+            // If a target could not be found, a skill cannot be used.
+            if (target == null)
             {
                 return false;
             }
         }
 
         // Ensure target is in range if a target is required or a preferred target is selected
-        if (Target != null)
+        if (target != null)
         {
-            var checkRange = skillData.NeedsTarget;
-            if (checkRange)
+            if (!IsInSkillRange(target, skillData))
             {
-                // Return if target is out of range.
-                if (!Utility.IsInRange(Entity, Target, skillData.Range))
+                // Not in range, but the entity can automatically get in range before reattempting.
+                if (Movement != null && Data.MoveToTargetIfNotInRange)
+                {
+                    SetPrepare(target, skillData);
+                    return true;
+                }
+                // Not in range and the entity cannot do anything about it.
+                else if (skillData.NeedsTarget)
+                {
+                    Entity.OnTargetOutOfRange();
+                    return false;
+                }
+            }
+
+            if (!IsInSkillAngleRange(target, skillData))
+            {
+                // Not in angle range, but the entity can automatically rotate toward target before reattempting.
+                if (Movement != null && Data.RotateToTargetIfNotWithinAngle)
+                {
+                    SetPrepare(target, skillData);
+                    return true;
+                }
+                // Not in angle range and the entity cannot do anything about it.
+                else if (skillData.NeedsTarget)
                 {
                     Entity.OnTargetOutOfRange();
                     return false;
@@ -151,19 +330,19 @@ public class EntitySkills
             }
         }
 
-        SkillCoroutine = Entity.StartCoroutine(UseSkillCoroutine(skillData));
+        UseSkill(skillData, target);
         return true;
+    }
+
+    protected virtual void UseSkill(SkillData skillData, Entity target)
+    {
+        Targeting.SelectTarget(target);
+        SkillCoroutine = Entity.StartCoroutine(UseSkillCoroutine(skillData));
     }
 
     public virtual IEnumerator UseSkillCoroutine(SkillData skillData)
     {
         CurrentSkill = skillData;
-
-        // Rotate toward target
-        if (Target != null && Movement != null && skillData.PreferredTarget != SkillData.eTargetPreferrence.None)
-        {
-            yield return Movement.RotateTowardCoroutine(Target.transform.position);
-        }
 
         // Charge skill
         if (skillData.HasChargeTime)
@@ -171,18 +350,18 @@ public class EntitySkills
             yield return ChargeSkillCoroutine(skillData);
         }
 
-        SkillState = eSkillState.CastingSkill;
+        // Start skill cast
+        SkillState = eSkillState.SkillCast;
         SkillStartTime = BattleSystem.Time;
 
         yield return skillData.SkillTimeline.ExecuteActions(Entity, Target);
 
-        CurrentSkill = null;
-        SkillState = eSkillState.Idle;
+        SetIdle();
     }
 
     protected virtual IEnumerator ChargeSkillCoroutine(SkillData skillData)
     {
-        SkillState = eSkillState.ChargingSkill;
+        SkillState = eSkillState.SkillCharge;
         SkillCharge = skillData.SkillChargeData;
         SkillStartTime = BattleSystem.Time;
 
@@ -231,7 +410,7 @@ public class EntitySkills
             return;
         }
 
-        if (SkillState == eSkillState.ChargingSkill)
+        if (SkillState == eSkillState.SkillCharge)
         {
             if (Entity.EntityCanvas != null)
             {
@@ -249,8 +428,7 @@ public class EntitySkills
             Entity.StopCoroutine(SkillCoroutine);
         }
 
-        CurrentSkill = null;
-        SkillState = eSkillState.Idle;
+        SetIdle();
     }
 
     #region Cooldowns
@@ -271,6 +449,31 @@ public class EntitySkills
     #endregion
 
     #region Checks
+    public virtual bool CanUseSkill(SkillData skillData)
+    {
+        if (IsSkillOnCooldown(skillData.SkillID))
+        {
+            return false;
+        }
+
+        if (Entity.IsSkillLocked(skillData.SkillID))
+        {
+            return false;
+        }
+
+        if (!CanUseSkillInCurrentState(skillData))
+        {
+            return false;
+        }
+
+        if (!CanAffordCost(BattleData.GetSkillData(skillData.SkillID).SkillCost))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     protected virtual bool IsSkillOnCooldown(string skillID)
     {
         // Not on cooldown if cooldown hasn't been registered
@@ -328,28 +531,6 @@ public class EntitySkills
                 return false;
             }
         }
-        return true;
-    }
-
-    public virtual bool CanUseSkill(SkillData skillData)
-    {
-        if (IsSkillOnCooldown(skillData.SkillID))
-        {
-            return false;
-        }
-
-        if (Entity.IsSkillLocked(skillData.SkillID))
-        {
-            return false;
-        }
-
-        if (!CanUseSkillInCurrentState(skillData))
-
-            if (!CanAffordCost(BattleData.GetSkillData(skillData.SkillID).SkillCost))
-            {
-                return false;
-            }
-
         return true;
     }
     #endregion

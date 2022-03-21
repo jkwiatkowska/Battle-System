@@ -4,27 +4,36 @@ using UnityEngine;
 
 public class SkillData
 {
-    public string SkillID;                      // Used to obtain data about a skill.
+    public string SkillID;                                  // Used to obtain data about a skill.
 
-    public bool Interruptible;                  // If true, a skill can be interrupted by other entities. 
+    public bool Interruptible;                              // If true, a skill can be interrupted by other entities. 
 
-    public SkillChargeData SkillChargeData;     // A charge time before skill execution can be added. Additional actions can be executed at that point.
-    public ActionTimeline SkillTimeline;        // Actions executed during skill cast.
+    public SkillChargeData SkillChargeData;                 // A charge time before skill execution can be added. Additional actions can be executed at that point.
+    public ActionTimeline SkillTimeline;                    // Actions executed during skill cast.
 
     public enum eTargetPreferrence
     {
-        Any,                                    // Skills that affect the player and don't concern a particular target.
-        Enemy,                                  // Skills that affect an enemy entity.
-        Friendly,                               // Skills that affect a friendly entity.
-        None                                    // Skills where it doesn't matter whether there is a target or not. 
+        Any,                                                // Skills that affect the player and don't concern a particular target.
+        Enemy,                                              // Skills that affect an enemy entity.
+        Friendly,                                           // Skills that affect a friendly entity.
+        None                                                // Skills where it doesn't matter whether there is a target or not. 
     }
 
-    public bool NeedsTarget;                    // If a skill requires a target, it can only be executed if a preferred target is selected. 
-                                                // This must be set to true if any of the actions require a selected entity.
-                                                // Friendly actions will always default to the caster if a suitable target is not selected.
+    public enum eTargetStatePreferrence
+    {
+        Alive,
+        Dead,
+        Any
+    }
 
-    public eTargetPreferrence PreferredTarget;  // If a correct target is selected, the skill will only execute when it's in range. 
-    public float Range;                         // Minimum range from target required for the skill to be effective.
+    public bool NeedsTarget;                                // If a skill requires a target, it can only be executed if a preferred target is selected. 
+                                                            // This must be set to true if any of the actions require a selected entity.
+                                                            // Friendly actions will always default to the caster if a suitable target is not selected.
+
+    public eTargetPreferrence PreferredTarget;              // If a correct target is selected, the skill will only execute when it's in range.
+    public eTargetStatePreferrence PreferredTargetState;    // Normally targets are required to be alive. 
+    public float Range;                                     // Maximum range from target required for the skill to be effective.
+    public float MaxAngleFromTarget;                        // The target has to be within this angle from the entity's forward for a skill to work. 
 
     public enum eCasterState
     {

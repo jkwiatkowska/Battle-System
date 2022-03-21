@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class EntityData
@@ -96,16 +97,6 @@ public class EntityTargetingData
 
 public class EntityMovementData
 {
-    public enum eMovementMode
-    {
-        Static,         // Entity cannot move at all.
-        Turret,         // Entity can rotate.
-        Free,           // Entity can move freely.
-        Input,          // Player input controls the entity.
-    }
-
-    public eMovementMode MovementMode;
-
     public float MovementSpeed;
     public float MovementSpeedRunMultiplier;
     public bool ConsumeResourceWhenRunning;
@@ -152,19 +143,31 @@ public class EntitySkillsData
 
     public eSkillMode SkillMode;
 
-    public class SequenceSkill
+    public class SequenceElement
     {
-        public string SkillID;
-        public int UsesMin;
-        public int UsesMax;
+        public enum eElementType
+        {
+            Skill,          // A specific skill is used.
+            RandomSkill,    // One of the given skills is used.
+        }
 
-        public SequenceSkill()
+        public eElementType ElementType;
+        public string SkillID;
+        public List<RandomSkill> RandomSkills;
+
+        public int UsesMin;         // The minimum number of times this skill is used before the sequence moves on.
+        public int UsesMax;         // The maximum number of uses.
+        public float ExecuteChance; // The chance of this point in sequence to be executed. 
+
+        public SequenceElement()
         {
             UsesMin = 1;
             UsesMax = 1;
+            ExecuteChance = 1.0f;
+            RandomSkills = new List<RandomSkill>();
         }
 
-        public SequenceSkill(string skill) : this()
+        public SequenceElement(string skill) : this()
         {
             SkillID = skill;
         }
@@ -187,21 +190,74 @@ public class EntitySkillsData
         }
     }
 
-    public List<string> Skills;                 // For random and range modes.
-    public List<SequenceSkill> SequenceSkills;  // For sequence mode.
+    public class RandomSkill
+    {
+        public string SkillID;
+        public float Weight;
+
+        public RandomSkill()
+        {
+            Weight = 1.0f;
+        }
+
+        public RandomSkill(string skill) : this()
+        {
+            SkillID = skill;
+        }
+
+        public static string GetSkill(List<RandomSkill> skills)
+        {
+            if (skills == null || skills.Count < 1)
+            {
+                return null;
+            }
+            if (skills.Count == 1)
+            {
+                return skills[0].SkillID;
+            }
+
+            var totalWeight = skills.Sum(s => s.Weight);
+            var targetWeight = Random.Range(0.0f, totalWeight);
+            var currentWeight = 0.0f;
+
+            foreach (var skill in skills)
+            {
+                currentWeight += skill.Weight;
+                if (currentWeight > targetWeight)
+                {
+                    return skill.SkillID;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    public List<string> Skills;                 // For range mode.
+    public List<SequenceElement> SequenceSkills;  // For sequence mode.
+    public List<RandomSkill> RandomSkills;      // For random mode.
     public List<InputSkill> InputSkills;        // For input mode.
 
     public ActionTimeline AutoAttack;           // When in combat and not casting skills, an entity will repeatedly use these actions.
     public float AutoAttackInterval;            // Interval between the auto attacks.
+    public float AutoAttackTargetDistance;      // Max distance from target for an auto attack to be used.
 
-    public bool UseSkillOnSight;    // For auto skill modes.
-                                    // The entity will use its skills as soon as it spots a target they can be used on.
+    public bool UseSkillOnSight;                // For auto skill modes.
+                                                // The entity will use its skills as soon as it spots a target they can be used on.
+
+    public bool MoveToTargetIfNotInRange;       // Allows the entity to move toward targets that are too far away.
+    public bool RotateToTargetIfNotWithinAngle; // Allows the entity to rotate toward target if it's required to face it. 
+
+    public bool AutoSelectTargetOnSkillUse;     // If true, the entity will try to target an entity that meets the skill requirement if one isn't selected.
 
     public EntitySkillsData()
     {
         Skills = new List<string>();
-        SequenceSkills = new List<SequenceSkill>();
+        SequenceSkills = new List<SequenceElement>();
         InputSkills = new List<InputSkill>();
-        AutoAttack = new ActionTimeline();
+        RandomSkills = new List<RandomSkill>();
+
+        AutoSelectTargetOnSkillUse = true;
+        RotateToTargetIfNotWithinAngle = true;
     }
 }

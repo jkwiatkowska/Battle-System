@@ -54,14 +54,28 @@ public class Payload
             target.OnDeath(caster, result);
             caster.OnKill(result);
         }
-        
+
+        // Category multiplier
+        var targetData = target.EntityData;
+        var categoryMultiplier = 1.0f;
+        if (PayloadData.CategoryMult != null && targetData.Categories != null)
+        {
+            foreach (var cat in PayloadData.CategoryMult)
+            {
+                if (targetData.Categories.Contains(cat.Key))
+                {
+                    categoryMultiplier *= cat.Value;
+                }
+            }
+        }
+
         // Reverse the change
         result.Change = -PayloadValue.IncomingValue(target);
 
         // Incoming damage can be calculated using target attributes and other variables here.
         if (result.Change > Constants.Epsilon || result.Change < -Constants.Epsilon)
         {
-            result.Change = Formulae.IncomingDamage(caster, target, result.Change, this, ref result.Flags);
+            result.Change = Formulae.IncomingDamage(caster, target, result.Change, this, ref result.Flags) * categoryMultiplier;
             target.ApplyChangeToResource(PayloadData.ResourceAffected, result);
         }
 

@@ -92,7 +92,7 @@ public class TargetingSystemPlayer : TargetingSystem
         }
         else
         {
-            base.SelectBestEnemy();
+            SelectTarget(GetBestEnemy());
             PlayerLastMoved = Player.LastMoved;
         }
     }

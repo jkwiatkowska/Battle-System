@@ -48,8 +48,13 @@ public class BattleSystemDataEditor : EditorWindow
     EditorResource NewResource = new EditorResource();
 
     bool ShowCategories = false;
-    List<string> Categories = new List<string>();
-    string NewCategory = "";
+    bool ShowPayloadCategories = false;
+    List<string> PayloadCategories = new List<string>();
+    string NewPayloadCategory = "";
+
+    bool ShowEntityCategories = false;
+    List<string> EntityCategories = new List<string>();
+    string NewEntityCategory = "";
 
     bool ShowPayloadFlags = false;
     List<string> PayloadFlags = new List<string>();
@@ -136,6 +141,7 @@ public class BattleSystemDataEditor : EditorWindow
         public string NewFlag = "";
         public string NewStatusApply = "";
         public string NewStatusRemoveStack = "";
+        public string NewEntityCategory = "";
         public (bool, string) NewStatusClear = (false, "");
         public bool ShowTimeline = false;
         public EditorPayload AlternatePayload = null;
@@ -405,15 +411,16 @@ public class BattleSystemDataEditor : EditorWindow
         PlayerPrefs.SetString(PathPlayerPrefs, Path);
         Label($".json", 30);
 
+        if (GUILayout.Button("Save"))
+        {
+            Save();
+        }
+
         if (GUILayout.Button("Load"))
         {
             Load();
         }
 
-        if (GUILayout.Button("Save"))
-        {
-            Save();
-        }
         GUILayout.EndHorizontal();
 
         Tab = GUILayout.Toolbar(Tab, new string[] { "Game Data", "Skill Data", "Status Effect Data", "Entity Data" });
@@ -473,10 +480,16 @@ public class BattleSystemDataEditor : EditorWindow
             EntityResources.Add(new EditorResource(resource.Key, resource.Value.Copy()));
         }
 
-        Categories = new List<string>();
-        foreach (var category in BattleData.Categories)
+        PayloadCategories = new List<string>();
+        foreach (var category in BattleData.PayloadCategories)
         {
-            Categories.Add(category);
+            PayloadCategories.Add(category);
+        }
+
+        EntityCategories = new List<string>();
+        foreach (var category in BattleData.EntityCategories)
+        {
+            EntityCategories.Add(category);
         }
 
         PayloadFlags = new List<string>();
@@ -668,8 +681,7 @@ public class BattleSystemDataEditor : EditorWindow
 
     void EditCategories()
     {
-        ShowCategories = EditorGUILayout.Foldout(ShowCategories, "Categories");
-        if (ShowCategories)
+        if (EditFoldout(ref ShowCategories, "Categories:"))
         {
             if (ShowHelp)
             {
@@ -679,38 +691,81 @@ public class BattleSystemDataEditor : EditorWindow
                      "such as piercing and blunt and skill types such as damage, healing and buff.");
             }
 
+
             StartIndent();
-            for (int i = 0; i < Categories.Count; i++)
+            if (EditFoldout(ref ShowPayloadCategories, "Payload Categories:"))
             {
+                StartIndent();
+                for (int i = 0; i < PayloadCategories.Count; i++)
+                {
+                    GUILayout.BeginHorizontal();
+                    PayloadCategories[i] = GUILayout.TextField(PayloadCategories[i], GUILayout.Width(203));
+                    if (Rename())
+                    {
+                        BattleData.PayloadCategories[i] = PayloadCategories[i];
+                    }
+
+                    var remove = Remove();
+                    GUILayout.EndHorizontal();
+
+                    if (remove)
+                    {
+                        PayloadCategories.RemoveAt(i);
+                        BattleData.PayloadCategories.RemoveAt(i);
+                        i--;
+                        continue;
+                    }
+                }
                 GUILayout.BeginHorizontal();
-                Categories[i] = GUILayout.TextField(Categories[i], GUILayout.Width(203));
-                if (Rename())
+                Label("New Category: ", 100);
+                NewPayloadCategory = GUILayout.TextField(NewPayloadCategory, GUILayout.Width(200));
+                if (Add() && !string.IsNullOrEmpty(NewPayloadCategory) &&
+                    !BattleData.PayloadCategories.Contains(NewPayloadCategory))
                 {
-                    BattleData.Categories[i] = Categories[i];
+                    PayloadCategories.Add(NewPayloadCategory);
+                    BattleData.PayloadCategories.Add(NewPayloadCategory);
+                    NewPayloadCategory = "";
                 }
-
-                var remove = Remove();
                 GUILayout.EndHorizontal();
+                EndIndent();
+            }
 
-                if (remove)
-                {
-                    Categories.RemoveAt(i);
-                    BattleData.Categories.RemoveAt(i);
-                    i--;
-                    continue;
-                }
-            }
-            GUILayout.BeginHorizontal();
-            Label("New Category: ", 100);
-            NewCategory = GUILayout.TextField(NewCategory, GUILayout.Width(200));
-            if (Add() && !string.IsNullOrEmpty(NewCategory) &&
-                !BattleData.Categories.Contains(NewCategory))
+            if (EditFoldout(ref ShowEntityCategories, "Entity Categories:"))
             {
-                Categories.Add(NewCategory);
-                BattleData.Categories.Add(NewCategory);
-                NewCategory = "";
+                StartIndent();
+                for (int i = 0; i < EntityCategories.Count; i++)
+                {
+                    GUILayout.BeginHorizontal();
+                    EntityCategories[i] = GUILayout.TextField(EntityCategories[i], GUILayout.Width(203));
+                    if (Rename())
+                    {
+                        BattleData.EntityCategories[i] = EntityCategories[i];
+                    }
+
+                    var remove = Remove();
+                    GUILayout.EndHorizontal();
+
+                    if (remove)
+                    {
+                        EntityCategories.RemoveAt(i);
+                        BattleData.EntityCategories.RemoveAt(i);
+                        i--;
+                        continue;
+                    }
+                }
+                GUILayout.BeginHorizontal();
+                Label("New Category: ", 100);
+                NewEntityCategory = GUILayout.TextField(NewEntityCategory, GUILayout.Width(200));
+                if (Add() && !string.IsNullOrEmpty(NewEntityCategory) &&
+                    !BattleData.EntityCategories.Contains(NewEntityCategory))
+                {
+                    EntityCategories.Add(NewEntityCategory);
+                    BattleData.EntityCategories.Add(NewEntityCategory);
+                    NewEntityCategory = "";
+                }
+                GUILayout.EndHorizontal();
+                EndIndent();
             }
-            GUILayout.EndHorizontal();
             EndIndent();
         }
     }
@@ -926,8 +981,9 @@ public class BattleSystemDataEditor : EditorWindow
                                        ref skill.ShowTimeline, "Skill Timeline:", skillID: skill.SkillID);
 
                     EditBool(ref skill.SkillData.NeedsTarget, "TargetRequired");
-                    EditEnum(ref skill.SkillData.PreferredTarget, $"Preferred Target: ");
-                    EditFloat(ref skill.SkillData.Range, "Max Distance From Target:", 250, 150);
+                    EditEnum(ref skill.SkillData.PreferredTarget, $"Preferred Target: ", Space);
+                    EditFloat(ref skill.SkillData.Range, "Skill Range:", Space, 150);
+                    EditFloatSlider(ref skill.SkillData.MaxAngleFromTarget, "Max Angle from Target:", 0.1f, 180.0f, Space, 150);
 
                     EditorDrawLine(new Color(0.35f, 0.35f, 0.35f));
                     EndIndent();
@@ -1213,7 +1269,7 @@ public class BattleSystemDataEditor : EditorWindow
                     }
                     case Effect.ePayloadFilter.Category:
                     {
-                        SelectStringFromList(ref e.PayloadTarget, BattleData.Categories.ToList(),
+                        SelectStringFromList(ref e.PayloadTarget, BattleData.PayloadCategories.ToList(),
                                              "", makeHorizontal: false);
                         break;
                     }
@@ -1275,7 +1331,7 @@ public class BattleSystemDataEditor : EditorWindow
                     }
                     case Effect.ePayloadFilter.Category:
                     {
-                        SelectStringFromList(ref e.PayloadName, BattleData.Categories.ToList(),
+                        SelectStringFromList(ref e.PayloadName, BattleData.PayloadCategories.ToList(),
                                              "", makeHorizontal: false);
                         break;
                     }
@@ -1389,7 +1445,11 @@ public class BattleSystemDataEditor : EditorWindow
                 EditBool(ref e.SetMaxShieldResource, "Set Granted Resource as Max (shield-exclusive resources)");
 
                 EditFloat(ref e.DamageMultiplier, "Damage Absorption Multiplier", Space + 50);
-                EditFloatDict(e.CategoryMultipliers, "Category-Specific Damage Absorption Multiplier:", BattleData.Categories,
+                if (e.CategoryMultipliers == null)
+                {
+                    e.CategoryMultipliers = new Dictionary<string, float>();
+                }
+                EditFloatDict(e.CategoryMultipliers, "Category-Specific Damage Absorption Multiplier:", BattleData.PayloadCategories,
                               ref NewCategoryMultiplier, "", Space, "New Category Multiplier:", Space);
 
                 EditInt(ref e.Priority, "Shield Priority:", Space);
@@ -1510,12 +1570,22 @@ public class BattleSystemDataEditor : EditorWindow
         {
             StartIndent();
             EditEnum(ref entity.Data.Skills.SkillMode, "Skill Use Mode:", Space);
-            if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoRandom ||
-                entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoBestRange)
+
+            EditBool(ref entity.Data.Skills.MoveToTargetIfNotInRange, "Move to Target if out of Skill Range");
+            EditBool(ref entity.Data.Skills.RotateToTargetIfNotWithinAngle, "Rotate to Target if not within Skill Angle");
+            EditBool(ref entity.Data.Skills.AutoSelectTargetOnSkillUse, "Automatically select Target on Skill Use");
+
+            if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoBestRange)
             {
                 EditBool(ref entity.Data.Skills.UseSkillOnSight, "Use Skills On Sight");
                 EditListString(ref entity.NewSkill, entity.Data.Skills.Skills, BattleData.Skills.Keys.ToList(),
                                "Enity Skills:", "(No Skills)", "Add Skill:");
+            }
+            else if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoRandom)
+            {
+                EditBool(ref entity.Data.Skills.UseSkillOnSight, "Use Skills On Sight");
+                EditList(ref entity.NewSkill, entity.Data.Skills.RandomSkills, BattleData.Skills.Keys.ToList(),
+                         EditRandomSkill, NewRandomSkill, "Enity Skills:", "(No Skills)", "Add Skill:");
             }
             else if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoSequence)
             {
@@ -1527,6 +1597,25 @@ public class BattleSystemDataEditor : EditorWindow
             {
                 EditList(ref entity.NewSkill, entity.Data.Skills.InputSkills, BattleData.Skills.Keys.ToList(),
                         EditInputSkill, NewInputSkill, "Enity Skills:", "(No Skills)", "Add Skill:");
+            }
+
+            var hasAutoAttack = entity.Data.Skills.AutoAttack != null;
+            EditBool(ref hasAutoAttack, "Auto Attack");
+            if (hasAutoAttack)
+            {
+                if (entity.Data.Skills.AutoAttack == null)
+                {
+                    entity.Data.Skills.AutoAttack = new ActionTimeline();
+                }
+                StartIndent();
+                EditFloat(ref entity.Data.Skills.AutoAttackInterval, "Auto Attack Inteval:", Space);
+                EditFloat(ref entity.Data.Skills.AutoAttackTargetDistance, "Auto Attack Range:", Space);
+                EditActionTimeline(entity.Data.Skills.AutoAttack, ref NewAction, ref ShowValues, "Auto Attack Timeline");
+                EndIndent();
+            }
+            else
+            {
+                entity.Data.Skills.AutoAttack = null;
             }
             EndIndent();
         }
@@ -1558,7 +1647,6 @@ public class BattleSystemDataEditor : EditorWindow
         if (EditFoldout(ref entity.ShowMovement, "Movement"))
         {
             StartIndent();
-            EditEnum(ref entity.Data.Movement.MovementMode, "Movement Mode:", Space);
             EditFloat(ref entity.Data.Movement.MovementSpeed, "Movement Speed:", Space);
             EditFloat(ref entity.Data.Movement.MovementSpeedRunMultiplier, "Running Speed Multiplier:", Space);
             EditBool(ref entity.Data.Movement.ConsumeResourceWhenRunning, "Consume Resource When Running");
@@ -1589,7 +1677,7 @@ public class BattleSystemDataEditor : EditorWindow
 
         if (EditFoldout(ref entity.ShowCategories, "Entity Categories"))
         {
-            EditListString(ref entity.NewCategory, entity.Data.Categories, BattleData.Categories,
+            EditListString(ref entity.NewCategory, entity.Data.Categories, BattleData.EntityCategories,
                            "", "(No Categories)", "Add Category:");
         }
 
@@ -1605,10 +1693,51 @@ public class BattleSystemDataEditor : EditorWindow
             EndIndent();
         }
 
-        EditTriggerList(ref entity.NewTrigger, entity.Data.Triggers, ref entity.ShowTriggers, "Entity Triggers:");
+        EditTriggerList(ref entity.NewTrigger, entity.Data.Triggers, ref entity.ShowTriggers, "Entity Triggers");
     }
 
-    eReturnResult EditSequenceSkill(EntitySkillsData.SequenceSkill skill)
+    eReturnResult EditSequenceSkill(EntitySkillsData.SequenceElement skill)
+    {
+        EditorGUILayout.BeginHorizontal();
+        EditEnum(ref skill.ElementType, "Sequence Element Type:", Space, 100, makeHorizontal: false);
+        var copy = Button("Copy");
+        var remove = Remove();
+        EditorGUILayout.EndHorizontal();
+
+        StartIndent();
+        if (skill.ElementType == EntitySkillsData.SequenceElement.eElementType.Skill)
+        {
+            SelectSkill(ref skill.SkillID, "Skill ID:", 100, true);
+        }
+        else if (skill.ElementType == EntitySkillsData.SequenceElement.eElementType.RandomSkill)
+        {
+            EditList(ref NewSkill, skill.RandomSkills, BattleData.Skills.Keys.ToList(),
+                     EditRandomSkill, NewRandomSkill, "Possible Skills:", "(No Skills)", "Add Skill:");
+        }
+
+        EditorGUILayout.BeginHorizontal();
+        EditInt(ref skill.UsesMin, "Uses Min:", 60, makeHorizontal: false);
+        EditInt(ref skill.UsesMax, "Uses Max:", 60, makeHorizontal: false);
+        EditorGUILayout.EndHorizontal();
+        EditFloat(ref skill.ExecuteChance, "Execute Chance:", 100);
+        EndIndent();
+
+        if (copy)
+        {
+            return eReturnResult.Copy;
+        }
+        else if (remove)
+        {
+            return eReturnResult.Remove;
+        }
+        return eReturnResult.None;
+    }
+    EntitySkillsData.SequenceElement NewSequenceSkill(string skillID)
+    {
+        return new EntitySkillsData.SequenceElement(skillID);
+    }
+
+    eReturnResult EditRandomSkill(EntitySkillsData.RandomSkill skill)
     {
         EditorGUILayout.BeginHorizontal();
         SelectSkill(ref skill.SkillID, "Skill ID:", 80);
@@ -1617,10 +1746,7 @@ public class BattleSystemDataEditor : EditorWindow
         EditorGUILayout.EndHorizontal();
 
         StartIndent();
-        EditorGUILayout.BeginHorizontal();
-        EditInt(ref skill.UsesMin, "Uses Min:", 60, makeHorizontal: false);
-        EditInt(ref skill.UsesMax, "Uses Max:", 60, makeHorizontal: false);
-        EditorGUILayout.EndHorizontal();
+        EditFloat(ref skill.Weight, "Weight:", 80);
         EndIndent();
 
         if (copy)
@@ -1634,9 +1760,9 @@ public class BattleSystemDataEditor : EditorWindow
         return eReturnResult.None;
     }
 
-    EntitySkillsData.SequenceSkill NewSequenceSkill(string skillID)
+    EntitySkillsData.RandomSkill NewRandomSkill(string skillID)
     {
-        return new EntitySkillsData.SequenceSkill(skillID);
+        return new EntitySkillsData.RandomSkill(skillID);
     }
 
     eReturnResult EditInputSkill(EntitySkillsData.InputSkill skill)
@@ -2589,7 +2715,7 @@ public class BattleSystemDataEditor : EditorWindow
 
     void SelectCategory(ref string category, bool showLabel = true)
     {
-        var categories = BattleData.Categories;
+        var categories = BattleData.PayloadCategories;
         if (categories.Count == 0)
         {
             Label("No categories!");
@@ -2689,11 +2815,18 @@ public class BattleSystemDataEditor : EditorWindow
     void EditPayload(PayloadData payload, EditorPayload editorPayload, bool isSkill)
     {
         StartIndent();
-        EditListString(ref editorPayload.NewCategory, payload.Categories, Utility.CopyList(BattleData.Categories),
+        EditListString(ref editorPayload.NewCategory, payload.Categories, Utility.CopyList(BattleData.PayloadCategories),
                        "Payload Categories: ", "(No Payload Categories)", "Add Payload Category:");
 
         EditValue(payload.PayloadValue, isSkill ? eEditorValueRange.SkillAction : eEditorValueRange.NonAction, "Payload Damage:");
         SelectResource(ref payload.ResourceAffected, "Resource Affected: ", 150);
+
+        if (payload.CategoryMult == null)
+        {
+            payload.CategoryMult = new Dictionary<string, float>();
+        }
+        EditFloatDict(payload.CategoryMult, "Effectiveness Against Target Category:", BattleData.EntityCategories, 
+                      ref editorPayload.NewEntityCategory, ": ", Space, "Add Category:", Space);
 
         EditBool(ref payload.IgnoreShield, "Ignore Shield");
 
@@ -3158,7 +3291,7 @@ public class BattleSystemDataEditor : EditorWindow
             }
             case TriggerData.TriggerCondition.eConditionType.PayloadCategory:
             {
-                SelectStringFromList(ref condition.StringValue, BattleData.Categories, "Category: ", Space);
+                SelectStringFromList(ref condition.StringValue, BattleData.PayloadCategories, "Category: ", Space);
                 break;
             }
             case TriggerData.TriggerCondition.eConditionType.PayloadFlag:
@@ -3283,8 +3416,13 @@ public class BattleSystemDataEditor : EditorWindow
     #endregion
 
     #region Skill Components
-    void SelectSkill(ref string skill, string label = "", int labelWidth = 60)
+    void SelectSkill(ref string skill, string label = "", int labelWidth = 60, bool makeHorizontal = false)
     {
+        if (makeHorizontal)
+        {
+            EditorGUILayout.BeginHorizontal();
+        }
+
         if (!string.IsNullOrEmpty(label))
         {
             Label(label, labelWidth);
@@ -3299,6 +3437,11 @@ public class BattleSystemDataEditor : EditorWindow
         }
         skill = skills[EditorGUILayout.Popup(index, skills.ToArray(),
                 GUILayout.Width(250))];
+
+        if (makeHorizontal)
+        {
+            EditorGUILayout.EndHorizontal();
+        }
     }
 
     void EditSkillGroup(ref string skillGroup, string label = "", int labelWidth = 60)
@@ -3751,6 +3894,13 @@ public class BattleSystemDataEditor : EditorWindow
         }
 
         StartIndent();
+        if (options == null || options.Count < 1)
+        {
+            Label("(No options)");
+            EndIndent();
+            return;
+        }
+
         var keys = dictionary.Keys.ToList();
         for (int i = 0; i < keys.Count; i++)
         {

@@ -10,22 +10,24 @@ public class BattleData
     public static BattleData Instance = new BattleData();
 
     #region Game Data
-    public List<string> CategoryData = new List<string>();                                                     // These can be used to define entities and payloads to customise payloads.
-    public Dictionary<string, Value> EntityResourceData = new Dictionary<string, Value>();                     // Values like hit points, mana, stamina, etc and their max values
-                                                                                                               // based on entity attributes.
-    public List<string> EntityAttributeData = new List<string>();                                              // Stats mainly used to determine outgoing and incoming damage.
-    public List<string> PayloadFlagData = new List<string>();                                                  // Flags to customise payload damage.
+    public List<string> PayloadCategoryData = new List<string>();                                               // These can be used to define and customise payloads.
+    public List<string> EntityCategoryData = new List<string>();                                                // These can be used to customise payload effect on entities.
+    public Dictionary<string, Value> EntityResourceData = new Dictionary<string, Value>();                      // Values like hit points, mana, stamina, etc and their max values
+                                                                                                                // based on entity attributes.
+    public List<string> EntityAttributeData = new List<string>();                                               // Stats mainly used to determine outgoing and incoming damage.
+    public List<string> PayloadFlagData = new List<string>();                                                   // Flags to customise payload damage.
 
-    public Dictionary<string, FactionData> FactionData = new Dictionary<string, FactionData>();                // Define entity allegiance and relations.
+    public Dictionary<string, FactionData> FactionData = new Dictionary<string, FactionData>();                 // Define entity allegiance and relations.
     public Dictionary<string, EntityData> EntityData = new Dictionary<string, EntityData>();
     public Dictionary<string, SkillData> SkillData = new Dictionary<string, SkillData>();
-    public Dictionary<string, List<string>> SkillGroupData = new Dictionary<string, List<string>>();           // Cooldowns and effects can apply to multiple skills at once.
+    public Dictionary<string, List<string>> SkillGroupData = new Dictionary<string, List<string>>();            // Cooldowns and effects can apply to multiple skills at once.
     public Dictionary<string, StatusEffectData> StatusEffectData = new Dictionary<string, StatusEffectData>();
-    public Dictionary<string, List<string>> StatusEffectGroupData = new Dictionary<string, List<string>>();    // Effects can be grouped together and affected all at once.
+    public Dictionary<string, List<string>> StatusEffectGroupData = new Dictionary<string, List<string>>();     // Effects can be grouped together and affected all at once.
     #endregion
 
     #region Getters
-    public static List<string> Categories => Instance.CategoryData;
+    public static List<string> PayloadCategories => Instance.PayloadCategoryData;
+    public static List<string> EntityCategories => Instance.EntityCategoryData;
     public static Dictionary<string, Value> EntityResources => Instance.EntityResourceData;
 
     public static List<string> EntityAttributes => Instance.EntityAttributeData;
@@ -40,6 +42,7 @@ public class BattleData
     #endregion
 
     public static readonly fsSerializer Serializer = new fsSerializer();
+    const string BackupPath = "Data/Backup";
 
     public static void LoadData(string path)
     {
@@ -57,7 +60,7 @@ public class BattleData
 
     public static void LoadMockData()
     {
-        Instance.CategoryData = new List<string>()
+        Instance.PayloadCategoryData = new List<string>()
         {
             "physical",
             "magic",
@@ -1555,6 +1558,9 @@ public class BattleData
     #region Editor
     public static void SaveData(string path)
     {
+        // Backup the data from the file we're overwriting.
+        BackupData(path);
+
         // Serialize the data.
         Serializer.TrySerialize(Instance, out var data);
 
@@ -1566,6 +1572,15 @@ public class BattleData
 
         // Refresh the project.
         AssetDatabase.Refresh();
+    }
+
+    public static void BackupData(string path)
+    {
+        // Read from a file.
+        var json = Resources.Load<TextAsset>(path).text;
+
+        // Save to a file.
+        System.IO.File.WriteAllText(Application.dataPath + "/Resources/" + BackupPath + ".json", json);
     }
 
     public static void UpdateSkillID(string oldID, string newID)

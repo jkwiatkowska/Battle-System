@@ -217,7 +217,7 @@ public class Entity : MonoBehaviour
 
     protected virtual void FixedUpdate()
     {
-
+        Skills.FixedUpdate();
     }
 
     #region Skills
@@ -305,9 +305,8 @@ public class Entity : MonoBehaviour
     {
         if (!Alive)
         {
-            StopAllCoroutines();
             EntityState = eEntityState.Alive;
-            Skills.SkillState = EntitySkills.eSkillState.Idle;
+            Skills.SetIdle();
 
             OnTrigger(TriggerData.eTrigger.OnReviveIncoming, triggerSource: payloadResult.Caster, payloadResult: payloadResult);
             payloadResult.Caster.OnReviveOutgoing(payloadResult);
@@ -351,9 +350,11 @@ public class Entity : MonoBehaviour
 
     public virtual void OnDeath(Entity source = null, PayloadResult payloadResult = null)
     {
-        OnTrigger(TriggerData.eTrigger.OnDeath, triggerSource: source, payloadResult: payloadResult);
-
+        StopAllCoroutines();
         EntityState = eEntityState.Dead;
+        Skills.SetIdle();
+
+        OnTrigger(TriggerData.eTrigger.OnDeath, triggerSource: source, payloadResult: payloadResult);
 
         RemoveAllTagsOnSelf();
         RemoveAllTagsOnEntities();

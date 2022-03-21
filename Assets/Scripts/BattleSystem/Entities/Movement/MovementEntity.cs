@@ -6,7 +6,7 @@ using UnityEngine;
 public class MovementEntity : MonoBehaviour
 {
     [SerializeField] float GroundCheckSphereRadius;
-    protected Entity Parent;
+    protected Entity Entity;
 
     [NonSerialized] public Vector3 Velocity;
     [NonSerialized] public float GravitationalForce;
@@ -18,9 +18,9 @@ public class MovementEntity : MonoBehaviour
     public float LastMoved                              { get; protected set; }
     public float LastJumped                             { get; protected set; }
 
-    public virtual void Setup(Entity parent)
+    public virtual void Setup(Entity entity)
     {
-        Parent = parent;
+        Entity = entity;
         GravitationalForce = Constants.Gravity;
         Velocity = new Vector3();
         GroundCheckSphereOffset = new Vector3(0.0f, GroundCheckSphereRadius, 0.0f);
@@ -31,22 +31,52 @@ public class MovementEntity : MonoBehaviour
         UpdateVelocity();
     }
 
-    public virtual Vector3 Move(Vector3 direction, bool updateRotation, float speedMultiplier = 1.0f)
+    public virtual void SetRunning(bool running)
     {
-        if (Parent.IsMovementLocked)
+        if (running)
+        {
+            var movementData = Entity.EntityData.Movement;
+            if (movementData.ConsumeResourceWhenRunning)
+            {
+                var drain = movementData.RunResourcePerSecond.IncomingValue(Entity) * Time.fixedDeltaTime;
+                if (Entity.ResourcesCurrent.ContainsKey(movementData.RunResource) &&
+                    Entity.ResourcesCurrent[movementData.RunResource] >= drain)
+                {
+                    Entity.ApplyChangeToResource(movementData.RunResource, -drain);
+                    IsRunning = true;
+                }
+                else
+                {
+                    IsRunning = false;
+                }
+            }
+        }
+        else
+        {
+            IsRunning = false;
+        }
+    }
+
+    public virtual Vector3 Move(Vector3 direction, bool updateRotation, float speedMultiplier = 1.0f, bool updateLastMoved = true)
+    {
+        if (Entity.IsMovementLocked)
         {
             return Vector3.zero;
         }
 
         direction.Normalize();
 
-        var movement = direction * GetEntityMovement(Parent, Time.fixedDeltaTime, speedMultiplier);
+        var movement = direction * GetEntityMovement(Entity, Time.fixedDeltaTime, speedMultiplier);
         transform.position += movement;
         if (updateRotation)
         {
             transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
         }
-        LastMoved = BattleSystem.Time;
+
+        if (updateLastMoved)
+        {
+            LastMoved = BattleSystem.Time;
+        }
 
         return movement;
     }
@@ -58,14 +88,14 @@ public class MovementEntity : MonoBehaviour
 
     public void Jump()
     {
-        if (Parent.IsJumpingLocked)
+        if (Entity.IsJumpingLocked)
         {
             return;
         }
 
         if (IsGrounded)
         {
-            Velocity.y += Mathf.Sqrt(Formulae.EntityJumpHeight(Parent) * -2.0f * GravitationalForce);
+            Velocity.y += Mathf.Sqrt(Formulae.EntityJumpHeight(Entity) * -2.0f * GravitationalForce);
         }
 
         LastJumped = BattleSystem.Time;
@@ -117,11 +147,18 @@ public class MovementEntity : MonoBehaviour
         return rotation;
     }
 
+    public void RotateTowardPosition(Vector3 targetPosition)
+    {
+        var rotationSpeed = Formulae.EntityRotateSpeed(Entity);
+        RotateTowardPosition(targetPosition, rotationSpeed);
+    }
+
     public void RotateTowardPosition(Vector3 targetPosition, float rotationSpeed)
     {
         var targetDirection = targetPosition - transform.position;
+        targetDirection.y = 0.0f;
         var initialForward = transform.forward;
-;
+
         var direction = Vector3.RotateTowards(initialForward, targetDirection, Time.fixedDeltaTime * rotationSpeed, 0.0f);
 
         transform.rotation = Quaternion.LookRotation(direction);
@@ -133,7 +170,7 @@ public class MovementEntity : MonoBehaviour
         targetDirection.y = 0.0f;
         var initialForward = transform.forward;
 
-        var speed = Formulae.EntityRotateSpeed(Parent) * rotationMultiplier;
+        var speed = Formulae.EntityRotateSpeed(Entity) * rotationMultiplier;
         var startTime = BattleSystem.Time;
 
         do

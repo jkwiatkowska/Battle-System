@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class TargetingSystem : MonoBehaviour
@@ -29,8 +30,6 @@ public class TargetingSystem : MonoBehaviour
         SelectedTarget = entity;
         var targetable = entity.GetComponentInChildren<Targetable>();
         targetable.Target(true, Parent);
-
-        Debug.Log($"{GetTargetScore(entity, Targeting.EnemyTargetPriority)}");
     }
 
     public virtual void ClearSelection(bool selfOnly = false)
@@ -43,38 +42,39 @@ public class TargetingSystem : MonoBehaviour
         SelectedTarget = null;
     }
 
-    public virtual bool TrySelectParent()
-    {
-        if (Parent.EntityData.IsTargetable)
-        {
-            SelectTarget(Parent);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    public virtual void SelectBestEnemy()
+    public virtual Entity GetBestEnemy(SkillData.eTargetStatePreferrence requiredState = SkillData.eTargetStatePreferrence.Any)
     {
         UpdateEntityLists();
-        if (EnemyEntities.Count == 0)
+
+        var potentialTargets = EnemyEntities;
+
+        if (requiredState == SkillData.eTargetStatePreferrence.Alive)
         {
-            return;
+            potentialTargets = EnemyEntities.Where((e) => e.Alive).ToList();
         }
-        if (EnemyEntities.Count > 1 && SelectedTarget == EnemyEntities[0])
+        else if (requiredState == SkillData.eTargetStatePreferrence.Dead)
         {
-            SelectTarget(EnemyEntities[1]);
-            return;
+            potentialTargets = EnemyEntities.Where((e) => !e.Alive).ToList();
         }
-        SelectTarget(EnemyEntities[0]);
+
+        if (potentialTargets.Count == 0)
+        {
+            return null;
+        }
+
+        if (potentialTargets.Count > 1 && SelectedTarget == potentialTargets[0])
+        {
+            return potentialTargets[1];
+        }
+
+        return potentialTargets[0];
     }
 
-    public virtual void SelectNextEnemy()
+    public virtual void SelectNextEnemy(SkillData.eTargetStatePreferrence requiredState = SkillData.eTargetStatePreferrence.Any)
     {
         if (SelectedTarget == null)
         {
-            SelectBestEnemy();
+            SelectTarget(GetBestEnemy(requiredState));
             return;
         }
         if (EnemyEntities.Count == 0)
@@ -94,36 +94,47 @@ public class TargetingSystem : MonoBehaviour
         SelectTarget(EnemyEntities[0]);
     }
 
-    public virtual void SelectBestFriend()
+    public virtual Entity GetBestFriend(SkillData.eTargetStatePreferrence requiredState = SkillData.eTargetStatePreferrence.Any, bool selectSelf = false)
     {
         UpdateEntityLists();
-        if (FriendlyEntities.Count == 0)
+
+        var potentialTargets = FriendlyEntities;
+
+        if (requiredState == SkillData.eTargetStatePreferrence.Alive)
         {
-            TrySelectParent();
-            return;
+            potentialTargets = FriendlyEntities.Where((e) => e.Alive).ToList();
         }
-        if (FriendlyEntities.Count > 1 && SelectedTarget == FriendlyEntities[0])
+        else if (requiredState == SkillData.eTargetStatePreferrence.Dead)
         {
-            SelectTarget(FriendlyEntities[1]);
-            return;
+            potentialTargets = FriendlyEntities.Where((e) => !e.Alive).ToList();
         }
-        SelectTarget(FriendlyEntities[0]);
+
+        if (potentialTargets.Count == 0)
+        {
+            var selectParent = selectSelf && Parent.EntityData.IsTargetable;
+            return selectParent ? Parent : null;
+        }
+        if (potentialTargets.Count > 1 && SelectedTarget == potentialTargets[0])
+        {
+            return potentialTargets[1];
+        }
+        return potentialTargets[0];
     }
 
-    public virtual void SelectNextFriend()
+    public virtual void SelectNextFriend(SkillData.eTargetStatePreferrence requiredState = SkillData.eTargetStatePreferrence.Any, bool selectSelf = false)
     {
-        if (SelectedTarget == null)
+        if (SelectedTarget == null || FriendlyEntities.Count < 1)
         {
-            SelectBestFriend();
+            SelectTarget(GetBestFriend(requiredState, selectSelf));
             return;
         }
+
         if (FriendlyEntities.Count > 1)
         {
             var index = Mathf.Clamp(FriendlyEntities.IndexOf(SelectedTarget) + 1, 0, FriendlyEntities.Count - 1);
             SelectTarget(FriendlyEntities[index]);
             return;
         }
-        TrySelectParent();
     }
 
     public virtual void UpdateEntityLists()
@@ -137,6 +148,11 @@ public class TargetingSystem : MonoBehaviour
         // See if any entity got in or out of reach.
         foreach (var entity in PotentialTargets)
         {
+            if (entity == Parent)
+            {
+                continue;
+            }
+
             var targetPos = entity.Origin;
             var dist = (parentPos - targetPos).sqrMagnitude;
             if (!DetectedEntities.Contains(entity))

@@ -74,29 +74,11 @@ public class PlayerInput : MonoBehaviour
         {
             if (Input.GetKey(KeyCode.LeftShift))
             {
-                var movementData = Player.EntityData.Movement;
-                if (movementData.ConsumeResourceWhenRunning)
-                {
-                    var drain = movementData.RunResourcePerSecond.IncomingValue(Player) * Time.fixedDeltaTime;
-                    if (Player.ResourcesCurrent.ContainsKey(movementData.RunResource) &&
-                        Player.ResourcesCurrent[movementData.RunResource] >= drain)
-                    {
-                        Player.ApplyChangeToResource(movementData.RunResource, -drain);
-                        Player.Movement.IsRunning = true;
-                    }
-                    else
-                    {
-                        Player.Movement.IsRunning = false;
-                    }
-                }
-                else
-                {
-                    Player.Movement.IsRunning = true;
-                }
+                Player.Movement.SetRunning(true);
             }
             else
             {
-                Player.Movement.IsRunning = false;
+                Player.Movement.SetRunning(false);
             }
 
             PlayerMovement.MovePlayer(new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")));
