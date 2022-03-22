@@ -128,7 +128,7 @@ public class ValueComponent
             {
                 if (actionResults != null && actionResults.ContainsKey(Attribute))
                 {
-                    return actionResults[Attribute].Value;
+                    return Potency * actionResults[Attribute].Value;
                 }
                 else
                 {
@@ -196,7 +196,7 @@ public class Value : List<ValueComponent>
         return value;
     }
 
-    public float IncomingValue(Entity target)
+    public float IncomingValue(Entity target, Value maxValue = null)
     {
         var totalValue = 0.0f;
 
@@ -216,6 +216,20 @@ public class Value : List<ValueComponent>
             else
             {
                 Debug.LogError($"Incoming value can only be calculated on a value obtained through the OutgoingValue function.");
+            }
+        }
+
+        if (maxValue != null && maxValue.Count > 0)
+        {
+            var max = maxValue.IncomingValue(target);
+
+            if (totalValue > 0.0f && totalValue > max)
+            {
+                totalValue = max;
+            }
+            else if (totalValue < 0.0f && totalValue < max)
+            {
+                totalValue = -max;
             }
         }
 

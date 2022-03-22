@@ -8,6 +8,7 @@ public class Payload
     public Action Action;
     public PayloadData PayloadData;
     public Value PayloadValue;
+    public Value PayloadValueMax;
     public Dictionary<string, float> CasterAttributes;
     public string StatusID;
     
@@ -20,6 +21,10 @@ public class Payload
 
         CasterAttributes = caster.EntityAttributes(Action.SkillID, Action.ActionID, statusID, PayloadData.Categories);
         PayloadValue = payloadData.PayloadValue.OutgoingValues(caster, CasterAttributes, actionResults);
+        if (payloadData.PayloadValueMax != null && payloadData.PayloadValueMax.Count > 0)
+        {
+            PayloadValueMax = payloadData.PayloadValueMax.OutgoingValues(caster, CasterAttributes, actionResults);
+        }
     }
 
     public bool ApplyPayload(Entity caster, Entity target, PayloadResult result)
@@ -70,7 +75,7 @@ public class Payload
         }
 
         // Reverse the change
-        result.Change = -PayloadValue.IncomingValue(target);
+        result.Change = -PayloadValue.IncomingValue(target, PayloadValueMax);
 
         // Incoming damage can be calculated using target attributes and other variables here.
         if (result.Change > Constants.Epsilon || result.Change < -Constants.Epsilon)

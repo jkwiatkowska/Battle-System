@@ -44,7 +44,7 @@ public abstract class Effect
 
     public static Effect MakeNew(eEffectType type)
     {
-        Effect effect = null;
+        Effect effect;
 
         switch(type)
         {
@@ -128,7 +128,7 @@ public class EffectAttributeChange : Effect
 {
     public string Attribute;                            // Affected attribute.
     public Value Value;                                 // Increase/decrease to the attribute. Entity that applies the status is the caster, while the entity that receives it is the target.
-
+    public Value MaxValue;                              // The value can be limited.
 
     public ePayloadFilter PayloadTargetType;            // An attribute can be affected directly or only when specific skills and actions are used.
     public string PayloadTarget;                        // Name or ID of the above.
@@ -146,6 +146,8 @@ public class EffectAttributeChange : Effect
             Key = Key(statusID, effectIndex),
             Value = Value.OutgoingValues(caster, caster.EntityAttributes(payload.Action.SkillID, 
                                         payload.Action.ActionID, statusID, payload.PayloadData.Categories), null),
+            MaxValue = MaxValue?.OutgoingValues(caster, caster.EntityAttributes(payload.Action.SkillID,
+                                                payload.Action.ActionID, statusID, payload.PayloadData.Categories), null),
             PayloadFilter = PayloadTargetType,
             Requirement = PayloadTarget
         };
@@ -163,6 +165,7 @@ public class AttributeChange
     public string Attribute;                            // Affected attribute.
     public string Key;                                  // Used to identify the attribute change.
     public Value Value;                                 // Increase/decrease to the attribute. Entity that applies the status is the caster, while the entity that receives it is the target.
+    public Value MaxValue;
 
     public Effect.ePayloadFilter PayloadFilter;         // An attribute can be affected directly or only when specific skills and actions are used.
     public string Requirement;                          // Name or ID of the above.
@@ -374,7 +377,6 @@ public class EffectShield : Effect
     public EffectShield()
     {
         ShieldResourceToGrant = new Value();
-        MaxDamageAbsorbed = new Value();
         CategoryMultipliers = new Dictionary<string, float>();
     }
     public override void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload)
@@ -387,7 +389,7 @@ public class EffectShield : Effect
             EffectIndex = effectIndex,
             StatusID = statusID,
             UsesLeft = Limit,
-            AbsorbtionLeft = MaxDamageAbsorbed.OutgoingValues(caster, casterAttributes, null).IncomingValue(target),
+            AbsorbtionLeft = MaxDamageAbsorbed != null ? MaxDamageAbsorbed.OutgoingValues(caster, casterAttributes, null).IncomingValue(target) : 0,
         };
 
         var shieldResourceGranted = ShieldResourceToGrant.OutgoingValues(caster, casterAttributes, null).IncomingValue(target);

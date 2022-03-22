@@ -1255,7 +1255,24 @@ public class BattleSystemDataEditor : EditorWindow
                 }
 
                 SelectAttribute(ref e.Attribute);
+
                 EditValue(e.Value, eEditorValueRange.NonAction, "Change:");
+
+                var maxValue = e.MaxValue != null;
+                EditBool(ref maxValue, "Limit Value");
+                if (maxValue)
+                {
+                    if (e.MaxValue == null)
+                    {
+                        e.MaxValue = new Value();
+                    }
+
+                    EditValue(e.MaxValue, eEditorValueRange.NonAction, "Max Change:");
+                }
+                else
+                {
+                    e.MaxValue = null;
+                }
 
                 GUILayout.BeginHorizontal();
                 EditEnum(ref e.PayloadTargetType, "Change Affects:", Space, 90, makeHorizontal: false);
@@ -1441,7 +1458,20 @@ public class BattleSystemDataEditor : EditorWindow
                 SelectResource(ref e.ShieldedResource, "Shielded Resource:", Space);
 
                 EditValue(e.ShieldResourceToGrant, eEditorValueRange.NonAction, "Shield Resource Granted:");
-                EditValue(e.MaxDamageAbsorbed, eEditorValueRange.NonAction, "Max Damage Absorbed:");
+                var limitAbsorption = e.MaxDamageAbsorbed != null;
+                EditBool(ref limitAbsorption, "Limit Absorbtion");
+                if (limitAbsorption)
+                {
+                    if (e.MaxDamageAbsorbed == null)
+                    {
+                        e.MaxDamageAbsorbed = new Value();
+                    }
+                    EditValue(e.MaxDamageAbsorbed, eEditorValueRange.NonAction, "Max Damage Absorbed:");
+                }
+                else
+                {
+                    e.MaxDamageAbsorbed = null;
+                }
                 EditBool(ref e.SetMaxShieldResource, "Set Granted Resource as Max (shield-exclusive resources)");
 
                 EditFloat(ref e.DamageMultiplier, "Damage Absorption Multiplier", Space + 50);
@@ -2116,17 +2146,22 @@ public class BattleSystemDataEditor : EditorWindow
                 }
 
                 SelectResource(ref a.ResourceName, "Resource Collected: ", Space);
-                EditEnum(ref a.ValueType, "Value Type: ", Space);
-                if (a.ValueType == ActionCostCollection.eCostValueType.FlatValue)
+
+                EditValue(a.Cost, eEditorValueRange.CasterOnly, "Cost:");
+                var maxValue = a.MaxCost != null;
+                EditBool(ref maxValue, "Max Cost");
+
+                if (maxValue)
                 {
-                    EditFloat(ref a.Value, "Amount Collected: ", Space);
+                    if (a.MaxCost == null)
+                    {
+                        a.MaxCost = new Value();
+                    }
+                    EditValue(a.MaxCost, eEditorValueRange.CasterOnly, "Max Cost:");
                 }
-                else if (a.ValueType == ActionCostCollection.eCostValueType.CurrentMult || a.ValueType == ActionCostCollection.eCostValueType.MaxMult)
+                else
                 {
-                    GUILayout.BeginHorizontal();
-                    EditFloat(ref a.Value, "Amount Collected: ", Space, 70, false);
-                    Label($"x {(a.ValueType == ActionCostCollection.eCostValueType.CurrentMult ? "Current" : "Max")} {a.ResourceName.ToUpper()}");
-                    GUILayout.EndHorizontal();
+                    a.MaxCost = null;
                 }
 
                 EditBool(ref a.Optional, "Is Optional");
@@ -2859,6 +2894,23 @@ public class BattleSystemDataEditor : EditorWindow
                        "Payload Categories: ", "(No Payload Categories)", "Add Payload Category:");
 
         EditValue(payload.PayloadValue, isSkill ? eEditorValueRange.SkillAction : eEditorValueRange.NonAction, "Payload Damage:");
+
+        var maxValue = payload.PayloadValueMax != null;
+        EditBool(ref maxValue, "Max Payload Value");
+
+        if (maxValue)
+        {
+            if (payload.PayloadValueMax == null)
+            {
+                payload.PayloadValueMax = new Value();
+            }
+            EditValue(payload.PayloadValueMax, isSkill ? eEditorValueRange.SkillAction : eEditorValueRange.NonAction, "Max Payload Damage:");
+        }
+        else
+        {
+            payload.PayloadValueMax = null;
+        }
+
         SelectResource(ref payload.ResourceAffected, "Resource Affected: ", 150);
 
         if (payload.CategoryMult == null)

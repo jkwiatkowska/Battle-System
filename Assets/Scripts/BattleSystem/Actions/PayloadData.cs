@@ -6,7 +6,8 @@ public class PayloadData
 {
     public List<string> Categories;                     // Can define what kind of payload this is, affected by damage bonuses and resistances
 
-    public Value PayloadValue;                          // The value components are added together. Example: 20% TargetMaxHP + 1000 (FlatValue)
+    public Value PayloadValue;                          // The value components are added together. Example: 20% Target Max HP + 1000 (FlatValue)
+    public Value PayloadValueMax;                       // A cap can be set on the payload value so that it doesn't go over a certain amount.
     public string ResourceAffected;                     // Typically hp, but can be other things like energy
 
     public Dictionary<string, float> CategoryMult;      // Effectiveness of the payload damage/recovery against given entity categories.

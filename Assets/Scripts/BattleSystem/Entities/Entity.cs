@@ -1316,7 +1316,7 @@ public class Entity : MonoBehaviour
                             break;
                         }
                     }
-                    value += attributeChange.Value.IncomingValue(this);
+                    value += attributeChange.Value.IncomingValue(this, attributeChange.MaxValue);
                 }
             }
 
