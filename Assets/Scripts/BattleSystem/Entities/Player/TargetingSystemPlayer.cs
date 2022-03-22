@@ -28,7 +28,7 @@ public class TargetingSystemPlayer : TargetingSystem
 
     public override void SelectTarget(Entity entity)
     {
-        if (!entity.Targetable)
+        if (entity == null || !entity.Targetable)
         {
             return;
         }

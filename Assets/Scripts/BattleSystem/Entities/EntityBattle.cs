@@ -77,7 +77,12 @@ public class EntityBattle
         var entityData = entity.EntityData;
         if (entityData.IsTargetable && entityData.CanEngage)
         {
+            if (!InCombat)
+            {
+                StartAutoAttack();
+            }
 
+            Entity.OnEngage();
             EngagedEntities.Add(entity.EntityUID, entity);
         }
     }
@@ -86,11 +91,8 @@ public class EntityBattle
     {
         if (EngagedEntities.ContainsKey(entityUID))
         {
-            if (!InCombat)
-            {
-                StartAutoAttack();
-            }
             EngagedEntities.Remove(entityUID);
+            Entity.OnDisengage();
         }
     }
 
@@ -154,7 +156,7 @@ public class EntityBattle
     public void FixedUpdate()
     {
         // Movement and rotation toward target before a skill is cast.
-        if (SkillState == eSkillState.SkillPrepare && !PrepareToUseSkill())
+        if (SkillState == eSkillState.SkillPrepare && !GetInPosition())
         {
             SetIdle();
         }
@@ -206,7 +208,7 @@ public class EntityBattle
         }
     }
 
-    protected virtual bool PrepareToUseSkill()
+    protected virtual bool GetInPosition()
     {
         // Returns false if the skill can no longer be used
         var target = Targeting.SelectedTarget;
@@ -221,7 +223,7 @@ public class EntityBattle
             return false;
         }
 
-        if (!CanUseSkill(PrepareSkill))
+        if (PrepareInterrupted())
         {
             return false;
         }
@@ -262,14 +264,7 @@ public class EntityBattle
 
     protected virtual void CheckForSkillCancel()
     {
-        if (SkillState == eSkillState.SkillPrepare)
-        {
-            if (Movement != null && (Movement.LastMoved > PrepareStartTime || Movement.LastJumped > PrepareStartTime))
-            {
-                CancelSkill();
-            }
-        }
-        else if (SkillState == eSkillState.SkillCharge)
+        if (SkillState == eSkillState.SkillCharge)
         {
             if (SkillCharge.MovementCancelsCharge && Movement != null &&
                (Movement.LastMoved > SkillStartTime || Movement.LastJumped > SkillStartTime))
@@ -533,6 +528,31 @@ public class EntityBattle
         return angle <= maxAngle;
     }
 
+    public virtual bool PrepareInterrupted()
+    {
+        if (Entity.IsSkillLocked(PrepareSkill.SkillID))
+        {
+            return true;
+        }
+
+        if (!CanAffordCost(PrepareSkill.SkillCost))
+        {
+            return true;
+        }
+
+        if (IsSkillOnCooldown(PrepareSkill.SkillID))
+        {
+            return true;
+        }
+
+        if (Movement != null && (Movement.LastMoved > PrepareStartTime || Movement.LastJumped > PrepareStartTime))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     public virtual bool CanUseSkill(SkillData skillData)
     {
         if (IsSkillOnCooldown(skillData.SkillID))
@@ -550,7 +570,7 @@ public class EntityBattle
             return false;
         }
 
-        if (!CanAffordCost(BattleData.GetSkillData(skillData.SkillID).SkillCost))
+        if (!CanAffordCost(skillData.SkillCost))
         {
             return false;
         }

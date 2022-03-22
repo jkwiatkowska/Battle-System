@@ -23,7 +23,7 @@ public class MovementEntity : MonoBehaviour
         Entity = entity;
         GravitationalForce = Constants.Gravity;
         Velocity = new Vector3();
-        GroundCheckSphereOffset = new Vector3(0.0f, GroundCheckSphereRadius, 0.0f);
+        GroundCheckSphereOffset = new Vector3(0.0f, GroundCheckSphereRadius - Constants.Epsilon, 0.0f);
     }
 
     protected virtual void FixedUpdate()
@@ -187,7 +187,7 @@ public class MovementEntity : MonoBehaviour
 
     void UpdateVelocity()
     {
-        IsGrounded = Velocity.y <= 0.0f && Physics.CheckSphere(transform.position + GroundCheckSphereOffset, GroundCheckSphereRadius, BattleSystem.Instance.TerrainLayers);
+        IsGrounded = Velocity.y <= Constants.Epsilon && Physics.CheckSphere(transform.position + GroundCheckSphereOffset, GroundCheckSphereRadius, BattleSystem.Instance.TerrainLayers);
 
         if (IsGrounded)
         {

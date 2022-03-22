@@ -2149,7 +2149,7 @@ public class BattleSystemDataEditor : EditorWindow
 
                 EditValue(a.Cost, eEditorValueRange.CasterOnly, "Cost:");
                 var maxValue = a.MaxCost != null;
-                EditBool(ref maxValue, "Max Cost");
+                EditBool(ref maxValue, "Limit Cost");
 
                 if (maxValue)
                 {
@@ -2284,9 +2284,10 @@ public class BattleSystemDataEditor : EditorWindow
     }
 
     #region Summon Actions
-    void EditActionSummon(ActionSummon a)
+    void EditActionSummon(ActionSummon a, EntityData.eEntityType summonType = EntityData.eEntityType.SummonnedEntity)
     {
-        SelectStringFromList(ref a.EntityID, BattleData.Entities.Keys.ToList(), "Summonned Entity:", Space);
+        SelectStringFromList(ref a.EntityID, BattleData.Entities.Keys.Where((e) => 
+                             BattleData.Entities[e].EntityType == summonType).ToList(), "Summonned Entity:", Space);
 
         if (a.SummonAtPosition == null)
         {
@@ -2307,7 +2308,7 @@ public class BattleSystemDataEditor : EditorWindow
 
     void EditActionProjectile(ActionProjectile a)
     {
-        EditActionSummon(a);
+        EditActionSummon(a, EntityData.eEntityType.Projectile);
 
         var newMode = a.ProjectileMovementMode;
         EditEnum(ref newMode, "Projectile Movement Mode:", 200);
@@ -3468,6 +3469,11 @@ public class BattleSystemDataEditor : EditorWindow
             }
             case TriggerData.TriggerCondition.eConditionType.TriggerSourceIsFriend:
             {
+                break;
+            }
+            case TriggerData.TriggerCondition.eConditionType.EntitiesEngagedMin:
+            {
+                EditInt(ref condition.IntValue, "Min Entities Engaged:");
                 break;
             }
         }

@@ -441,6 +441,16 @@ public class Entity : MonoBehaviour
     public virtual void OnTargetOutOfRange()
     {
     }
+
+    public virtual void OnEngage()
+    {
+        OnTrigger(TriggerData.eTrigger.OnEngage);
+    }
+
+    public virtual void OnDisengage()
+    {
+        OnTrigger(TriggerData.eTrigger.OnDisengage);
+    }
     #endregion
 
     #region Status Effects

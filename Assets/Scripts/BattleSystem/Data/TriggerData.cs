@@ -30,6 +30,7 @@ public class TriggerData
             TriggerSourceHasStatus,             // Trigger can go off if the entity that caused it has this status.
             TriggerSourceIsEnemy,               // Condition succeeds if the entity that triggered it is an enemy.
             TriggerSourceIsFriend,              // Condition succeeds if the entity that triggered it is a friend.
+            EntitiesEngagedMin,                 // The entity is in battle with this number of entities.
         }
 
         public eConditionType ConditionType;
@@ -188,6 +189,11 @@ public class TriggerData
                     conditionMet = entity != null && triggerSource != null && entity.IsFriendly(triggerSource.Faction);
                     break;
                 }
+                case eConditionType.EntitiesEngagedMin:
+                {
+                    conditionMet = entity != null && entity.EntityBattle.EngagedEntities.Count >= IntValue;
+                    break;
+                }
                 default:
                 {
                     Debug.LogError($"Unimplemented trigger condition type: {ConditionType}");
@@ -216,6 +222,7 @@ public class TriggerData
             list.Add(eConditionType.EntityResourceMin);
             list.Add(eConditionType.EntityResourceRatioMin);
             list.Add(eConditionType.EntityHasStatus);
+            list.Add(eConditionType.EntitiesEngagedMin);
 
             bool isPayloadTrigger = triggerType == eTrigger.OnPayloadApplied || triggerType == eTrigger.OnPayloadReceived || 
                                     triggerType == eTrigger.OnResourceChanged || triggerType == eTrigger.OnDeath || 
@@ -289,6 +296,8 @@ public class TriggerData
         OnSpawn,                    // Fires after setup.
         OnReviveOutgoing,           // Fires if an entity revives another entity.
         OnReviveIncoming,           // Fires if an entity is revived by another entity.
+        OnEngage,                   // Entity enters battle.
+        OnDisengage,                // Entity leaves battle.
         OnCollisionEnemy,           // Fires on trigger collision with an enemy.
         OnCollisionFriend,          // Fireso on trigger collision with a friend.
         OnCollisionTerrain,         // Fires on trigger collision with an object on terrain layer.

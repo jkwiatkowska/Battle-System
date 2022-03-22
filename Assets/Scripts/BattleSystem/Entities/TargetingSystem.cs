@@ -41,11 +41,6 @@ public class TargetingSystem : MonoBehaviour
                     entity.EntityBattle.Disengage(Entity.EntityUID);
                 }
 
-                if (SelectedTarget == entity)
-                {
-                    ClearSelection();
-                }
-
                 i--;
             }
         }
