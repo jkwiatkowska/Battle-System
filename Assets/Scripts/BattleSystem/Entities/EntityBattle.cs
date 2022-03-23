@@ -10,7 +10,7 @@ public class EntityBattle
     Entity Target => Targeting.SelectedTarget;
     MovementEntity Movement => Entity.Movement;
 
-    public Dictionary<string, Entity> EngagedEntities { get; protected set; }
+    public Dictionary<string, Entity> EngagedEntities   { get; protected set; }
     public bool InCombat => EngagedEntities.Count > 0;
 
     public enum eSkillState
@@ -21,22 +21,28 @@ public class EntityBattle
         SkillCast,
     }
 
-    public eSkillState SkillState;
-    
-    protected Dictionary<string, float> SkillAvailableTime;
-    public SkillData CurrentSkill { get; protected set; }
+    public eSkillState SkillState                       { get; protected set; }
+    Dictionary<string, float> SkillAvailableTime;
+
+    float PrepareStartTime;
+    SkillData PrepareSkill;
+
+    Coroutine SkillChargeCoroutine;
+    public SkillChargeData SkillCharge                  { get; protected set; }
+    public float SkillChargeRatio                       { get; protected set; }
+
+    public SkillData CurrentSkill                       { get; protected set; }
     bool ChargeCancelled;
-    protected Coroutine SkillCoroutine;
+    Coroutine SkillCoroutine;
+    public float SkillStartTime                         { get; protected set; }
 
-    protected Coroutine SkillChargeCoroutine;
-    public SkillChargeData SkillCharge { get; protected set; }
-    public float SkillStartTime { get; protected set; }
-    public float SkillChargeRatio { get; protected set; }
+    float AutoAttackTime;
 
-    protected float PrepareStartTime;
-    protected SkillData PrepareSkill;
+    int SequenceIndex = 0;
+    int SequenceSkillUses = 0;
 
-    protected float AutoAttackTime;
+    string SkillToUse = "";
+    float NextSkillTime = 0;
 
     public EntityBattle(Entity entity)
     {
@@ -57,6 +63,7 @@ public class EntityBattle
         }
         SkillState = eSkillState.Idle;
         StartAutoAttack();
+        SetSkillDelay();
     }
 
     void SetPrepare(Entity target, SkillData skillData)
@@ -80,6 +87,13 @@ public class EntityBattle
             if (!InCombat)
             {
                 StartAutoAttack();
+                SetSkillDelay();
+
+                SequenceIndex = 0;
+                if (Data.SequenceSkills != null && Data.SequenceSkills.Count > 0)
+                {
+                    SequenceSkillUses = Random.Range(Data.SequenceSkills[0].UsesMin, Data.SequenceSkills[0].UsesMax + 1);
+                }
             }
 
             Entity.OnEngage();
@@ -112,6 +126,14 @@ public class EntityBattle
         if (Data.AutoAttack != null)
         {
             AutoAttackTime = BattleSystem.Time + Formulae.AutoAttackInterval(Entity, Target);
+        }
+    }
+
+    void SetSkillDelay()
+    {
+        if (Data.SkillDelayMin > Constants.Epsilon)
+        {
+            NextSkillTime = BattleSystem.Time + Formulae.SkillDelay(Entity);
         }
     }
     #endregion
@@ -164,6 +186,11 @@ public class EntityBattle
 
     protected virtual void PickSkill()
     {
+        if (NextSkillTime > BattleSystem.Time)
+        {
+            return;
+        }
+
         // Read input in input mode and use skills if a corresponding key was pressed
         if (Data.SkillMode == EntitySkillsData.eSkillMode.Input)
         {
@@ -185,24 +212,66 @@ public class EntityBattle
             }
         }
         // Otherwise select skills automatically.
-        else if (Data.SkillMode != EntitySkillsData.eSkillMode.None)
+        else if (Data.SkillMode != EntitySkillsData.eSkillMode.None && SkillState == eSkillState.Idle)
         {
-            if (SkillState == eSkillState.Idle)
+            if (string.IsNullOrEmpty(SkillToUse))
             {
                 switch (Data.SkillMode)
                 {
                     case EntitySkillsData.eSkillMode.AutoSequence:
                     {
+                        if (Data.SequenceSkills != null && Data.SequenceSkills.Count > 0)
+                        {
+                            if (SequenceSkillUses <= 0)
+                            {
+                                SequenceIndex++;
+                                if (SequenceIndex >= Data.SequenceSkills.Count)
+                                {
+                                    SequenceIndex = 0;
+                                }
+
+                                SequenceSkillUses = Random.Range(Data.SequenceSkills[SequenceIndex].UsesMin, Data.SequenceSkills[SequenceIndex].UsesMax + 1);
+                            }
+
+                            var sequenceSkill = Data.SequenceSkills[SequenceIndex];
+
+                            if (sequenceSkill.ExecuteChance > 1.0f - Constants.Epsilon || sequenceSkill.ExecuteChance < Random.value)
+                            {
+                                if (sequenceSkill.ElementType == EntitySkillsData.SequenceElement.eElementType.Skill)
+                                {
+                                    var skill = sequenceSkill.SkillID;
+                                    SkillToUse = skill;
+                                }
+                                else if (sequenceSkill.ElementType == EntitySkillsData.SequenceElement.eElementType.RandomSkill)
+                                {
+                                    if (sequenceSkill.RandomSkills != null && sequenceSkill.RandomSkills.Count > 0)
+                                    {
+                                        var skill = EntitySkillsData.RandomSkill.GetSkill(this, sequenceSkill.RandomSkills);
+                                        SkillToUse = skill;
+                                    }
+                                }
+                            }
+
+                            SequenceSkillUses--;
+                        }
                         break;
                     }
                     case EntitySkillsData.eSkillMode.AutoRandom:
                     {
+                        if (Data.RandomSkills != null && Data.RandomSkills.Count > 0)
+                        {
+                            var skill = EntitySkillsData.RandomSkill.GetSkill(this, Data.RandomSkills);
+                            SkillToUse = skill;
+                        }
                         break;
                     }
-                    case EntitySkillsData.eSkillMode.AutoBestRange:
-                    {
-                        break;
-                    }
+                }
+            }
+            else
+            {
+                if (TryUseSkill(SkillToUse))
+                {
+                    SkillToUse = "";
                 }
             }
         }
@@ -536,11 +605,6 @@ public class EntityBattle
         }
 
         if (!CanAffordCost(PrepareSkill.SkillCost))
-        {
-            return true;
-        }
-
-        if (IsSkillOnCooldown(PrepareSkill.SkillID))
         {
             return true;
         }

@@ -219,10 +219,6 @@ public class Entity : MonoBehaviour
         EntityBattle.FixedUpdate();
     }
 
-    #region Skills
-
-    #endregion
-
     #region Triggers
     public void AddTrigger(Trigger trigger, string key = "")
     {

@@ -1585,6 +1585,18 @@ public class BattleSystemDataEditor : EditorWindow
                 }
             }
 
+            GUILayout.BeginHorizontal();
+            Label("New Entity: ", 80);
+            NewEntity = GUILayout.TextField(NewEntity, GUILayout.Width(200));
+            if (Add() && !string.IsNullOrEmpty(NewEntity) &&
+                !BattleData.Entities.ContainsKey(NewEntity))
+            {
+                var newEntityData = new EntityData();
+                Entities.Add(new EditorEntity(NewEntity, newEntityData));
+                BattleData.Entities.Add(NewEntity, newEntityData);
+                NewEntity = "";
+            }
+            GUILayout.EndHorizontal();
             EndIndent();
         }
     }
@@ -1602,17 +1614,24 @@ public class BattleSystemDataEditor : EditorWindow
             StartIndent();
             EditEnum(ref entity.Data.Skills.SkillMode, "Skill Use Mode:", Space);
 
+            EditFloat(ref entity.Data.Skills.SkillDelayMin, "Skill Delay Min:", Space);
+            EditFloat(ref entity.Data.Skills.SkillDelayMax, "Skill Delay Max:", Space);
+
+            if (entity.Data.Skills.SkillDelayMin < 0.0f)
+            {
+                entity.Data.Skills.SkillDelayMin = 0.0f;
+            }
+
+            if (entity.Data.Skills.SkillDelayMax < entity.Data.Skills.SkillDelayMin)
+            {
+                entity.Data.Skills.SkillDelayMax = entity.Data.Skills.SkillDelayMin;
+            }
+
             EditBool(ref entity.Data.Skills.MoveToTargetIfNotInRange, "Move to Target if out of Skill Range");
             EditBool(ref entity.Data.Skills.RotateToTargetIfNotWithinAngle, "Rotate to Target if not within Skill Angle");
             EditBool(ref entity.Data.Skills.AutoSelectTargetOnSkillUse, "Automatically select Target on Skill Use");
 
-            if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoBestRange)
-            {
-                EditBool(ref entity.Data.Skills.EngageOnSight, "Use Skills On Sight");
-                EditListString(ref entity.NewSkill, entity.Data.Skills.Skills, BattleData.Skills.Keys.ToList(),
-                               "Enity Skills:", "(No Skills)", "Add Skill:");
-            }
-            else if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoRandom)
+            if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoRandom)
             {
                 EditBool(ref entity.Data.Skills.EngageOnSight, "Use Skills On Sight");
                 EditList(ref entity.NewSkill, entity.Data.Skills.RandomSkills, BattleData.Skills.Keys.ToList(),
@@ -1766,6 +1785,7 @@ public class BattleSystemDataEditor : EditorWindow
         return new EntityData.EntityResource(resource);
     }
 
+    #region Entity Skills
     eReturnResult EditSequenceSkill(EntitySkillsData.SequenceElement skill)
     {
         EditorGUILayout.BeginHorizontal();
@@ -1920,6 +1940,7 @@ public class BattleSystemDataEditor : EditorWindow
             EndIndent();
         }
     }
+    #endregion
 
     #region Factions
     void EditFactions()
@@ -1960,8 +1981,24 @@ public class BattleSystemDataEditor : EditorWindow
                         }
                     }
                     BattleData.Factions[Factions[i].Data.FactionID] = value;
-
                 }
+
+                if (Button("Copy"))
+                {
+                    var value = Copy(Factions[i].Data);
+                    var copyNo = 2;
+                    var id = Factions[i].Data.FactionID + copyNo;
+                    while (BattleData.Factions.ContainsKey(id))
+                    {
+                        copyNo++;
+                        id = Factions[i].Data.FactionID + copyNo;
+                    }
+
+                    value.FactionID = id;
+                    BattleData.Factions.Add(id, value);
+                    Factions.Add(new EditorFaction(value));
+                }
+
                 if (Remove())
                 {
                     Factions.RemoveAt(i);
@@ -1973,20 +2010,21 @@ public class BattleSystemDataEditor : EditorWindow
                                 "Friendly Factions:", "Add Friendly Faction:", "(No Friendly Factions)");
                 EditFactionList(Factions[i].Data, Factions[i].Data.EnemyFactions, ref Factions[i].NewEnemyFaction,
                                 "Enemy Factions:", "Add Enemy Faction:", "(No Enemy Factions)");
-
-                GUILayout.BeginHorizontal();
-                Label("New Faction: ", 120);
-                NewFaction = GUILayout.TextField(NewFaction, GUILayout.Width(200));
-                if (Add() && !string.IsNullOrEmpty(NewFaction) &&
-                    !BattleData.Factions.ContainsKey(NewFaction))
-                {
-                    var newFactionData = new FactionData(NewFaction);
-                    Factions.Add(new EditorFaction(newFactionData));
-                    BattleData.Factions.Add(NewFaction, newFactionData);
-                    NewFaction = "";
-                }
-                GUILayout.EndHorizontal();
             }
+
+            EditorDrawLine();
+            GUILayout.BeginHorizontal();
+            Label("New Faction: ", 90);
+            NewFaction = GUILayout.TextField(NewFaction, GUILayout.Width(200));
+            if (Add() && !string.IsNullOrEmpty(NewFaction) &&
+                !BattleData.Factions.ContainsKey(NewFaction))
+            {
+                var newFactionData = new FactionData(NewFaction);
+                Factions.Add(new EditorFaction(newFactionData));
+                BattleData.Factions.Add(NewFaction, newFactionData);
+                NewFaction = "";
+            }
+            GUILayout.EndHorizontal();
             EndIndent();
         }
     }
@@ -2114,10 +2152,7 @@ public class BattleSystemDataEditor : EditorWindow
                     a = new ActionCooldown();
                 }
 
-                GUILayout.BeginHorizontal();
-                Label("Cooldown:", Space);
-                a.Cooldown = EditorGUILayout.FloatField(action.Timestamp, GUILayout.Width(60));
-                GUILayout.EndHorizontal();
+                EditFloat(ref a.Cooldown, "Cooldown:", Space, 120);
 
                 EditEnum(ref a.ChangeMode, "Change Mode:", Space, 120);
                 EditEnum(ref a.CooldownTarget, "Cooldown Target:", Space, 120);

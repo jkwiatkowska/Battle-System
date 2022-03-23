@@ -134,6 +134,13 @@ public static class Formulae
 
         return interval;
     }
+
+    public static float SkillDelay(Entity caster)
+    {
+        var delay = Random.Range(caster.EntityData.Skills.SkillDelayMin, caster.EntityData.Skills.SkillDelayMax);
+
+        return delay;
+    }
     #endregion
 
     public static float PayloadSuccessChance(PayloadData payloadData, Entity caster, Entity target)

@@ -8,11 +8,15 @@ public class FactionData
     public List<string> FriendlyFactions;
     public List<string> EnemyFactions;
 
-    public FactionData(string id)
+    public FactionData()
     {
-        FactionID = id;
         FriendlyFactions = new List<string>();
         EnemyFactions = new List<string>();
+    }
+
+    public FactionData(string id) : this()
+    {
+        FactionID = id;
     }
 
     public FactionData Copy()
