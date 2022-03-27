@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class HUDPopupTextHUD : MonoBehaviour
+public class HUDPopupText : MonoBehaviour
 {
     [SerializeField] Canvas HUD;
     [SerializeField] ObjectPool PopupPool;
     [SerializeField] float PopupDisplayTime;
     Queue<(PopupText, float)> Popups;
 
-    public static HUDPopupTextHUD Instance;
+    public static HUDPopupText Instance;
     void Awake()
     {
         Instance = this;

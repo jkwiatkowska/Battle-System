@@ -321,7 +321,7 @@ public class Entity : MonoBehaviour
     {
         OnTrigger(TriggerData.eTrigger.OnHitMissed, triggerSource: target, payloadResult: payloadResult);
 
-        HUDPopupTextHUD.Instance.DisplayMiss(target);
+        HUDPopupText.Instance.DisplayMiss(target);
     }
 
     public virtual void OnResourceChanged(PayloadResult payloadResult)
@@ -331,7 +331,7 @@ public class Entity : MonoBehaviour
             return;
         }
 
-        HUDPopupTextHUD.Instance.DisplayDamage(payloadResult);
+        HUDPopupText.Instance.DisplayDamage(payloadResult);
 
         OnTrigger(TriggerData.eTrigger.OnResourceChanged, triggerSource: payloadResult.Caster, payloadResult: payloadResult);
     }
@@ -471,7 +471,7 @@ public class Entity : MonoBehaviour
     public virtual void OnImmune(Entity source = null, PayloadResult payloadResult = null)
     {
         OnTrigger(TriggerData.eTrigger.OnImmune, source, payloadResult);
-        HUDPopupTextHUD.Instance.DisplayImmune(this);
+        HUDPopupText.Instance.DisplayImmune(this);
     }
 
     public virtual void OnTargetOutOfRange()

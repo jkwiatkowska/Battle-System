@@ -301,6 +301,9 @@ public class TriggerData
         OnCollisionEnemy,           // Fires on trigger collision with an enemy.
         OnCollisionFriend,          // Fireso on trigger collision with a friend.
         OnCollisionTerrain,         // Fires on trigger collision with an object on terrain layer.
+        OnSummonerTrigger,          // Triggered when a summoning entity is affected by a trigger.
+        OnSummonedTrigger,          // Triggered when a summoned entity is affected by a trigger.
+        OnTaggedTrigger,            // Triggered when a tagged entity is affected by a trigger.
     }
 
     public eTrigger Trigger;                    // Type of trigger.
