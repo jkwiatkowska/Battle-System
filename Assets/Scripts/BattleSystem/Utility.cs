@@ -5,58 +5,6 @@ using UnityEngine;
 
 public static class Utility
 {
-    public static List<T> EnumValues<T>()
-    {
-        return Enum.GetValues(typeof(T)).Cast<T>().ToList();
-    }
-
-    public static string[] EnumStrings<T>(int limit = -1)
-    {
-        var enumTypes = EnumValues<T>();
-        var count = limit > 0 ? limit : enumTypes.Count();
-        var types = new string[count];
-
-        for (int i = 0; i < count; i++)
-        {
-            types[i] = enumTypes[i].ToString();
-        }
-        return types;
-    }
-
-    public static string[] EnumStrings<T>(List<T> list)
-    {
-        var types = new string[list.Count];
-
-        for (int i = 0; i < list.Count; i++)
-        {
-            types[i] = list[i].ToString();
-        }
-        return types;
-    }
-
-    public static List<T> CopyList<T>(List<T> list)
-    {
-        var copy = new List<T>();
-        foreach (var item in list)
-        {
-            copy.Add(item);
-        }
-        return copy;
-    }
-
-    public static List<T> CopyLists<T>(List<List<T>> lists)
-    {
-        var copy = new List<T>();
-        foreach (var list in lists)
-        {
-            foreach (var item in list)
-            {
-                copy.Add(item);
-            }
-        }
-        return copy;
-    }
-
     public static Vector2 Get2DVector(Vector3 position)
     {
         return new Vector2(position.x, position.z);

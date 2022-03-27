@@ -9,7 +9,7 @@ public class EntityData
     {
         Entity,
         SummonnedEntity,
-        Projectile
+        Projectile,
     }
     public eEntityType EntityType;                          // Specifies which entity script an entity should use.
 
@@ -46,6 +46,12 @@ public class EntityData
     public string Faction;
 
     public List<TriggerData> Triggers;                      // Occurences such as death or receiving damage and the actions they cause. 
+    public class EntityStatusEffect
+    {
+        public string Status;
+        public int Stacks;
+    }
+    public List<EntityStatusEffect> StatusEffects;          // Status effects applied when an entity is set up. 
 
     public float Radius;                                    // Radius of an entity, used by area attacks.
     public float Height;                                    // Height of an entity. Used by area attacks and displaying UI elements above it.
@@ -64,6 +70,7 @@ public class EntityData
         LifeResources = new List<string>();
 
         Triggers = new List<TriggerData>();
+        StatusEffects = new List<EntityStatusEffect>();
     }
 }
 
@@ -77,13 +84,16 @@ public class EntityTargetingData
             Nearest,
             Furthest,
             LineOfSight,
-            //Enmity,
+            ValueLowest, 
+            ValueHighest,
+            Aggro,
         }
 
         public eTargetPriority TargetPriority;
         public float PreferredDistanceMin;              // Entities further than this will be preferred when selecting a target.
         public float PreferredDistanceMax;              // Entities closer than this will be preferred when selecting a target.
-        public bool PreferredInFront;                  // Entities in front will get a higher score regardless of other criteria.
+        public bool PreferredInFront;                   // Entities in front will get a higher score regardless of other criteria.
+        public ValueComponent Value;                    // For value priorities.
 
         public TargetingPriority()
         {

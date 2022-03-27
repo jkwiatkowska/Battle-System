@@ -91,7 +91,7 @@ public abstract class Action
         return newAction;
     }
 
-    public static Action MakeAction(eActionType type)
+    public static Action MakeAction(eActionType type, string skillID = "")
     {
         Action action = null;
 
@@ -152,6 +152,7 @@ public abstract class Action
         if (action != null)
         {
             action.ActionType = type;
+            action.SkillID = skillID;
             action.SetTypeDefaults();
         }
         return action;

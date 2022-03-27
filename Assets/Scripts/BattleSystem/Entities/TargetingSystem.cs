@@ -14,7 +14,7 @@ public class TargetingSystem : MonoBehaviour
     public List<Entity> DetectedEntities        { get; protected set; }
     List<Entity> PotentialTargets => BattleSystem.TargetableEntities;
 
-    EntityTargetingData Targeting => Entity.EntityData.Targeting;
+    public EntityTargetingData Targeting => Entity.EntityData.Targeting;
 
     public virtual void Setup(Entity entity)
     {
@@ -26,6 +26,11 @@ public class TargetingSystem : MonoBehaviour
 
     void Update()
     {
+        if (DetectedEntities.Count < 0.0f && Entity.EntityData.Skills.EngageOnSight)
+        {
+            UpdateEntityLists();
+        }
+
         var disengageDist = Targeting.DisengageDistance;
 
         for (int i = 0; i < DetectedEntities.Count; i++)
@@ -256,7 +261,7 @@ public class TargetingSystem : MonoBehaviour
 
     float GetTargetScore(Entity target, EntityTargetingData.TargetingPriority targeting)
     {
-        if (!target.Alive)
+        if (target == null)
         {
             return 0;
         }
@@ -290,7 +295,7 @@ public class TargetingSystem : MonoBehaviour
             }
             case EntityTargetingData.TargetingPriority.eTargetPriority.Nearest:
             {
-                return score + 1.0f - dist / maxDist;
+                return score - dist / maxDist;
             }
             case EntityTargetingData.TargetingPriority.eTargetPriority.Furthest:
             {
@@ -298,7 +303,21 @@ public class TargetingSystem : MonoBehaviour
             }
             case EntityTargetingData.TargetingPriority.eTargetPriority.LineOfSight:
             {
-                return score + 1.0f - (Vector3.Angle(Entity.transform.forward, v.normalized) - 180.0f) / 180.0f;
+                return score - (Vector3.Angle(Entity.transform.forward, v.normalized) - 180.0f) / 180.0f;
+            }
+            case EntityTargetingData.TargetingPriority.eTargetPriority.ValueLowest:
+            {
+                var value = targeting.Value.GetValue(Entity, target, casterAttributes: null, target.EntityAttributes());
+                return score - value;
+            }
+            case EntityTargetingData.TargetingPriority.eTargetPriority.ValueHighest:
+            {
+                var value = targeting.Value.GetValue(Entity, target, casterAttributes: null, target.EntityAttributes());
+                return score + value;
+            }
+            case EntityTargetingData.TargetingPriority.eTargetPriority.Aggro:
+            {
+                return score + Entity.EntityBattle.GetAggro(target.EntityUID) / BattleData.Aggro.MaxAggro;
             }
         }
 

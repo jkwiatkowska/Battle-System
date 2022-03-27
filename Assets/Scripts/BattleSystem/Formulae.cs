@@ -17,8 +17,9 @@ public static class Formulae
     {
         var payloadData = payload.PayloadData;
         var flags = payloadData.Flags;
-        var targetAttributes = target.EntityAttributes(payload.Action.SkillID, payload.Action.ActionID, payload.StatusID, 
-                               payload.PayloadData.Categories, payload.PayloadData.TargetAttributesIgnored);
+        var targetAttributes = payload.Action != null ? target.EntityAttributes(payload.Action.SkillID, payload.Action.ActionID, 
+                               payload.StatusID, payload.PayloadData.Categories, payload.PayloadData.TargetAttributesIgnored) :
+                               target.EntityAttributes();
 
         var isCrit = flags.Contains("canCrit") && payload.CasterAttributes["critChance"] >= Random.value;
         if (isCrit)
@@ -48,7 +49,7 @@ public static class Formulae
     {
         if (BattleData.EntityResources.ContainsKey(resource))
         {
-            return BattleData.EntityResources[resource].GetValue(entity, entityAttributes);
+            return BattleData.EntityResources[resource].GetValueFromAttributes(entity, entityAttributes);
         }
 
         Debug.LogError($"Resource {resource} not found in game data.");
@@ -63,13 +64,13 @@ public static class Formulae
         return startValue;
     }
 
-    public static float ResourceRecoveryRate(Entity entity, EntityData.EntityResource resource)
+    public static float ResourceRecoveryRate(Entity entity, Dictionary<string, float> entityAttributes, EntityData.EntityResource resource)
     {
         if (entity.EntityBattle.InCombat)
         {
             if (resource != null && resource.ChangePerSecondInCombat != null && resource.ChangePerSecondInCombat.Count > 0)
             {
-                return resource.ChangePerSecondInCombat.IncomingValue(entity);
+                return resource.ChangePerSecondInCombat.IncomingValue(entity, entityAttributes);
             }
             else
             {
@@ -80,7 +81,7 @@ public static class Formulae
         {
             if (resource != null && resource.ChangePerSecondOutOfCombat != null && resource.ChangePerSecondOutOfCombat.Count > 0)
             {
-                return resource.ChangePerSecondOutOfCombat.IncomingValue(entity);
+                return resource.ChangePerSecondOutOfCombat.IncomingValue(entity, entityAttributes);
             }
             else
             {

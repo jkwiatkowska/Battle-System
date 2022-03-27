@@ -10,7 +10,7 @@ public class StatusEffect
     Entity Target;
     public Entity Caster            { get; private set; }
     float StartTime;
-    float EndTime;
+    public float EndTime            { get; private set; }
     Payload SourcePayload;
 
     public List<(Payload Payload, float NextTimestamp)> OnInterval;

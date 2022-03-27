@@ -10,7 +10,18 @@ public class EntityBattle
     Entity Target => Targeting.SelectedTarget;
     MovementEntity Movement => Entity.Movement;
 
-    public Dictionary<string, Entity> EngagedEntities   { get; protected set; }
+    public class EngagedEntity
+    {
+        public Entity Entity;
+        public float Aggro;
+
+        public EngagedEntity(Entity entity)
+        {
+            Entity = entity;
+            Aggro = 0.0f;
+        }
+    }
+    public Dictionary<string, EngagedEntity> EngagedEntities   { get; protected set; }
     public bool InCombat => EngagedEntities.Count > 0;
 
     public enum eSkillState
@@ -49,7 +60,7 @@ public class EntityBattle
         Entity = entity;
         SkillState = eSkillState.Idle;
         SkillAvailableTime = new Dictionary<string, float>();
-        EngagedEntities = new Dictionary<string, Entity>();
+        EngagedEntities = new Dictionary<string, EngagedEntity>();
     }
 
     #region States
@@ -97,7 +108,7 @@ public class EntityBattle
             }
 
             Entity.OnEngage();
-            EngagedEntities.Add(entity.EntityUID, entity);
+            EngagedEntities.Add(entity.EntityUID, new EngagedEntity(entity));
         }
     }
 
@@ -116,7 +127,7 @@ public class EntityBattle
         {
             if (entity.Value != null)
             {
-                entity.Value.EntityBattle.Disengage(Entity.EntityUID);
+                entity.Value.Entity.EntityBattle.Disengage(Entity.EntityUID);
             }
         }
     }
@@ -149,30 +160,9 @@ public class EntityBattle
 
         // Skill and skill charge cancelation if a skill is being cast.
         CheckForSkillCancel();
-    }
 
-    public void PerformAutoAttack()
-    {
-        if (SkillState == eSkillState.Idle && InCombat && Data.AutoAttack != null && AutoAttackTime <= BattleSystem.Time)
-        {
-            if (Data.AutoAttackRequiredTarget)
-            {
-                if (Target == null || !EngagedEntities.ContainsKey(Target.EntityUID))
-                {
-                    return;
-                }
-                var maxDist = Data.AutoAttackRange * Data.AutoAttackRange;
-                var dist = (Target.transform.position - Entity.transform.position).sqrMagnitude;
-
-                if (dist > maxDist)
-                {
-                    return;
-                }
-            }
-
-            Entity.StartCoroutine(Data.AutoAttack.ExecuteActions(Entity, Target));
-            StartAutoAttack();
-        }
+        // Aggro
+        UpdateAggro();
     }
 
     public void FixedUpdate()
@@ -184,6 +174,20 @@ public class EntityBattle
         }
     }
 
+    void UpdateAggro()
+    {
+        if (EngagedEntities.Count > 0)
+        {
+            foreach (var entity in EngagedEntities)
+            {
+                entity.Value.Aggro += BattleData.Aggro.AggroChangePerSecond.GetAggroChange(Entity, entity.Key, Entity);
+            }
+        }
+    }
+    #endregion
+
+    #region Skill Use
+    // Returns true if a state change is triggered.
     protected virtual void PickSkill()
     {
         if (NextSkillTime > BattleSystem.Time)
@@ -277,86 +281,6 @@ public class EntityBattle
         }
     }
 
-    protected virtual bool GetInPosition()
-    {
-        // Returns false if the skill can no longer be used
-        var target = Targeting.SelectedTarget;
-        if (target == null)
-        {
-            return false;
-        }
-
-        if ((PrepareSkill.PreferredTargetState == SkillData.eTargetStatePreferrence.Alive && !target.Alive) ||
-            (PrepareSkill.PreferredTargetState == SkillData.eTargetStatePreferrence.Dead && target.Alive))
-        {
-            return false;
-        }
-
-        if (PrepareInterrupted())
-        {
-            return false;
-        }
-
-        var forward = Entity.transform.forward;
-        var dir = (target.Origin - Entity.Origin).normalized;
-
-        var dot = Vector3.Dot(forward, dir);
-
-        var inRange = IsInSkillRange(target, PrepareSkill);
-        if (!inRange)
-        {
-            // Target out of range and the entity cannot move.
-            if (!Data.MoveToTargetIfNotInRange)
-            {
-                return false;
-            }
-            // Move toward the target if it's in front of the entity
-            else if (dot > 0.0f)
-            {
-                Movement.SetRunning(true);
-                Movement.Move(Entity.transform.forward, updateRotation: false, speedMultiplier: 1.0f, updateLastMoved: false);
-            }
-        }
-
-        var inAngleRange = IsInSkillAngleRange(target, PrepareSkill);
-        if (!inAngleRange || !inRange)
-        {
-            Movement.RotateTowardPosition(target.Origin);
-        }
-        else if (inRange && inAngleRange)
-        {
-            UseSkill(PrepareSkill, target);
-        }
-
-        return true;
-    }
-
-    protected virtual void CheckForSkillCancel()
-    {
-        if (SkillState == eSkillState.SkillCharge)
-        {
-            if (SkillCharge.MovementCancelsCharge && Movement != null &&
-               (Movement.LastMoved > SkillStartTime || Movement.LastJumped > SkillStartTime))
-            {
-                ChargeCancelled = true;
-            }
-        }
-        else if (SkillState == eSkillState.SkillCast)
-        {
-            if (CurrentSkill.MovementCancelsSkill)
-            {
-                var skillCancelled = Movement != null && (SkillStartTime < Movement.LastJumped || SkillStartTime < Movement.LastMoved);
-                if (skillCancelled)
-                {
-                    CancelSkill();
-                }
-            }
-        }
-    }
-    #endregion
-
-    #region Skill Use
-    // Returns true if a state change is triggered.
     public virtual bool TryUseSkill(string skillID)
     {
         // Return if already using this skill
@@ -453,6 +377,60 @@ public class EntityBattle
         return true;
     }
 
+    protected virtual bool GetInPosition()
+    {
+        // Returns false if the skill can no longer be used
+        var target = Targeting.SelectedTarget;
+        if (target == null)
+        {
+            return false;
+        }
+
+        if ((PrepareSkill.PreferredTargetState == SkillData.eTargetStatePreferrence.Alive && !target.Alive) ||
+            (PrepareSkill.PreferredTargetState == SkillData.eTargetStatePreferrence.Dead && target.Alive))
+        {
+            return false;
+        }
+
+        if (PrepareInterrupted())
+        {
+            return false;
+        }
+
+        var forward = Entity.transform.forward;
+        var dir = (target.Origin - Entity.Origin).normalized;
+
+        var dot = Vector3.Dot(forward, dir);
+
+        var inRange = IsInSkillRange(target, PrepareSkill);
+        if (!inRange)
+        {
+            // Target out of range and the entity cannot move.
+            if (!Data.MoveToTargetIfNotInRange)
+            {
+                return false;
+            }
+            // Move toward the target if it's in front of the entity
+            else if (dot > 0.0f)
+            {
+                Movement.SetRunning(true);
+                Movement.Move(Entity.transform.forward, updateRotation: false, speedMultiplier: 1.0f, updateLastMoved: false);
+            }
+        }
+
+        var inAngleRange = IsInSkillAngleRange(target, PrepareSkill);
+        if (!inAngleRange || !inRange)
+        {
+            Movement.RotateTowardPosition(target.Origin);
+        }
+        else if (inRange && inAngleRange)
+        {
+            UseSkill(PrepareSkill, target);
+        }
+
+        return true;
+    }
+
     protected virtual void UseSkill(SkillData skillData, Entity target)
     {
         Targeting.SelectTarget(target);
@@ -522,6 +500,29 @@ public class EntityBattle
         yield return null;
     }
 
+    protected virtual void CheckForSkillCancel()
+    {
+        if (SkillState == eSkillState.SkillCharge)
+        {
+            if (SkillCharge.MovementCancelsCharge && Movement != null &&
+               (Movement.LastMoved > SkillStartTime || Movement.LastJumped > SkillStartTime))
+            {
+                ChargeCancelled = true;
+            }
+        }
+        else if (SkillState == eSkillState.SkillCast)
+        {
+            if (CurrentSkill.MovementCancelsSkill)
+            {
+                var skillCancelled = Movement != null && (SkillStartTime < Movement.LastJumped || SkillStartTime < Movement.LastMoved);
+                if (skillCancelled)
+                {
+                    CancelSkill();
+                }
+            }
+        }
+    }
+
     public virtual void CancelSkill()
     {
         if (CurrentSkill == null)
@@ -549,6 +550,30 @@ public class EntityBattle
 
         SetIdle();
     }
+
+    public void PerformAutoAttack()
+    {
+        if (SkillState == eSkillState.Idle && InCombat && Data.AutoAttack != null && AutoAttackTime <= BattleSystem.Time)
+        {
+            if (Data.AutoAttackRequiredTarget)
+            {
+                if (Target == null || !EngagedEntities.ContainsKey(Target.EntityUID))
+                {
+                    return;
+                }
+                var maxDist = Data.AutoAttackRange * Data.AutoAttackRange;
+                var dist = (Target.transform.position - Entity.transform.position).sqrMagnitude;
+
+                if (dist > maxDist)
+                {
+                    return;
+                }
+            }
+
+            Entity.StartCoroutine(Data.AutoAttack.ExecuteActions(Entity, Target));
+            StartAutoAttack();
+        }
+    }
     #endregion
 
     #region Cooldowns
@@ -565,6 +590,39 @@ public class EntityBattle
     public virtual void SetSkillAvailableTime(string skillID, float time)
     {
         SkillAvailableTime[skillID] = time;
+    }
+    #endregion
+
+    #region Aggro
+    public void ChangeAggro(Entity entity, float change)
+    {
+        if (change > Constants.Epsilon && !EngagedEntities.ContainsKey(entity.EntityUID))
+        {
+            Engage(entity);
+        }
+
+        if (EngagedEntities.ContainsKey(entity.EntityUID))
+        {
+            EngagedEntities[entity.EntityUID].Aggro = Mathf.Clamp(EngagedEntities[entity.EntityUID].Aggro + change, 0.0f, 
+                                                      BattleData.Aggro.MaxAggro > Constants.Epsilon ? BattleData.Aggro.MaxAggro : float.MaxValue);
+        }
+
+        if (Targeting.Targeting.EnemyTargetPriority.TargetPriority == EntityTargetingData.TargetingPriority.eTargetPriority.Aggro)
+        {
+            Targeting.SelectTarget(Targeting.GetBestEnemy());
+        }
+    }
+
+    public float GetAggro(string entity)
+    {
+        if (EngagedEntities.ContainsKey(entity))
+        {
+            return EngagedEntities[entity].Aggro;
+        }
+        else
+        {
+            return 0.0f;
+        }
     }
     #endregion
 

@@ -38,7 +38,7 @@ public class MovementEntity : MonoBehaviour
             var movementData = Entity.EntityData.Movement;
             if (movementData.ConsumeResourceWhenRunning)
             {
-                var drain = movementData.RunResourcePerSecond.IncomingValue(Entity) * Time.fixedDeltaTime;
+                var drain = movementData.RunResourcePerSecond.IncomingValue(Entity, Entity.EntityAttributes()) * Time.fixedDeltaTime;
                 if (Entity.ResourcesCurrent.ContainsKey(movementData.RunResource) &&
                     Entity.ResourcesCurrent[movementData.RunResource] >= drain)
                 {

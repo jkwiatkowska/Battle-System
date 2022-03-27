@@ -10,6 +10,9 @@ public class PayloadData
     public Value PayloadValueMax;                       // A cap can be set on the payload value so that it doesn't go over a certain amount.
     public string ResourceAffected;                     // Typically hp, but can be other things like energy
 
+    public AggroData.AggroChange Aggro;                 // Entities can select targets based on aggro. 
+    public bool MultiplyAggroByPayloadValue;            // If true, aggro will be multiplied by damage dealt.
+
     public Dictionary<string, float> CategoryMult;      // Effectiveness of the payload damage/recovery against given entity categories.
     public List<string> TargetAttributesIgnored;        // Target attributes such as defense can be ignored. 
     public bool IgnoreShield;                           // True damage.

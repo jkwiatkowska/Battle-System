@@ -58,6 +58,7 @@ public class ActionSummon : Action
         summonedEntity.SummonSetup(this, summoner);
 
         summoner.AddSummonedEntity(summonedEntity, this);
+        summoner.TagEntity(ActionID, summonedEntity);
         return true;
     }
 

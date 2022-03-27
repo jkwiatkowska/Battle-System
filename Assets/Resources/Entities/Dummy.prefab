@@ -132,8 +132,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 202e67203bb371f44a3448441e2ec9c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  EntityID: Dummy
   EntityLevel: 1
+  EntitiesToTag: []
 --- !u!114 &6934705420198072594
 MonoBehaviour:
   m_ObjectHideFlags: 0

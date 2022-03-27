@@ -23,6 +23,7 @@ public class BattleData
     public Dictionary<string, List<string>> SkillGroupData = new Dictionary<string, List<string>>();            // Cooldowns and effects can apply to multiple skills at once.
     public Dictionary<string, StatusEffectData> StatusEffectData = new Dictionary<string, StatusEffectData>();
     public Dictionary<string, List<string>> StatusEffectGroupData = new Dictionary<string, List<string>>();     // Effects can be grouped together and affected all at once.
+    public AggroData AggroData = new AggroData();
     #endregion
 
     #region Getters
@@ -39,6 +40,7 @@ public class BattleData
     public static Dictionary<string, List<string>> SkillGroups => Instance.SkillGroupData;
     public static Dictionary<string, StatusEffectData> StatusEffects => Instance.StatusEffectData;
     public static Dictionary<string, List<string>> StatusEffectGroups => Instance.StatusEffectGroupData;
+    public static AggroData Aggro => Instance.AggroData;
     #endregion
 
     public static readonly fsSerializer Serializer = new fsSerializer();
@@ -59,6 +61,7 @@ public class BattleData
     }
 
     #region Editor
+#if UNITY_EDITOR
     public static void SaveData(string path)
     {
         // Backup the data from the file we're overwriting.
@@ -110,7 +113,8 @@ public class BattleData
             }
         }
     }
-    #endregion
+#endif
+#endregion
 
     public static EntityData GetEntityData(string entityID)
     {

@@ -140,14 +140,15 @@ public class EffectAttributeChange : Effect
 
     public override void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload)
     {
+        var casterAttributes = payload != null ? caster.EntityAttributes(payload.Action.SkillID,
+                               payload.Action.ActionID, statusID, payload.PayloadData.Categories) :
+                               caster.EntityAttributes();
         var attributeChange = new AttributeChange
         {
             Attribute = Attribute,
             Key = Key(statusID, effectIndex),
-            Value = Value.OutgoingValues(caster, caster.EntityAttributes(payload.Action.SkillID, 
-                                        payload.Action.ActionID, statusID, payload.PayloadData.Categories), null),
-            MaxValue = MaxValue?.OutgoingValues(caster, caster.EntityAttributes(payload.Action.SkillID,
-                                                payload.Action.ActionID, statusID, payload.PayloadData.Categories), null),
+            Value = Value.OutgoingValues(caster, casterAttributes, null),
+            MaxValue = MaxValue?.OutgoingValues(caster, casterAttributes, null),
             PayloadFilter = PayloadTargetType,
             Requirement = PayloadTarget
         };
@@ -293,8 +294,9 @@ public class EffectResourceGuard : Effect
 
     public override void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload)
     {
-        var casterAttributes = caster.EntityAttributes(payload.Action.SkillID,
-                               payload.Action.ActionID, statusID, payload.PayloadData.Categories);
+        var casterAttributes = payload != null ? caster.EntityAttributes(payload.Action.SkillID,
+                               payload.Action.ActionID, statusID, payload.PayloadData.Categories) :
+                               caster.EntityAttributes();
 
         var resourceGuard = new ResourceGuard()
         {
@@ -325,13 +327,13 @@ public class ResourceGuard : LimitedEffect<EffectResourceGuard>
     public Value MinValue;
     public Value MaxValue;
 
-    public bool Guard(Entity entity, float resourceValue, out float resourceGuarded)
+    public bool Guard(Entity entity, Dictionary<string, float> entityAttributes, float resourceValue, out float resourceGuarded)
     {
         resourceGuarded = resourceValue;
 
         if (MinValue != null && MinValue.Count > 0)
         {
-            var min = MinValue.IncomingValue(entity);
+            var min = MinValue.IncomingValue(entity, entityAttributes);
             if (resourceValue < min)
             {
                 resourceGuarded = min;
@@ -341,7 +343,7 @@ public class ResourceGuard : LimitedEffect<EffectResourceGuard>
 
         if (MaxValue != null && MaxValue.Count > 0)
         {
-            var max = MaxValue.IncomingValue(entity);
+            var max = MaxValue.IncomingValue(entity, entityAttributes);
 
             if (resourceValue > max)
             {
@@ -381,18 +383,19 @@ public class EffectShield : Effect
     }
     public override void Apply(string statusID, int effectIndex, Entity target, Entity caster, Payload payload)
     {
-        var casterAttributes = caster.EntityAttributes(payload.Action.SkillID,
-                               payload.Action.ActionID, statusID, payload.PayloadData.Categories);
+        var casterAttributes = payload != null ? caster.EntityAttributes(payload.Action.SkillID,
+                               payload.Action.ActionID, statusID, payload.PayloadData.Categories) :
+                               caster.EntityAttributes();
         var shield = new Shield()
         {
             Data = this,
             EffectIndex = effectIndex,
             StatusID = statusID,
             UsesLeft = Limit,
-            AbsorbtionLeft = MaxDamageAbsorbed != null ? MaxDamageAbsorbed.OutgoingValues(caster, casterAttributes, null).IncomingValue(target) : 0,
+            AbsorbtionLeft = MaxDamageAbsorbed != null ? MaxDamageAbsorbed.GetValue(caster, casterAttributes, target: target) : 0.0f,
         };
 
-        var shieldResourceGranted = ShieldResourceToGrant.OutgoingValues(caster, casterAttributes, null).IncomingValue(target);
+        var shieldResourceGranted = ShieldResourceToGrant.GetValue(caster, casterAttributes, target: target);
 
         target.ApplyShield(shield, Key(statusID, effectIndex), shieldResourceGranted);
     }

@@ -214,8 +214,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9508ae16dcb767040b68fc3f04bcbd7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  EntityID: Player
-  EntityLevel: 1
+  EntitiesToTag: []
 --- !u!114 &8799224501291485268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -243,9 +242,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3171c43dfb508b41a0d2d7f8d290caa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DistanceWeight: 0.8
-  AngleWeight: 0.2
-  MaxDistance: 50
 --- !u!114 &4921443177097771444
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -259,6 +255,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   GroundCheckSphereRadius: 0.22
+  IsRunning: 0
 --- !u!54 &8799224501291485271
 Rigidbody:
   m_ObjectHideFlags: 0

@@ -20,7 +20,7 @@ public class ActionCostCollection : Action
 
     public float GetValue(Entity entity)
     {
-        return Cost.IncomingValue(entity, MaxCost);
+        return Cost.IncomingValue(entity, entity.EntityAttributes(SkillID, ActionID), MaxCost);
     }
 
     public bool CanCollectCost(Entity entity)

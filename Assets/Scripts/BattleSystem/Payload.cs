@@ -19,7 +19,8 @@ public class Payload
         PayloadData = payloadData;
         StatusID = statusID;
 
-        CasterAttributes = caster.EntityAttributes(Action.SkillID, Action.ActionID, statusID, PayloadData.Categories);
+        CasterAttributes = Action != null ? caster.EntityAttributes(Action.SkillID, Action.ActionID, statusID, PayloadData.Categories) :
+                           caster.EntityAttributes();
         PayloadValue = payloadData.PayloadValue.OutgoingValues(caster, CasterAttributes, actionResults);
         if (payloadData.PayloadValueMax != null && payloadData.PayloadValueMax.Count > 0)
         {
@@ -75,7 +76,7 @@ public class Payload
         }
 
         // Reverse the change
-        result.Change = -PayloadValue.IncomingValue(target, PayloadValueMax);
+        result.Change = -PayloadValue.IncomingValue(target, target.EntityAttributes(), PayloadValueMax);
 
         // Incoming damage can be calculated using target attributes and other variables here.
         if (result.Change > Constants.Epsilon || result.Change < -Constants.Epsilon)
@@ -91,6 +92,13 @@ public class Payload
         if (!target.Alive)
         {
             return true;
+        }
+
+        // Aggro
+        if (PayloadData.Aggro != null)
+        {
+            var mult = PayloadData.MultiplyAggroByPayloadValue ? -result.Change : 1.0f;
+            target.EntityBattle.ChangeAggro(caster, PayloadData.Aggro.GetAggroChange(caster, caster.EntityUID, target, mult));
         }
 
         // Tag
@@ -109,7 +117,7 @@ public class Payload
                 {
                     continue;
                 }
-                target.ApplyStatusEffect(caster, Action, status.StatusID, status.Stacks, this);
+                target.ApplyStatusEffect(caster, status.StatusID, status.Stacks, Action, this);
             }
         }
 
