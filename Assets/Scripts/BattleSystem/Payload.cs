@@ -58,7 +58,6 @@ public class Payload
         if (PayloadData.Instakill)
         {
             target.OnDeath(caster, result);
-            caster.OnKill(result);
         }
 
         // Category multiplier
@@ -97,7 +96,7 @@ public class Payload
         // Aggro
         if (PayloadData.Aggro != null)
         {
-            var mult = PayloadData.MultiplyAggroByPayloadValue ? -result.Change : 1.0f;
+            var mult = PayloadData.MultiplyAggroByPayloadValue ? result.Change : 1.0f;
             target.EntityBattle.ChangeAggro(caster, PayloadData.Aggro.GetAggroChange(caster, caster.EntityUID, target, mult));
         }
 

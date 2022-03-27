@@ -96,6 +96,7 @@ GameObject:
   - component: {fileID: 6934705420198072592}
   - component: {fileID: 6934705420198072593}
   - component: {fileID: 7141314107999586230}
+  - component: {fileID: 2801246277733239384}
   m_Layer: 6
   m_Name: Dummy
   m_TagString: Untagged
@@ -132,7 +133,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 202e67203bb371f44a3448441e2ec9c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  EntityLevel: 1
+  EntityID: Player
+  EntityLevel: 2
   EntitiesToTag: []
 --- !u!114 &6934705420198072594
 MonoBehaviour:
@@ -206,6 +208,19 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 1, z: 0}
+--- !u!114 &2801246277733239384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6934705420198072588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25ea60739dda0a34a9b47451c3749605, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GroundCheckSphereRadius: 3
 --- !u!1 &6934705421952962650
 GameObject:
   m_ObjectHideFlags: 0

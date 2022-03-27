@@ -180,7 +180,7 @@ public class EntityBattle
         {
             foreach (var entity in EngagedEntities)
             {
-                entity.Value.Aggro += BattleData.Aggro.AggroChangePerSecond.GetAggroChange(Entity, entity.Key, Entity);
+                ChangeAggro(entity.Value.Entity, BattleData.Aggro.AggroChangePerSecond.GetAggroChange(Entity, entity.Key, Entity));
             }
         }
     }
@@ -218,6 +218,11 @@ public class EntityBattle
         // Otherwise select skills automatically.
         else if (Data.SkillMode != EntitySkillsData.eSkillMode.None && SkillState == eSkillState.Idle)
         {
+            if (Target == null)
+            {
+                Targeting.SelectTarget(Targeting.GetBestEnemy());
+            }
+
             if (string.IsNullOrEmpty(SkillToUse))
             {
                 switch (Data.SkillMode)
@@ -596,7 +601,8 @@ public class EntityBattle
     #region Aggro
     public void ChangeAggro(Entity entity, float change)
     {
-        if (change > Constants.Epsilon && !EngagedEntities.ContainsKey(entity.EntityUID))
+        var increase = change > Constants.Epsilon;
+        if (increase && !EngagedEntities.ContainsKey(entity.EntityUID))
         {
             Engage(entity);
         }
@@ -605,11 +611,13 @@ public class EntityBattle
         {
             EngagedEntities[entity.EntityUID].Aggro = Mathf.Clamp(EngagedEntities[entity.EntityUID].Aggro + change, 0.0f, 
                                                       BattleData.Aggro.MaxAggro > Constants.Epsilon ? BattleData.Aggro.MaxAggro : float.MaxValue);
-        }
 
-        if (Targeting.Targeting.EnemyTargetPriority.TargetPriority == EntityTargetingData.TargetingPriority.eTargetPriority.Aggro)
-        {
-            Targeting.SelectTarget(Targeting.GetBestEnemy());
+            if (increase && (Target == null || (Targeting.Targeting.EnemyTargetPriority.TargetPriority == 
+                EntityTargetingData.TargetingPriority.eTargetPriority.Aggro && entity != Target && 
+                GetAggro(entity.EntityUID) > GetAggro(Target.EntityUID) + Constants.Epsilon)))
+            {
+                Targeting.SelectTarget(entity);
+            }
         }
     }
 

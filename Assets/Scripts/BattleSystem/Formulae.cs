@@ -28,7 +28,8 @@ public static class Formulae
         }
         var critMultiplier = isCrit ? (1.0f + payload.CasterAttributes["critDamage"]) : 1.0f;
 
-        var defMultiplier = 1.0f - targetAttributes["def"] / (targetAttributes["def"] + 5 * caster.Level + 500.0f);
+        var isDamage = rawDamage > 0.0f;
+        var defMultiplier = isDamage ? 1.0f - targetAttributes["def"] / (targetAttributes["def"] + 5 * caster.Level + 500.0f) : 1.0f;
         var incomingDamage = rawDamage * critMultiplier * defMultiplier;
 
         return incomingDamage;

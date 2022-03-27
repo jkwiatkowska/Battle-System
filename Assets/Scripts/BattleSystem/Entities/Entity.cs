@@ -340,9 +340,14 @@ public class Entity : MonoBehaviour
     {
         if (!Alive)
         {
+            // Cancel any action timelines invoked by death trigger
+            StopAllCoroutines();
+
+            // Reset states
             EntityState = eEntityState.Alive;
             EntityBattle.SetIdle();
 
+            // Triggers
             OnTrigger(TriggerData.eTrigger.OnReviveIncoming, triggerSource: payloadResult.Caster, payloadResult: payloadResult);
             payloadResult.Caster.OnReviveOutgoing(payloadResult);
         }
@@ -385,6 +390,13 @@ public class Entity : MonoBehaviour
 
     public virtual void OnDeath(Entity source = null, PayloadResult payloadResult = null)
     {
+        if (!Alive)
+        {
+            return;
+        }
+
+        payloadResult?.Caster.OnKill(payloadResult);
+
         StopAllCoroutines();
         EntityState = eEntityState.Dead;
         EntityBattle.SetIdle();
@@ -1208,7 +1220,6 @@ public class Entity : MonoBehaviour
             if (ResourcesCurrent[resourceAffected] <= 0.0f && EntityData.LifeResources.Contains(resourceAffected))
             {
                 OnDeath(payloadResult.Caster, payloadResult);
-                payloadResult.Caster.OnKill(payloadResult);
             }
         }
         else

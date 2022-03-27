@@ -1688,13 +1688,13 @@ public class BattleSystemDataEditor : EditorWindow
 
             if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoRandom)
             {
-                BattleGUI.EditBool(ref entity.Data.Skills.EngageOnSight, "Use Skills On Sight");
+                BattleGUI.EditBool(ref entity.Data.Skills.EngageOnSight, "Engage On Sight");
                 BattleGUI.EditList(ref entity.NewSkill, entity.Data.Skills.RandomSkills, BattleData.Skills.Keys.ToList(),
                          EditRandomSkill, NewRandomSkill, "Enity Skills:", "(No Skills)", "Add Skill:");
             }
             else if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoSequence)
             {
-                BattleGUI.EditBool(ref entity.Data.Skills.EngageOnSight, "Use Skills On Sight");
+                BattleGUI.EditBool(ref entity.Data.Skills.EngageOnSight, "Engage On Sight");
                 BattleGUI.EditList(ref entity.NewSkill, entity.Data.Skills.SequenceSkills, BattleData.Skills.Keys.ToList(),
                          EditSequenceSkill, NewSequenceSkill, "Enity Skills:", "(No Skills)", "Add Skill:");
             }

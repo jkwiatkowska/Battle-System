@@ -130,7 +130,7 @@ public abstract class ActionPayload : Action
             var payload = new Payload(entity, payloadData, action: this, statusID: null, actionResults);
             foreach (var t in targets)
             {
-                if (t == null || !t.Alive)
+                if (t == null || (TargetState == eTargetState.Alive && !t.Alive) || (TargetState == eTargetState.Dead && t.Alive))
                 {
                     continue;
                 }

@@ -6,7 +6,6 @@ using UnityEditor;
 public class EntityEditor : Editor
 {
     int Space = 250;
-    int Level = -1;
     string ID = "";
 
     bool ShowAttributes = false;
@@ -33,6 +32,7 @@ public class EntityEditor : Editor
                 entity.RefreshEntity();
             }
 
+            DisplayState(entity);
             DisplayAttributes(entity);
             DisplayResources(entity);
             DisplayStatusEffects(entity);
@@ -64,12 +64,6 @@ public class EntityEditor : Editor
             ID = entity.EntityID;
             BattleGUI.SelectEntity(ref ID, entityType, "Entity ID:", Space);
 
-            if (Level < 1)
-            {
-                Level = entity.Level;
-            }
-            BattleGUI.EditInt(ref Level, "Level:", Space);
-
             if (!string.IsNullOrEmpty(ID))
             {
                 if (targets.Length > 1)
@@ -79,14 +73,12 @@ public class EntityEditor : Editor
                         if (t is Entity e)
                         {
                             e.UpdateID(ID);
-                            e.UpdateLevel(Level);
                         }
                     }
                 }
                 else
                 {
                     entity.UpdateID(ID);
-                    entity.UpdateLevel(Level);
                 }
             }
         }
@@ -100,6 +92,14 @@ public class EntityEditor : Editor
             }
             GUILayout.EndHorizontal();
         }
+    }
+
+    void DisplayState(Entity entity)
+    {
+        BattleGUI.StartIndent();
+        BattleGUI.Label($"Entity State: {entity.EntityState}");
+        BattleGUI.Label($"Entity Skill State: {entity.EntityBattle.SkillState}");
+        BattleGUI.EndIndent();
     }
 
     void DisplayAttributes(Entity entity)
@@ -204,7 +204,8 @@ public class EntityEditor : Editor
 
                 foreach (var e in entities)
                 {
-                    BattleGUI.Label($"[{e.Key}]    Aggro: {e.Value.Aggro:0.##}");
+                    var selected = entity.Target.EntityUID == e.Key;
+                    BattleGUI.Label($"[{(selected ? "*" : "")}{e.Key}]    Aggro: {e.Value.Aggro:0.##}");
                 }
             }
             BattleGUI.EndIndent();

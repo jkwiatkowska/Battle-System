@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class MovementEntity : MonoBehaviour
@@ -13,7 +12,7 @@ public class MovementEntity : MonoBehaviour
     public bool IsGrounded                              { get; protected set; }
     Vector3 GroundCheckSphereOffset;
 
-    public bool IsRunning;
+    public bool IsRunning                               { get; protected set; }
 
     public float LastMoved                              { get; protected set; }
     public float LastJumped                             { get; protected set; }

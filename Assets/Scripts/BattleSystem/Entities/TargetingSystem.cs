@@ -53,10 +53,22 @@ public class TargetingSystem : MonoBehaviour
 
     public virtual void SelectTarget(Entity entity)
     {
+        if (entity == null)
+        {
+            return;
+        }
+
         ClearSelection();
         SelectedTarget = entity;
         var targetable = entity.GetComponentInChildren<Targetable>();
-        targetable.Target(true, Entity);
+        if (targetable != null)
+        {
+            targetable.Target(true, Entity);
+        }
+        else
+        {
+            Debug.LogError($"Entity {entity} marked as targetable, but has no Targetable component.");
+        }
     }
 
     public virtual void ClearSelection(bool selfOnly = false)
@@ -174,41 +186,30 @@ public class TargetingSystem : MonoBehaviour
         // See if any entity got in or out of reach.
         foreach (var target in PotentialTargets)
         {
-            if (target == Entity)
+            if (target == Entity || target == null)
             {
                 continue;
             }
 
             var targetPos = target.Origin;
             var dist = (entityPos - targetPos).sqrMagnitude;
-            if (!DetectedEntities.Contains(target))
+            if (!DetectedEntities.Contains(target) && dist <= detectDist)
             {
-                if (dist <= detectDist)
+                if (detectFov >= 360.0f - Constants.Epsilon)
                 {
-                    if (detectFov >= 360.0f - Constants.Epsilon)
+                    DetectedEntities.Add(target);
+                    TryEngageTarget(target);
+                }
+                else
+                {
+                    var dir1 = (targetPos - entityPos).normalized;
+                    var dir2 = Entity.transform.forward;
+                    var angle = Vector3.Angle(dir1, dir2);
+
+                    if (angle * 2.0f < detectFov)
                     {
                         DetectedEntities.Add(target);
-                        if (Entity.EntityData.Skills.EngageOnSight && target.EntityData.CanEngage)
-                        {
-                            Entity.EntityBattle.Engage(target);
-                            target.EntityBattle.Engage(Entity);
-                        }
-                    }
-                    else
-                    {
-                        var dir1 = (targetPos - entityPos).normalized;
-                        var dir2 = Entity.transform.forward;
-                        var angle = Vector3.Angle(dir1, dir2);
-
-                        if (angle * 2.0f < detectFov)
-                        {
-                            DetectedEntities.Add(target);
-                            if (Entity.EntityData.Skills.EngageOnSight && target.EntityData.CanEngage)
-                            {
-                                Entity.EntityBattle.Engage(target);
-                                target.EntityBattle.Engage(Entity);
-                            }
-                        }
+                        TryEngageTarget(target);
                     }
                 }
             }
@@ -233,6 +234,15 @@ public class TargetingSystem : MonoBehaviour
         // Sort and filter the lists as needed
         ProcessEnemyEntityList(targeting);
         ProcessFriendlyEntityList(targeting);
+    }
+
+    void TryEngageTarget(Entity target)
+    {
+        if (target.Alive && Entity.EntityData.Skills.EngageOnSight && target.EntityData.CanEngage && Entity.IsEnemy(target.Faction))
+        {
+            Entity.EntityBattle.Engage(target);
+            target.EntityBattle.Engage(Entity);
+        }
     }
 
     protected virtual void ProcessEnemyEntityList(EntityTargetingData targeting)
