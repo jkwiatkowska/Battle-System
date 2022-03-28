@@ -23,6 +23,10 @@ public class TriggerData
             TriggerSourceResourceMin,           // Resource of the entity that caused the trigger must be bigger than the float value.
             EntityResourceRatioMin,             // Ratio of current resource to max resource.
             TriggerSourceResourceRatioMin,      // Ratio of current resource to max resource of the entity that caused the trigger.
+            EntityHasTag,                       // Entity has a specific tag applied.
+            TriggerSourceHasTag,                // Trigger source entity has a specific tag applied.
+            EntityHasTagFromTriggerSource,      // Entity has a specific tag applied by the entity that caused the trigger.
+            TriggerSourceHasTagFromEntity,      // Trigger source has a specific tag applied by the entity. 
             PayloadResultMin,                   // How much a resource has been depleted as a result of a payload being applied.
             ActionResultMin,                    // How much resources of all targets have been affected as a result of a payload being applied.
             NumTargetsAffectedMin,              // For triggers caused by outgoing payload actions. 
@@ -152,6 +156,26 @@ public class TriggerData
                                    triggerSource.ResourceRatio(StringValue) >= FloatValue;
                     break;
                 }
+                case eConditionType.EntityHasTag:
+                {
+                    conditionMet = entity != null && entity.HasTag(StringValue);
+                    break;
+                }
+                case eConditionType.TriggerSourceHasTag:
+                {
+                    conditionMet = triggerSource != null && triggerSource.HasTag(StringValue);
+                    break;
+                }
+                case eConditionType.EntityHasTagFromTriggerSource:
+                {
+                    conditionMet = entity != null && entity.HasTagFromEntity(StringValue, triggerSource.EntityUID);
+                    break;
+                }
+                case eConditionType.TriggerSourceHasTagFromEntity:
+                {
+                    conditionMet = triggerSource != null && triggerSource.HasTagFromEntity(StringValue, entity.EntityUID);
+                    break;
+                }
                 case eConditionType.PayloadResultMin:
                 {
                     conditionMet = payloadResult != null && payloadResult.Change >= FloatValue;
@@ -223,6 +247,17 @@ public class TriggerData
             list.Add(eConditionType.EntityResourceRatioMin);
             list.Add(eConditionType.EntityHasStatus);
             list.Add(eConditionType.EntitiesEngagedMin);
+            list.Add(eConditionType.EntityHasTag);
+
+            // These apply to triggers caused by another entity, If another entity didn't cause the trigger, the entity itself is treated as a source entity. 
+            list.Add(eConditionType.TriggerSourceResourceMin);
+            list.Add(eConditionType.TriggerSourceResourceRatioMin);
+            list.Add(eConditionType.TriggerSourceHasStatus);
+            list.Add(eConditionType.TriggerSourceIsEnemy);
+            list.Add(eConditionType.TriggerSourceIsFriend);
+            list.Add(eConditionType.TriggerSourceHasTag);
+            list.Add(eConditionType.EntityHasTagFromTriggerSource);
+            list.Add(eConditionType.TriggerSourceHasTagFromEntity);
 
             bool isPayloadTrigger = triggerType == eTrigger.OnPayloadApplied || triggerType == eTrigger.OnPayloadReceived || 
                                     triggerType == eTrigger.OnResourceChanged || triggerType == eTrigger.OnDeath || 
@@ -235,23 +270,11 @@ public class TriggerData
                                    triggerType == eTrigger.OnStatusClearedOutgoing || triggerType == eTrigger.OnStatusClearedIncoming ||
                                    triggerType == eTrigger.OnStatusExpired;
 
-            bool hasSourceEntity = isPayloadTrigger || isStatusTrigger || triggerType == eTrigger.OnSpawn || 
-                                   triggerType == eTrigger.OnCollisionEnemy || triggerType == eTrigger.OnCollisionFriend;
-
             if (isPayloadTrigger || isActionTrigger)
             {
                 list.Add(eConditionType.CausedBySkill);
                 list.Add(eConditionType.CausedBySkillGroup);
                 list.Add(eConditionType.CausedByAction);
-            }
-
-            if (hasSourceEntity)
-            {
-                list.Add(eConditionType.TriggerSourceResourceMin);
-                list.Add(eConditionType.TriggerSourceResourceRatioMin);
-                list.Add(eConditionType.TriggerSourceHasStatus);
-                list.Add(eConditionType.TriggerSourceIsEnemy);
-                list.Add(eConditionType.TriggerSourceIsFriend);
             }
 
             if (isPayloadTrigger)
@@ -280,6 +303,7 @@ public class TriggerData
     #endregion
     public enum eTrigger
     {
+        EveryFrame,                 // Fires every frame.
         OnPayloadApplied,           // Succesfully using a payload action.
         OnPayloadReceived,          // Having payload applied.
         OnHitMissed,                // Failing to apply a payload action.
@@ -301,12 +325,18 @@ public class TriggerData
         OnCollisionEnemy,           // Fires on trigger collision with an enemy.
         OnCollisionFriend,          // Fireso on trigger collision with a friend.
         OnCollisionTerrain,         // Fires on trigger collision with an object on terrain layer.
-        OnSummonerTrigger,          // Triggered when a summoning entity is affected by a trigger.
-        OnSummonedTrigger,          // Triggered when a summoned entity is affected by a trigger.
-        OnTaggedTrigger,            // Triggered when a tagged entity is affected by a trigger.
+    }
+
+    public enum eEntityAffected
+    {
+        Self,                       // The trigger fired because something happened to the entity it is attached to.
+        Summoner,                   // The trigger fired because something happened to the entity that summoned this entity.
+        TaggedEntity,               // Trigger fired because something happened to a tagged entity. Summonned entities are automatically tagged with their action ID. 
+        EngagedEntity,              // Something happened to an entity that's being battled.
     }
 
     public eTrigger Trigger;                    // Type of trigger.
+    public eEntityAffected EntityAffected;      // Entity affected that the trigger - another entity can cause a trigger to go off for another entity.
     public List<TriggerCondition> Conditions;   // All these conditions have to be met for the trigger to go off.
     public float Cooldown;                      // A trigger can have a cooldown applied whenever it activates to limit its effects
     public int Limit;                           // A trigger can have a limit set. It will be removed from an entity when that limit is reached. Unlimited if 0. 

@@ -210,97 +210,75 @@ public class ValueComponent
         Aggro,
     }
 
-    public static List<eValueComponentType> AvailableComponentTypes(eValueType valueType)
+    public static Dictionary<eValueType, List<eValueComponentType>> AvailableComponentTypes = new Dictionary<eValueType, List<eValueComponentType>>()
     {
-        switch (valueType)
+        [eValueType.SkillAction] = new List<eValueComponentType>()
         {
-            case eValueType.SkillAction:
-            {
-                return new List<eValueComponentType>()
-                {
-                    eValueComponentType.FlatValue,
-                    eValueComponentType.CasterLevel,
-                    eValueComponentType.CasterAttributeBase,
-                    eValueComponentType.CasterAttributeCurrent,
-                    eValueComponentType.CasterResourceMax,
-                    eValueComponentType.CasterResourceCurrent,
-                    eValueComponentType.CasterResourceRatio,
-                    eValueComponentType.TargetLevel,
-                    eValueComponentType.TargetResourceMax,
-                    eValueComponentType.TargetResourceCurrent,
-                    eValueComponentType.TargetResourceRatio,
-                    eValueComponentType.ActionResultValue
-                };
-            }
-            case eValueType.Resource:
-            {
-                return new List<eValueComponentType>()
-                {
-                    eValueComponentType.FlatValue,
-                    eValueComponentType.CasterLevel,
-                    eValueComponentType.CasterAttributeBase,
-                    eValueComponentType.CasterAttributeCurrent,
-                };
-            }
-            case eValueType.CasterOnly:
-            {
-                return new List<eValueComponentType>()
-                {
-                    eValueComponentType.FlatValue,
-                    eValueComponentType.CasterLevel,
-                    eValueComponentType.CasterAttributeBase,
-                    eValueComponentType.CasterAttributeCurrent,
-                    eValueComponentType.CasterResourceMax,
-                    eValueComponentType.CasterResourceCurrent,
-                    eValueComponentType.CasterResourceRatio
-                };
-            }
-            case eValueType.NonAction:
-            {
-                return new List<eValueComponentType>()
-                {
-                    eValueComponentType.FlatValue,
-                    eValueComponentType.CasterLevel,
-                    eValueComponentType.CasterAttributeBase,
-                    eValueComponentType.CasterAttributeCurrent,
-                    eValueComponentType.CasterResourceMax,
-                    eValueComponentType.CasterResourceCurrent,
-                    eValueComponentType.CasterResourceRatio,
-                    eValueComponentType.TargetLevel,
-                    eValueComponentType.TargetResourceMax,
-                    eValueComponentType.TargetResourceCurrent,
-                    eValueComponentType.TargetResourceRatio,
-                };
-            }
-            case eValueType.TargetingPriority:
-            {
-                return new List<eValueComponentType>()
-                {
-                    eValueComponentType.TargetResourceMax,
-                    eValueComponentType.TargetResourceCurrent,
-                    eValueComponentType.TargetResourceRatio,
-                    eValueComponentType.TargetAttributeCurrent,
-                    eValueComponentType.TargetAttributeBase,
-                    eValueComponentType.TargetLevel,
-                };
-            }
-            case eValueType.Aggro:
-            {
-                return new List<eValueComponentType>()
-                {
-                    eValueComponentType.FlatValue,
-                    eValueComponentType.CasterAttributeCurrent,
-                    eValueComponentType.CasterAttributeBase,
-                    eValueComponentType.CasterResourceMax,
-                    eValueComponentType.CasterResourceCurrent,
-                    eValueComponentType.CasterResourceRatio,
-                    eValueComponentType.CasterLevel,
-                };
-            }
+            eValueComponentType.FlatValue,
+            eValueComponentType.CasterLevel,
+            eValueComponentType.CasterAttributeBase,
+            eValueComponentType.CasterAttributeCurrent,
+            eValueComponentType.CasterResourceMax,
+            eValueComponentType.CasterResourceCurrent,
+            eValueComponentType.CasterResourceRatio,
+            eValueComponentType.TargetLevel,
+            eValueComponentType.TargetResourceMax,
+            eValueComponentType.TargetResourceCurrent,
+            eValueComponentType.TargetResourceRatio,
+            eValueComponentType.ActionResultValue
+        },
+        [eValueType.Resource] = new List<eValueComponentType>()
+        {
+            eValueComponentType.FlatValue,
+            eValueComponentType.CasterLevel,
+            eValueComponentType.CasterAttributeBase,
+            eValueComponentType.CasterAttributeCurrent,
+        },
+        [eValueType.CasterOnly] = new List<eValueComponentType>()
+        {
+            eValueComponentType.FlatValue,
+            eValueComponentType.CasterLevel,
+            eValueComponentType.CasterAttributeBase,
+            eValueComponentType.CasterAttributeCurrent,
+            eValueComponentType.CasterResourceMax,
+            eValueComponentType.CasterResourceCurrent,
+            eValueComponentType.CasterResourceRatio
+        },
+        [eValueType.NonAction] = new List<eValueComponentType>()
+        {
+            eValueComponentType.FlatValue,
+            eValueComponentType.CasterLevel,
+            eValueComponentType.CasterAttributeBase,
+            eValueComponentType.CasterAttributeCurrent,
+            eValueComponentType.CasterResourceMax,
+            eValueComponentType.CasterResourceCurrent,
+            eValueComponentType.CasterResourceRatio,
+            eValueComponentType.TargetLevel,
+            eValueComponentType.TargetResourceMax,
+            eValueComponentType.TargetResourceCurrent,
+            eValueComponentType.TargetResourceRatio,
+        },
+        [eValueType.TargetingPriority] = new List<eValueComponentType>()
+        {
+            eValueComponentType.TargetResourceMax,
+            eValueComponentType.TargetResourceCurrent,
+            eValueComponentType.TargetResourceRatio,
+            eValueComponentType.TargetAttributeCurrent,
+            eValueComponentType.TargetAttributeBase,
+            eValueComponentType.TargetLevel,
+        },
+        [eValueType.Aggro] = new List<eValueComponentType>()
+        {
+            eValueComponentType.FlatValue,
+            eValueComponentType.CasterAttributeCurrent,
+            eValueComponentType.CasterAttributeBase,
+            eValueComponentType.CasterResourceMax,
+            eValueComponentType.CasterResourceCurrent,
+            eValueComponentType.CasterResourceRatio,
+            eValueComponentType.CasterLevel,
+            eValueComponentType.ActionResultValue,
         }
-
-        return null;
-    }
+    };
 }
 
 public class Value : List<ValueComponent>

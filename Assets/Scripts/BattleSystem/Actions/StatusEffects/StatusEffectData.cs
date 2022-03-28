@@ -8,6 +8,7 @@ public class StatusEffectData
     public List<Effect> Effects;                    // Effects applied when the required amount of stacks is aquired and removed when the status effect ends.
     public int MaxStacks;                           // Applying a status effect repeatedly can grant multiple stacks, up to this limit.
     public float Duration;                          // Infinite if 0.
+    public bool StackGainResetsDuration;            // If true, gaining stacks of this status effect will result in its duration reseting to max.
 
     public List<(PayloadData PayloadData, float Interval)> OnInterval;  // Payload applied every n seconds.
     public List<PayloadData> OnCleared;                                 // Payload applied when a status effect is removed by an action.
@@ -20,6 +21,7 @@ public class StatusEffectData
         MaxStacks = 1;
         Duration = 0.0f;
         OnInterval = new List<(PayloadData PayloadData, float Interval)>();
+        StackGainResetsDuration = true;
     }
 
     public StatusEffectData(string statusID):this()

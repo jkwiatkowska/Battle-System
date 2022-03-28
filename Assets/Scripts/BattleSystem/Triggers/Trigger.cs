@@ -19,11 +19,16 @@ public class Trigger
     }
 
     public Coroutine TryExecute(Entity entity, out bool usesLeft, Entity triggerSource = null, PayloadResult payloadResult = null, 
-                                Action action = null, ActionResult actionResult = null, string statusName = "")
+                                Action action = null, ActionResult actionResult = null, string statusName = "", 
+                                TriggerData.eEntityAffected entityAffected = TriggerData.eEntityAffected.Self)
     {
         usesLeft = true;
+        if (triggerSource == null)
+        {
+            triggerSource = entity;
+        }
 
-        if (!ConditionsMet(entity, triggerSource, payloadResult, action, actionResult, statusName))
+        if (!ConditionsMet(entity, triggerSource, payloadResult, action, actionResult, statusName, entityAffected))
         {
             return null;
         }
@@ -46,8 +51,14 @@ public class Trigger
         return entity.StartCoroutine(TriggerData.Actions.ExecuteActions(entity, target));
     }
 
-    public bool ConditionsMet(Entity entity, Entity triggerSource, PayloadResult payloadResult, Action action, ActionResult actionResult, string statusName)
+    public bool ConditionsMet(Entity entity, Entity triggerSource, PayloadResult payloadResult, Action action, 
+                              ActionResult actionResult, string statusName, TriggerData.eEntityAffected entityAffected)
     {
+        if (entityAffected != TriggerData.EntityAffected)
+        {
+            return false;
+        }
+
         if (ExpireTime != 0.0f && ExpireTime < BattleSystem.Time)
         {
             return false;

@@ -12,7 +12,6 @@ public class EntityCanvas : MonoBehaviour
     [SerializeField] List<ResourceDisplay> ResourceDisplays;
     Dictionary<string, List<ResourceDisplay>> ResourceDisplay;
     Camera Camera;
-
     public void Setup(Entity entity)
     {
         Entity = entity;

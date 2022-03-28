@@ -111,7 +111,10 @@ public class StatusEffect
     public void ApplyStacks(int stacks = 1)
     {
         StartTime = BattleSystem.Time;
-        EndTime = StartTime + Formulae.StatusDurationTime(Caster, Target, Data);
+        if (Data.StackGainResetsDuration)
+        {
+            EndTime = StartTime + Formulae.StatusDurationTime(Caster, Target, Data);
+        }
 
         if (Caster != null)
         {

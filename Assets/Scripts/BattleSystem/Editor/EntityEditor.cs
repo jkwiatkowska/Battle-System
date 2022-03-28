@@ -14,6 +14,7 @@ public class EntityEditor : Editor
 
     bool ShowResources = false;
     bool ShowStatusEffects = false;
+    bool ShowTriggers = false;
     bool ShowEngagedEntities = false;
 
     public override bool RequiresConstantRepaint()
@@ -36,6 +37,7 @@ public class EntityEditor : Editor
             DisplayAttributes(entity);
             DisplayResources(entity);
             DisplayStatusEffects(entity);
+            DisplayTriggers(entity);
             DisplayEngagedEntities(entity);
         }
 
@@ -185,6 +187,33 @@ public class EntityEditor : Editor
                                     $"{(e.Value.Data.Duration > Constants.Epsilon ? $"    Time Left: {(e.Value.EndTime - BattleSystem.Time):0.##}" : "")}");
                 }
             }
+            BattleGUI.EndIndent();
+        }
+    }
+
+    void DisplayTriggers(Entity entity)
+    {
+        if (BattleGUI.EditFoldout(ref ShowTriggers, "Triggers"))
+        {
+            BattleGUI.StartIndent();
+            if (entity.Triggers == null || entity.Triggers.Count < 1)
+            {
+                BattleGUI.Label("(Entity has no triggers)");
+            }
+            else
+            {
+                foreach (var triggerType in entity.Triggers)
+                {
+                    foreach (var trigger in triggerType.Value)
+                    {
+                        var cd = trigger.TriggerData.Cooldown - BattleSystem.Time - trigger.LastUsedTime;
+                        BattleGUI.Label($"[{triggerType.Key}]    Entity Affected: {trigger.TriggerData.EntityAffected}" +
+                                       (trigger.UsesLeft > 0 ? $"   Uses Left: {trigger.UsesLeft}" : "") +
+                                       (cd > Constants.Epsilon ? $"    Cooldown: {cd:0.##}" : ""));
+                    }
+                }
+            }
+
             BattleGUI.EndIndent();
         }
     }

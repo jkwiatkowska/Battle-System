@@ -37,36 +37,21 @@ public class ActionPayloadDirect : ActionPayload
                     return targets;
                 }
 
-                if (Target == eTarget.FriendlyEntities)
+                if (!CheckTargetableState(target))
                 {
-                    if (entity.IsFriendly(target.Faction))
-                    {
-                        if (CheckTargetableState(target))
-                        {
-                            targets.Add(target);
-                        }
-                    }
-                    else
-                    {
-                        if (CheckTargetableState(entity))
-                        {
-                            targets.Add(entity);
-                        }
-                    }
+                    break;
                 }
-                else if (Target == eTarget.EnemyEntities)
+
+                var canBeAffected = (Target == eTarget.AllEntities ||
+                                    (Target == eTarget.FriendlyEntities && entity.IsFriendly(target.Faction)) ||
+                                    (Target == eTarget.EnemyEntities && entity.IsEnemy(target.Faction)));
+                if (canBeAffected)
                 {
-                    if (entity.IsEnemy(target.Faction))
-                    {
-                        if (CheckTargetableState(target))
-                        {
-                            targets.Add(target);
-                        }
-                    }
-                    else
-                    {
-                        return targets;
-                    }
+                    targets.Add(target);
+                }
+                else if (Target == eTarget.FriendlyEntities)
+                {
+                    targets.Add(entity);
                 }
                 break;
             }

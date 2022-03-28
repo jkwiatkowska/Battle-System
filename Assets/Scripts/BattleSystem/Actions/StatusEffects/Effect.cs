@@ -301,8 +301,8 @@ public class EffectResourceGuard : Effect
         var resourceGuard = new ResourceGuard()
         {
             Data = this,
-            MinValue = MinValue.OutgoingValues(caster, casterAttributes, null),
-            MaxValue = MaxValue.OutgoingValues(caster, casterAttributes, null),
+            MinValue = MinValue?.OutgoingValues(caster, casterAttributes, null),
+            MaxValue = MaxValue?.OutgoingValues(caster, casterAttributes, null),
             UsesLeft = Limit,
             StatusID = statusID,
             EffectIndex = effectIndex

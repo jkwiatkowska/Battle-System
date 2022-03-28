@@ -36,7 +36,7 @@ public class Entity : MonoBehaviour
     protected Dictionary<TriggerData.eTrigger, Dictionary<string, Trigger>> EffectTriggers;         // Key: Trigger type, Key2: trigger ID.
 
     // Triggers
-    protected Dictionary<TriggerData.eTrigger, List<Trigger>> Triggers;
+    public Dictionary<TriggerData.eTrigger, List<Trigger>> Triggers         { get; protected set; }
 
     // Other objects that make up an entity
     public EntityCanvas EntityCanvas                                        { get; protected set; }
@@ -270,16 +270,77 @@ public class Entity : MonoBehaviour
     }
 
     protected virtual void OnTrigger(TriggerData.eTrigger trigger, Entity triggerSource = null, PayloadResult payloadResult = null, 
-                                     ActionResult actionResult = null, Action action = null, string statusID = "")
+                                     ActionResult actionResult = null, Action action = null, string statusID = "", 
+                                     TriggerData.eEntityAffected entityAffected = TriggerData.eEntityAffected.Self)
     {
+        // Triggers can be caused by other entities, so the triggers gets passed along.
+        if (entityAffected == TriggerData.eEntityAffected.Self)
+        {
+            // Summoner
+            if (SummonedEntities != null)
+            {
+                for (int i = 0; i < SummonedEntities.Count; i++)
+                {
+                    var summon = SummonedEntities.Values.ElementAt(i);
+
+                    for (int j = 0; j < summon.Count; j++)
+                    {
+                        var entity = summon.ElementAt(j);
+                        if (entity != null)
+                        {
+                            entity.OnTrigger(trigger, this, payloadResult, actionResult, action, statusID, 
+                                             entityAffected: TriggerData.eEntityAffected.Summoner);
+                        }
+                    }
+                }
+            }
+
+            // Tagged entity
+            if (TagsAppliedBy != null)
+            {
+                for (int i = 0; i < TagsAppliedBy.Count; i++)
+                {
+                    var key = TagsAppliedBy.Keys.ElementAt(i);
+
+                    if (BattleSystem.Entities.ContainsKey(key))
+                    {
+                        var entity = BattleSystem.Entities[key];
+
+                        if (entity != null)
+                        {
+                            entity.OnTrigger(trigger, this, payloadResult, actionResult, action, statusID, 
+                                             entityAffected: TriggerData.eEntityAffected.TaggedEntity);
+                        }
+                    }
+                }
+            }
+
+            // Engaged entity
+            if (EntityBattle.InCombat)
+            {
+                for (int i = 0; i < EntityBattle.EngagedEntities.Count; i++)
+                {
+                    var entity = EntityBattle.EngagedEntities.Values.ElementAt(i).Entity;
+                    if (entity != null)
+                    {
+                        entity.OnTrigger(trigger, this, payloadResult, actionResult, action, statusID, 
+                                                      entityAffected: TriggerData.eEntityAffected.EngagedEntity);
+                    }
+                }
+            }
+        }
+
+        // Act on the trigger.
         if (Triggers != null && Triggers.ContainsKey(trigger))
         {
-            foreach (var t in Triggers[trigger])
+            for (int i = 0; i < Triggers[trigger].Count; i++)
             {
-                t.TryExecute(entity: this, out var keep, triggerSource != null ? triggerSource : this, payloadResult, action, actionResult, statusID);
+                Triggers[trigger][i].TryExecute(entity: this, out var keep, triggerSource != null ? triggerSource : this, payloadResult, 
+                             action, actionResult, statusID, entityAffected);
                 if (!keep)
                 {
-                    Triggers[trigger].Remove(t);
+                    Triggers[trigger].RemoveAt(i);
+                    i--;
                 }
             }
         }
@@ -401,16 +462,18 @@ public class Entity : MonoBehaviour
         EntityState = eEntityState.Dead;
         EntityBattle.SetIdle();
 
-        EntityBattle.DisengageAll();
-
         OnTrigger(TriggerData.eTrigger.OnDeath, triggerSource: source, payloadResult: payloadResult);
+
+        EntityBattle.DisengageAll();
 
         RemoveAllTagsOnSelf();
         RemoveAllTagsOnEntities();
+
         if (Targetable != null)
         {
             Targetable.RemoveTargeting();
         }
+
         KillLinkedSummons();
     }
 
@@ -1021,6 +1084,37 @@ public class Entity : MonoBehaviour
             source.Value.Clear();
         }
         TagsAppliedBy.Clear();
+    }
+
+    public bool HasTag(string tag)
+    {
+        if (TagsAppliedBy == null)
+        {
+            return false;
+        }
+
+        foreach (var source in TagsAppliedBy)
+        {
+            foreach (var t in source.Value)
+            {
+                if (tag == t)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public bool HasTagFromEntity(string tag, string entityUID)
+    {
+        if (TagsAppliedBy == null || !TagsAppliedBy.ContainsKey(entityUID))
+        {
+            return false;
+        }
+
+        return TagsAppliedBy[entityUID].Contains(tag);
     }
     #endregion
 

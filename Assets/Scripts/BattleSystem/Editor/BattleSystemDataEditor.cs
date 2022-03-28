@@ -142,6 +142,17 @@ public class BattleSystemDataEditor : EditorWindow
         public bool ShowTimeline = false;
         public EditorPayload AlternatePayload = null;
 
+        public bool ShowCategories = false;
+        public bool ShowPayloadDamage = false;
+        public bool ShowAggro = false;
+        public bool ShowEffectiveness = false;
+        public bool ShowIgnoredAttributes = false;
+        public bool ShowTag = false;
+        public bool ShowFlags = false;
+        public bool ShowEffects = false;
+        public bool ShowConditions = false;
+        public bool ShowOtherEffects = false;
+
         public EditorPayload()
         {
 
@@ -1195,6 +1206,7 @@ public class BattleSystemDataEditor : EditorWindow
                     BattleGUI.StartIndent();
                     BattleGUI.EditInt(ref status.Data.MaxStacks, "Max Stacks:", Space);
                     BattleGUI.EditFloat(ref status.Data.Duration, "Duration:", Space);
+                    BattleGUI.EditBool(ref status.Data.StackGainResetsDuration, "Stack Gain resets Duration");
 
                     EditEffects(status);
 
@@ -1481,6 +1493,10 @@ public class BattleSystemDataEditor : EditorWindow
                     }
                     EditValue(e.MinValue, ValueComponent.eValueType.NonAction);
                 }
+                else
+                {
+                    e.MinValue = null;
+                }
 
                 BattleGUI.SelectResource(ref e.Resource, "Guarded Resource:", Space);
                 var hasMax = e.MaxValue != null;
@@ -1493,6 +1509,10 @@ public class BattleSystemDataEditor : EditorWindow
                         e.MaxValue.Add(new ValueComponent(ValueComponent.eValueComponentType.TargetResourceMax, 1.0f));
                     }
                     EditValue(e.MaxValue, ValueComponent.eValueType.NonAction);
+                }
+                else
+                {
+                    e.MaxValue = null;
                 }
 
                 BattleGUI.EditInt(ref e.Limit, "Max Hits Guarded:", Space);
@@ -2873,150 +2893,195 @@ public class BattleSystemDataEditor : EditorWindow
     void EditPayload(PayloadData payload, EditorPayload editorPayload, bool isSkill)
     {
         BattleGUI.StartIndent();
-        BattleGUI.EditListString(ref editorPayload.NewCategory, payload.Categories, BattleGUI.CopyList(BattleData.PayloadCategories),
-                                 "Payload Categories: ", "(No Payload Categories)", "Add Payload Category:");
 
-        EditValue(payload.PayloadValue, isSkill ? ValueComponent.eValueType.SkillAction : ValueComponent.eValueType.NonAction, "Payload Damage:");
-
-        var maxValue = payload.PayloadValueMax != null;
-        BattleGUI.EditBool(ref maxValue, "Max Payload Value");
-
-        if (maxValue)
+        // Categories
+        if (BattleGUI.EditFoldout(ref editorPayload.ShowCategories, "Payload Categories"))
         {
-            if (payload.PayloadValueMax == null)
-            {
-                payload.PayloadValueMax = new Value();
-            }
-            EditValue(payload.PayloadValueMax, isSkill ? ValueComponent.eValueType.SkillAction : ValueComponent.eValueType.NonAction, "Max Payload Damage:");
-        }
-        else
-        {
-            payload.PayloadValueMax = null;
-        }
-
-        BattleGUI.SelectResource(ref payload.ResourceAffected, "Resource Affected: ", 150);
-
-        var aggro = payload.Aggro != null;
-        BattleGUI.EditBool(ref aggro, "Generate Aggro");
-        if (aggro)
-        {
-            if (payload.Aggro == null)
-            {
-                payload.Aggro = new AggroData.AggroChange();
-            }
-            EditAggroChange(payload.Aggro, "Aggro Generated: ");
             BattleGUI.StartIndent();
-            BattleGUI.EditBool(ref payload.MultiplyAggroByPayloadValue, "Multiply Aggro by Damage");
+            BattleGUI.EditListString(ref editorPayload.NewCategory, payload.Categories, BattleGUI.CopyList(BattleData.PayloadCategories),
+                                     "", "(No Payload Categories)", "Add Payload Category:");
             BattleGUI.EndIndent();
         }
-        else
+
+        // Damage/Recovery
+        if (BattleGUI.EditFoldout(ref editorPayload.ShowPayloadDamage, "Payload Damage"))
         {
-            payload.Aggro = null;
-        }
-
-        if (payload.CategoryMult == null)
-        {
-            payload.CategoryMult = new Dictionary<string, float>();
-        }
-        BattleGUI.EditFloatDict(payload.CategoryMult, "Effectiveness Against Target Category:", BattleData.EntityCategories, 
-                      ref editorPayload.NewEntityCategory, ": ", Space, "Add Category:", Space);
-
-        BattleGUI.EditBool(ref payload.IgnoreShield, "Ignore Shield");
-
-        BattleGUI.EditListString(ref editorPayload.NewAttribute, payload.TargetAttributesIgnored, BattleGUI.CopyList(BattleData.EntityAttributes),
-                       "Target Attributes Ignored: ", "(No Ignored Attributes)", "Add Ignored Attribute:");
-
-        BattleGUI.EditListString(ref editorPayload.NewFlag, payload.Flags, BattleGUI.CopyList(BattleData.PayloadFlags),
-                       "Payload Flags: ", "(No Payload Flags)", "Add Payload Flag:");
-
-        // Tag
-        var tag = payload.Tag != null;
-        BattleGUI.EditBool(ref tag, "Tag");
-        if (tag)
-        {
-            if (payload.Tag == null)
-            {
-                payload.Tag = new TagData();
-            }
             BattleGUI.StartIndent();
-            BattleGUI.EditString(ref payload.Tag.TagID, "Tag ID: ", 150, 150);
-            BattleGUI.EditInt(ref payload.Tag.TagLimit, "Max tagged: ", 150);
-            BattleGUI.EditFloat(ref payload.Tag.TagDuration, "Tag Duration: ", 150);
-            BattleGUI.EndIndent();
-        }
-        else
-        {
-            payload.Tag = null;
-        }
+            EditValue(payload.PayloadValue, isSkill ? ValueComponent.eValueType.SkillAction : ValueComponent.eValueType.NonAction);
 
-        // Statuses
-        if (payload.ApplyStatus == null)
-        {
-            payload.ApplyStatus = new List<(string StatusID, int Stacks)>();
-        }
-        EditStatusStackList(payload.ApplyStatus, ref editorPayload.NewStatusApply,
-                            "Applied Status Effects:", "(No Status Effects)", "Add Status Effect:");
-        if (payload.RemoveStatusStacks == null)
-        {
-            payload.RemoveStatusStacks = new List<(string StatusID, int Stacks)>();
-        }
-        EditStatusStackList(payload.RemoveStatusStacks, ref editorPayload.NewStatusRemoveStack,
-                    "Removed Status Effects:", "(No Status Effects)", "Add Status Effect:");
-        if (payload.ClearStatus == null)
-        {
-            payload.ClearStatus = new List<(bool StatusGroup, string StatusID)>();
-        }
-        EditStatusList(payload.ClearStatus, ref editorPayload.NewStatusClear,
-                "Cleared Status Effects:", "(No Status Effects)", "Add:");
+            var maxValue = payload.PayloadValueMax != null;
+            BattleGUI.EditBool(ref maxValue, "Max Payload Value");
 
-        // Kill/revive
-        BattleGUI.EditBool(ref payload.Instakill, "Instakill");
-        if (payload.Instakill)
-        {
-            payload.Revive = false;
-        }
-
-        BattleGUI.EditBool(ref payload.Revive, "Revive");
-        if (payload.Revive)
-        {
-            payload.Instakill = false;
-        }
-
-        BattleGUI.EditFloatSlider(ref payload.SuccessChance, "Success Chance: ", 0.0f, 1.0f, 120, 150);
-
-        // Payload conditions
-        var hasPayloadCondition = payload.PayloadCondition != null;
-        BattleGUI.EditBool(ref hasPayloadCondition, "Payload Condition");
-        if (hasPayloadCondition)
-        {
-            if (payload.PayloadCondition == null)
+            if (maxValue)
             {
-                payload.PayloadCondition = new PayloadCondition(PayloadCondition.ePayloadConditionType.AngleBetweenDirections);
-            }
-            EditPayloadCondition(payload.PayloadCondition);
-
-            // Alternate payload
-            var hasAlternatePayload = editorPayload.AlternatePayload != null;
-            BattleGUI.EditBool(ref hasAlternatePayload, "Alternate Payload");
-            if (hasAlternatePayload)
-            {
-                if (editorPayload.AlternatePayload == null)
+                if (payload.PayloadValueMax == null)
                 {
-                    var newPayload = new PayloadData();
-                    payload.AlternatePayload = newPayload;
-                    editorPayload.AlternatePayload = new EditorPayload();
+                    payload.PayloadValueMax = new Value();
                 }
-                EditPayload(payload.AlternatePayload, editorPayload.AlternatePayload, isSkill);
+                EditValue(payload.PayloadValueMax, isSkill ? ValueComponent.eValueType.SkillAction : ValueComponent.eValueType.NonAction, "Max Payload Damage:");
             }
             else
             {
-                editorPayload.AlternatePayload = null;
-                payload.AlternatePayload = null;
+                payload.PayloadValueMax = null;
             }
+
+            BattleGUI.SelectResource(ref payload.ResourceAffected, "Resource Affected: ", 150);
+            BattleGUI.EditBool(ref payload.IgnoreShield, "Ignore Shield");
+
+            // Effectiveness
+            if (BattleGUI.EditFoldout(ref editorPayload.ShowEffectiveness, "Effectiveness against Target Category"))
+            {
+                if (payload.CategoryMult == null)
+                {
+                    payload.CategoryMult = new Dictionary<string, float>();
+                }
+                BattleGUI.EditFloatDict(payload.CategoryMult, "", BattleData.EntityCategories,
+                              ref editorPayload.NewEntityCategory, ": ", Space, "Add Category:", Space);
+            }
+
+            // Ignored attributes
+            if (BattleGUI.EditFoldout(ref editorPayload.ShowIgnoredAttributes, "Target Attributes Ignored"))
+            {
+                BattleGUI.EditListString(ref editorPayload.NewAttribute, payload.TargetAttributesIgnored, BattleGUI.CopyList(BattleData.EntityAttributes),
+                           "", "(No Ignored Attributes)", "Add Ignored Attribute:");
+            }
+
+            // Flags
+            if (BattleGUI.EditFoldout(ref editorPayload.ShowFlags, "Payload Flags"))
+            {
+                BattleGUI.EditListString(ref editorPayload.NewFlag, payload.Flags, BattleGUI.CopyList(BattleData.PayloadFlags),
+                           "", "(No Payload Flags)", "Add Payload Flag:");
+            }
+            BattleGUI.EndIndent();
         }
-        else
+
+        // Other effects
+        if (BattleGUI.EditFoldout(ref editorPayload.ShowOtherEffects, "Other Effects"))
         {
-            payload.PayloadCondition = null;
+            BattleGUI.StartIndent();
+            // Kill/revive
+            BattleGUI.EditBool(ref payload.Instakill, "Instakill");
+            if (payload.Instakill)
+            {
+                payload.Revive = false;
+            }
+
+            BattleGUI.EditBool(ref payload.Revive, "Revive");
+            if (payload.Revive)
+            {
+                payload.Instakill = false;
+            }
+
+            // Aggro
+            if (BattleGUI.EditFoldout(ref editorPayload.ShowAggro, "Aggro"))
+            {
+                var aggro = payload.Aggro != null;
+                BattleGUI.EditBool(ref aggro, "Generate Aggro");
+                if (aggro)
+                {
+                    if (payload.Aggro == null)
+                    {
+                        payload.Aggro = new AggroData.AggroChange();
+                    }
+                    EditAggroChange(payload.Aggro, "Aggro Generated: ");
+                    BattleGUI.StartIndent();
+                    BattleGUI.EditBool(ref payload.MultiplyAggroByPayloadValue, "Multiply Aggro by Damage");
+                    BattleGUI.EndIndent();
+                }
+                else
+                {
+                    payload.Aggro = null;
+                }
+            }
+
+            // Statuses
+            if (BattleGUI.EditFoldout(ref editorPayload.ShowEffects, "Status Effects"))
+            {
+                if (payload.ApplyStatus == null)
+                {
+                    payload.ApplyStatus = new List<(string StatusID, int Stacks)>();
+                }
+                EditStatusStackList(payload.ApplyStatus, ref editorPayload.NewStatusApply,
+                                    "Applied Status Effects:", "(No Status Effects)", "Add Status Effect:");
+                if (payload.RemoveStatusStacks == null)
+                {
+                    payload.RemoveStatusStacks = new List<(string StatusID, int Stacks)>();
+                }
+                EditStatusStackList(payload.RemoveStatusStacks, ref editorPayload.NewStatusRemoveStack,
+                            "Removed Status Effects:", "(No Status Effects)", "Add Status Effect:");
+                if (payload.ClearStatus == null)
+                {
+                    payload.ClearStatus = new List<(bool StatusGroup, string StatusID)>();
+                }
+                EditStatusList(payload.ClearStatus, ref editorPayload.NewStatusClear,
+                        "Cleared Status Effects:", "(No Status Effects)", "Add:");
+            }
+
+            // Tag
+            if (BattleGUI.EditFoldout(ref editorPayload.ShowTag, "Tag"))
+            {
+                var tag = payload.Tag != null;
+                BattleGUI.EditBool(ref tag, "Tag");
+                if (tag)
+                {
+                    if (payload.Tag == null)
+                    {
+                        payload.Tag = new TagData();
+                    }
+                    BattleGUI.StartIndent();
+                    BattleGUI.EditString(ref payload.Tag.TagID, "Tag ID: ", 150, 150);
+                    BattleGUI.EditInt(ref payload.Tag.TagLimit, "Max tagged: ", 150);
+                    BattleGUI.EditFloat(ref payload.Tag.TagDuration, "Tag Duration: ", 150);
+                    BattleGUI.EndIndent();
+                }
+                else
+                {
+                    payload.Tag = null;
+                }
+            }
+            BattleGUI.EndIndent();
+        }
+
+        // Payload conditions
+        if (BattleGUI.EditFoldout(ref editorPayload.ShowConditions, "Payload Conditions"))
+        {
+            BattleGUI.StartIndent();
+            BattleGUI.EditFloatSlider(ref payload.SuccessChance, "Success Chance: ", 0.0f, 1.0f, 120, 150);
+
+            var hasPayloadCondition = payload.PayloadCondition != null;
+            BattleGUI.EditBool(ref hasPayloadCondition, "Payload has Condition");
+            if (hasPayloadCondition)
+            {
+                if (payload.PayloadCondition == null)
+                {
+                    payload.PayloadCondition = new PayloadCondition(PayloadCondition.ePayloadConditionType.AngleBetweenDirections);
+                }
+                EditPayloadCondition(payload.PayloadCondition);
+
+                // Alternate payload
+                var hasAlternatePayload = editorPayload.AlternatePayload != null;
+                BattleGUI.EditBool(ref hasAlternatePayload, "Alternate Payload");
+                if (hasAlternatePayload)
+                {
+                    if (editorPayload.AlternatePayload == null)
+                    {
+                        var newPayload = new PayloadData();
+                        payload.AlternatePayload = newPayload;
+                        editorPayload.AlternatePayload = new EditorPayload();
+                    }
+                    EditPayload(payload.AlternatePayload, editorPayload.AlternatePayload, isSkill);
+                }
+                else
+                {
+                    editorPayload.AlternatePayload = null;
+                    payload.AlternatePayload = null;
+                }
+            }
+            else
+            {
+                payload.PayloadCondition = null;
+            }
+            BattleGUI.EndIndent();
         }
         BattleGUI.EndIndent();
     }
@@ -3057,11 +3122,11 @@ public class BattleSystemDataEditor : EditorWindow
         show = EditorGUILayout.Foldout(show, label);
         if (show)
         {
+            BattleGUI.StartIndent();
             for (int i = 0; i < payloadData.Count; i++)
             {
                 BattleGUI.EditorDrawLine();
 
-                BattleGUI.StartIndent();
                 GUILayout.BeginHorizontal();
                 BattleGUI.Label($"Payload {i}", 100);
                 if (BattleGUI.Button("Remove Payload", Space))
@@ -3089,7 +3154,6 @@ public class BattleSystemDataEditor : EditorWindow
 
                 var isSkill = action != null && !string.IsNullOrEmpty(action.SkillID);
                 EditPayload(payloadData[i], editorPayloads[i], isSkill);
-                BattleGUI.EndIndent();
             }
 
             // New payload
@@ -3104,6 +3168,7 @@ public class BattleSystemDataEditor : EditorWindow
                 }
             }
             GUILayout.EndHorizontal();
+            BattleGUI.EndIndent();
 
             if (payloadData.Count > 0 && BattleGUI.Button("Hide Payloads", 120))
             {
@@ -3305,6 +3370,7 @@ public class BattleSystemDataEditor : EditorWindow
 
         BattleGUI.StartIndent();
         BattleGUI.EditEnum(ref trigger.Trigger, "Trigger:", Space);
+        BattleGUI.EditEnum(ref trigger.EntityAffected, "Entity Affected:", Space);
 
         EditTriggerConditions(trigger.Trigger, trigger.Conditions, "Trigger Conditions:", ref ShowTriggerConditions);
 
@@ -3756,7 +3822,7 @@ public class BattleSystemDataEditor : EditorWindow
     BattleGUI.eReturnResult EditValueComponent(ValueComponent component, ValueComponent.eValueType valueType, bool editPotency)
     {
         GUILayout.BeginHorizontal();
-        var options = ValueComponent.AvailableComponentTypes(valueType);
+        var options = ValueComponent.AvailableComponentTypes[valueType];
         var strings = BattleGUI.EnumStrings(options);
 
         if (options.Count < 1)
