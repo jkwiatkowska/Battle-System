@@ -158,7 +158,12 @@ public class MovementEntity : MonoBehaviour
         targetDirection.y = 0.0f;
         var initialForward = transform.forward;
 
-        var direction = Vector3.RotateTowards(initialForward, targetDirection, Time.fixedDeltaTime * rotationSpeed, 0.0f);
+        var direction = targetDirection;
+
+        if (Vector3.Angle(transform.forward, targetDirection) > rotationSpeed)
+        {
+            direction = Vector3.RotateTowards(initialForward, targetDirection, Time.fixedDeltaTime * rotationSpeed, 0.0f);
+        }
 
         transform.rotation = Quaternion.LookRotation(direction);
     }

@@ -8,6 +8,7 @@ public class EntitySummon : Entity
     public Entity Summoner           { get; private set; }
     string SummonerFaction;
     public override Entity SummoningEntity => Summoner.SummoningEntity;
+    public override string Faction => SummonAction.InheritFaction ? (Summoner != null ? Summoner.Faction : SummonerFaction) : EntityData.Faction;
 
     float SummonTime;
 
@@ -25,11 +26,6 @@ public class EntitySummon : Entity
         Summoner = summoner;
         SummonerFaction = summoner.Faction;
         SummonTime = BattleSystem.Time;
-
-        if (SummonAction.InheritFaction)
-        {
-            Faction = Summoner.Faction;
-        }
 
         foreach (var attribute in BattleData.EntityAttributes)
         {
@@ -118,18 +114,6 @@ public class EntitySummon : Entity
         {
             Summoner.TagEntity(tag, entity, tagData);
         }
-    }
-
-    public override bool IsEnemy(string targetFaction)
-    {
-        var faction = Summoner != null ? Summoner.CurrentFaction : SummonerFaction;
-        return BattleSystem.IsEnemy(faction, targetFaction);
-    }
-
-    public override bool IsFriendly(string targetFaction)
-    {
-        var faction = Summoner != null ? Summoner.CurrentFaction : SummonerFaction;
-        return BattleSystem.IsFriendly(faction, targetFaction);
     }
     #endregion
 }

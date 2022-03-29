@@ -16,10 +16,12 @@ public class ActionCondition
     // Used by OnMinValue condition
     public enum eConditionValueType
     {
+        ActionResult,
         ChargeRatio,
+        DistanceFromTarget,
         ResourceRatio,
         ResourceCurrent,
-        RandomValue
+        RandomValue,
     }
 
     public eActionCondition Condition;
@@ -38,13 +40,13 @@ public class ActionCondition
         Condition = condition;
     }
 
-    public virtual bool ConditionMet(Entity entity, string actionID, Dictionary<string, ActionResult> actionResults)
+    public virtual bool ConditionMet(Entity entity, Entity target, string actionID, Dictionary<string, ActionResult> actionResults)
     {
         switch (Condition)
         {
             case eActionCondition.ActionSuccess:
             {
-                if (actionResults.ContainsKey(ConditionTarget))
+                if (actionResults != null && actionResults.ContainsKey(ConditionTarget))
                 {
                     return actionResults[ConditionTarget].Success;
                 }
@@ -56,7 +58,7 @@ public class ActionCondition
             }
             case eActionCondition.ActionFail:
             {
-                if (actionResults.ContainsKey(ConditionTarget))
+                if (actionResults != null && actionResults.ContainsKey(ConditionTarget))
                 {
                     return !actionResults[ConditionTarget].Success;
                 }
@@ -68,57 +70,11 @@ public class ActionCondition
             }
             case eActionCondition.ValueAbove:
             {
-                switch (ConditionValueType)
-                {
-                    case eConditionValueType.ChargeRatio:
-                    {
-                        return ConditionValueBoundary <= entity.EntityBattle.SkillChargeRatio;
-                    }
-                    case eConditionValueType.ResourceRatio:
-                    {
-                        return ConditionValueBoundary <= entity.ResourceRatio(ConditionTarget);
-                    }
-                    case eConditionValueType.ResourceCurrent:
-                    {
-                        return ConditionValueBoundary <= entity.ResourcesCurrent[ConditionTarget];
-                    }
-                    case eConditionValueType.RandomValue:
-                    {
-                        return ConditionValueBoundary <= Random.value;
-                    }
-                    default:
-                    {
-                        Debug.LogError($"Unimplemented condition value type: {ConditionValueType}");
-                        return false;
-                    }
-                }
+                return ConditionValueBoundary <= ConditionValue(entity, target, actionID, actionResults);
             }
             case eActionCondition.ValueBelow:
             {
-                switch (ConditionValueType)
-                {
-                    case eConditionValueType.ChargeRatio:
-                    {
-                        return ConditionValueBoundary >= entity.EntityBattle.SkillChargeRatio;
-                    }
-                    case eConditionValueType.ResourceRatio:
-                    {
-                        return ConditionValueBoundary >= entity.ResourceRatio(ConditionTarget);
-                    }
-                    case eConditionValueType.ResourceCurrent:
-                    {
-                        return ConditionValueBoundary >= entity.ResourcesCurrent[ConditionTarget];
-                    }
-                    case eConditionValueType.RandomValue:
-                    {
-                        return ConditionValueBoundary >= Random.value;
-                    }
-                    default:
-                    {
-                        Debug.LogError($"Unimplemented condition value type: {ConditionValueType}");
-                        return false;
-                    }
-                }
+                return ConditionValueBoundary >= ConditionValue(entity, target, actionID, actionResults);
             }
             case eActionCondition.HasStatus:
             {
@@ -128,6 +84,42 @@ public class ActionCondition
             {
                 Debug.LogError($"Unimplemented execute condition: {Condition}");
                 return false;
+            }
+        }
+    }
+
+    float ConditionValue(Entity entity, Entity target, string actionID, Dictionary<string, ActionResult> actionResults)
+    {
+        switch (ConditionValueType)
+        {
+            case eConditionValueType.ActionResult:
+            {
+                return actionResults.ContainsKey(ConditionTarget) ? actionResults[ConditionTarget].Value : 0.0f;
+            }
+            case eConditionValueType.ChargeRatio:
+            {
+                return entity.EntityBattle.SkillChargeRatio;
+            }
+            case eConditionValueType.DistanceFromTarget:
+            {
+                return target != null ? VectorUtility.Distance2D(entity, target) : 0.0f; 
+            }
+            case eConditionValueType.ResourceRatio:
+            {
+                return entity.ResourceRatio(ConditionTarget);
+            }
+            case eConditionValueType.ResourceCurrent:
+            {
+                return entity.ResourcesCurrent[ConditionTarget];
+            }
+            case eConditionValueType.RandomValue:
+            {
+                return Random.value;
+            }
+            default:
+            {
+                Debug.LogError($"Unimplemented condition value type: {ConditionValueType}");
+                return 0.0f;
             }
         }
     }

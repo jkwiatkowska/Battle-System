@@ -71,7 +71,7 @@ public class ActionPayloadArea : ActionPayload
             {
                 continue;
             }
-            var areaPos2D = Utility.Get2DVector(areaPos);
+            var areaPos2D = VectorUtility.Get2DVector(areaPos);
 
             switch (area.Shape)
             {
@@ -100,7 +100,7 @@ public class ActionPayloadArea : ActionPayload
                         }
 
                         // Check if the target is inside circle
-                        var distance = Utility.Distance2D(areaPos2D, t);
+                        var distance = VectorUtility.Distance2D(areaPos2D, t);
                         if (distance < minDistance || distance > maxDistance)
                         {
                             continue;
@@ -111,7 +111,7 @@ public class ActionPayloadArea : ActionPayload
                         {
                             var direction = (tPos - areaPos).normalized;
 
-                            var angle = Utility.Angle(Utility.Get2DVector(areaForward), Utility.Get2DVector(direction));
+                            var angle = VectorUtility.Angle(VectorUtility.Get2DVector(areaForward), VectorUtility.Get2DVector(direction));
                             if (angle > maxAngle || angle < minAngle)
                             {
                                 continue;
@@ -140,7 +140,7 @@ public class ActionPayloadArea : ActionPayload
                         var tPos = t.transform.position;
 
                         // Check if the target is inside sphere
-                        var distance = Utility.Distance3D(areaPos, t);
+                        var distance = VectorUtility.Distance3D(areaPos, t);
                         if (distance < minDistance || distance > maxDistance)
                         {
                             continue;
@@ -151,7 +151,7 @@ public class ActionPayloadArea : ActionPayload
                         {
                             var direction = (tPos - areaPos).normalized;
 
-                            var angle = Utility.Angle(Utility.Get2DVector(areaForward), Utility.Get2DVector(direction));
+                            var angle = VectorUtility.Angle(VectorUtility.Get2DVector(areaForward), VectorUtility.Get2DVector(direction));
                             if (angle > maxAngle || angle < minAngle)
                             {
                                 continue;
@@ -171,8 +171,8 @@ public class ActionPayloadArea : ActionPayload
                     for (int i = potentialTargets.Count - 1; i >= 0; i--)
                     {
                         var t = potentialTargets[i];
-                        var tPos2D = Utility.RotateAroundPosition(Utility.Get2DVector(t.transform.position), 
-                                     Utility.Angle3D(areaForward), areaPos);
+                        var tPos2D = VectorUtility.RotateAroundPosition(VectorUtility.Get2DVector(t.transform.position), 
+                                     VectorUtility.Angle3D(areaForward), areaPos);
 
                         // Check if the target is at the correct height
                         var tBottom = t.transform.position.y;

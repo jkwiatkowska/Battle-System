@@ -48,7 +48,7 @@ public class Entity : MonoBehaviour
     // State
     public eEntityState EntityState                                         { get; protected set; }
     public bool IsTargetable                                                { get; protected set; }
-    public string Faction                                                   { get; protected set; }
+    public virtual string Faction => EntityData.Faction;
     protected string FactionOverride;
     protected bool SetupComplete;
 
@@ -89,7 +89,6 @@ public class Entity : MonoBehaviour
         EntityState = eEntityState.Alive;
         name = EntityUID;
         var entityData = EntityData;
-        Faction = entityData.Faction;
 
         // Attributes
         BaseAttributes = new Dictionary<string, float>();
@@ -99,7 +98,7 @@ public class Entity : MonoBehaviour
         }
 
         // Resources
-        SetupResourcesMax();
+        SetupResourcesMax(setup: true);
         SetupResourcesStart();
 
         // Skills
@@ -931,24 +930,22 @@ public class Entity : MonoBehaviour
         }
 
         Shields[shield.Data.ShieldedResource][key] = shield;
-        if (resourceGranted > Constants.Epsilon)
+
+        if (!ResourcesMax.ContainsKey(shield.Data.ShieldResource) || shield.Data.SetMaxShieldResource)
         {
-            if (!ResourcesMax.ContainsKey(shield.Data.ShieldResource) || shield.Data.SetMaxShieldResource)
-            {
-                ResourcesMax[shield.Data.ShieldResource] = resourceGranted;
-            }
-
-            if (!ResourcesCurrent.ContainsKey(shield.Data.ShieldResource))
-            {
-                ResourcesCurrent.Add(shield.Data.ShieldResource, resourceGranted);
-            }
-            else
-            {
-                ApplyChangeToResource(shield.Data.ShieldResource, resourceGranted);
-            }
-
-            EntityCanvas.SetupResourceDisplay(shield.Data.ShieldResource);
+            ResourcesMax[shield.Data.ShieldResource] = resourceGranted;
         }
+
+        if (!ResourcesCurrent.ContainsKey(shield.Data.ShieldResource))
+        {
+            ResourcesCurrent.Add(shield.Data.ShieldResource, resourceGranted);
+        }
+        else
+        {
+            ApplyChangeToResource(shield.Data.ShieldResource, resourceGranted);
+        }
+
+        EntityCanvas.SetupResourceDisplay(shield.Data.ShieldResource);
     }
 
     public void RemoveShield(EffectShield shieldData, string key)
@@ -1165,14 +1162,18 @@ public class Entity : MonoBehaviour
     #endregion
 
     #region Resources
-    protected void SetupResourcesMax()
+    protected void SetupResourcesMax(bool setup = false)
     {
-        ResourcesMax = new Dictionary<string, float>();
+        if (setup)
+        {
+            ResourcesMax = new Dictionary<string, float>();
+        }
+
         var attributes = EntityAttributes();
 
         foreach (var resource in EntityData.Resources)
         {
-            ResourcesMax.Add(resource.Key, Formulae.ResourceMaxValue(this, attributes, resource.Key));
+            ResourcesMax[resource.Key] = Formulae.ResourceMaxValue(this, attributes, resource.Key);
         }
     }
 

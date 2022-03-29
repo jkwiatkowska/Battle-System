@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public static class Utility
+public static class VectorUtility
 {
     public static Vector2 Get2DVector(Vector3 position)
     {
@@ -53,6 +53,11 @@ public static class Utility
 
     public static float Distance2D(Entity entity1, Entity entity2)
     {
+        if (entity1 == null || entity2 == null)
+        {
+            return 0.0f;
+        }
+
         var radii = entity1.EntityData.Radius + entity2.EntityData.Radius;
         var distance = Vector3.SqrMagnitude(entity1.transform.position - entity2.transform.position) - radii * radii;
 
@@ -79,7 +84,7 @@ public static class Utility
 
     public static float DistanceXZ(Vector3 pos1, Vector3 pos2)
     {
-        return Vector2.SqrMagnitude(Get2DVector(pos1) - Get2DVector(pos1));
+        return Vector2.SqrMagnitude(Get2DVector(pos1) - Get2DVector(pos2));
     }
 
     public static bool IsInRange(Entity entity1, Entity entity2, float range)

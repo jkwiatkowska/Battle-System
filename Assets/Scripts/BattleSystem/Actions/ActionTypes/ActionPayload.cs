@@ -11,13 +11,6 @@ public abstract class ActionPayload : Action
         FriendlyEntities
     }
 
-    public enum eTargetState
-    {
-        Alive,
-        Dead,
-        Any
-    }
-
     public enum eTargetPriority
     {
         Random,
@@ -43,7 +36,7 @@ public abstract class ActionPayload : Action
     {
         actionResults[ActionID] = new ActionResult();
 
-        if (!ConditionsMet(entity, actionResults))
+        if (!ConditionsMet(entity, target, actionResults))
         {
             return;
         }

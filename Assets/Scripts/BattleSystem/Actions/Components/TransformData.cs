@@ -217,7 +217,7 @@ public class TransformData
         // Add offsets.
         var randomOffset = RandomForwardOffset * (Random.value - 0.5f);
         var forwardRotation = ForwardRotationOffset + Random.Range(0.0f, randomOffset);
-        forward = Utility.Rotate(forward, forwardRotation);
+        forward = VectorUtility.Rotate(forward, forwardRotation);
         forward.Normalize();
 
         var positionOffset = PositionOffset;
@@ -234,7 +234,7 @@ public class TransformData
             positionOffset.z += Random.Range(0.0f, RandomPositionOffset.z);
         }
 
-        positionOffset = Utility.ApplyDirection(positionOffset, forward);
+        positionOffset = VectorUtility.ApplyDirection(positionOffset, forward);
         position += positionOffset;
 
         return true;

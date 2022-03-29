@@ -15,12 +15,12 @@ public class ActionLoopBack : Action
         }
 
         actionResults[ActionID].Count++;
-        actionResults[ActionID].Success = ConditionsMet(entity, actionResults);
+        actionResults[ActionID].Success = ConditionsMet(entity, target, actionResults);
     }
 
-    public override bool ConditionsMet(Entity entity, Dictionary<string, ActionResult> actionResults)
+    public override bool ConditionsMet(Entity entity, Entity target, Dictionary<string, ActionResult> actionResults)
     {
-        if (!base.ConditionsMet(entity, actionResults))
+        if (!base.ConditionsMet(entity, target, actionResults))
         {
             return false;
         }

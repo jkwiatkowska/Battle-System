@@ -32,7 +32,7 @@ public class ActionCostCollection : Action
     {
         actionResults[ActionID] = new ActionResult();
 
-        if (!ConditionsMet(entity, actionResults) || !CanCollectCost(entity))
+        if (!ConditionsMet(entity, target, actionResults))
         {
             return;
         }

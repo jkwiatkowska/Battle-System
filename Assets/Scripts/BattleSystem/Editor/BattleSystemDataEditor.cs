@@ -969,6 +969,7 @@ public class BattleSystemDataEditor : EditorWindow
                 BattleGUI.Help("");
             }
 
+            BattleGUI.StartIndent();
             for (int i = 0; i < Skills.Count; i++)
             {
                 GUILayout.BeginHorizontal();
@@ -1047,8 +1048,9 @@ public class BattleSystemDataEditor : EditorWindow
 
                     BattleGUI.EditBool(ref skill.SkillData.NeedsTarget, "TargetRequired");
                     BattleGUI.EditEnum(ref skill.SkillData.PreferredTarget, $"Preferred Target: ", Space);
+                    BattleGUI.EditEnum(ref skill.SkillData.PreferredTargetState, $"Preferred Target State: ", Space);
                     BattleGUI.EditFloat(ref skill.SkillData.Range, "Skill Range:", Space, 150);
-                    BattleGUI.EditFloatSlider(ref skill.SkillData.MaxAngleFromTarget, "Max Angle from Target:", 0.1f, 180.0f, Space, 150);
+                    BattleGUI.EditFloatSlider(ref skill.SkillData.MaxAngleFromTarget, "Max Angle from Target:", 0.0f, 180.0f, Space, 150);
 
                     BattleGUI.EditorDrawLine();
                     BattleGUI.EndIndent();
@@ -1068,6 +1070,7 @@ public class BattleSystemDataEditor : EditorWindow
                 NewSkill = "";
             }
             GUILayout.EndHorizontal();
+            BattleGUI.EndIndent();
         }
 
     }
@@ -2737,6 +2740,27 @@ public class BattleSystemDataEditor : EditorWindow
 
                 switch(condition.ConditionValueType)
                 {
+                    case ActionCondition.eConditionValueType.ActionResult:
+                    {
+                        BattleGUI.EditString(ref condition.ConditionTarget, "Action:", Space, makeHorizontal: false);
+                        BattleGUI.EditFloat(ref condition.ConditionValueBoundary, "Value" + text, 60, makeHorizontal: false);
+                        break;
+                    }
+                    case ActionCondition.eConditionValueType.ChargeRatio:
+                    {
+                        BattleGUI.EditFloatSlider(ref condition.ConditionValueBoundary, "Skill Charge Ratio" + text, 0.0f, 1.0f, 120, makeHorizontal: false);
+                        break;
+                    }
+                    case ActionCondition.eConditionValueType.DistanceFromTarget:
+                    {
+                        BattleGUI.EditFloat(ref condition.ConditionValueBoundary, "Distance" + text, Space + 40, makeHorizontal: false);
+                        break;
+                    }
+                    case ActionCondition.eConditionValueType.RandomValue:
+                    {
+                        BattleGUI.EditFloatSlider(ref condition.ConditionValueBoundary, "Random Value" + text, 0.0f, 1.0f, 120, makeHorizontal: false);
+                        break;
+                    }
                     case ActionCondition.eConditionValueType.ResourceRatio:
                     {
                         BattleGUI.SelectResource(ref condition.ConditionTarget, "", makeHorizontal: false);
@@ -2747,16 +2771,6 @@ public class BattleSystemDataEditor : EditorWindow
                     {
                         BattleGUI.SelectResource(ref condition.ConditionTarget, "", makeHorizontal: false);
                         BattleGUI.EditFloat(ref condition.ConditionValueBoundary, text, 40, makeHorizontal: false);
-                        break;
-                    }
-                    case ActionCondition.eConditionValueType.ChargeRatio:
-                    {
-                        BattleGUI.EditFloatSlider(ref condition.ConditionValueBoundary, "Skill Charge Ratio" + text, 0.0f, 1.0f, 120, makeHorizontal: false);
-                        break;
-                    }
-                    case ActionCondition.eConditionValueType.RandomValue:
-                    {
-                        BattleGUI.EditFloatSlider(ref condition.ConditionValueBoundary, "Random Value" + text, 0.0f, 1.0f, 120, makeHorizontal: false);
                         break;
                     }
                 }

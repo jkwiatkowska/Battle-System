@@ -25,7 +25,7 @@ public class ActionCooldown : Action
     {
         actionResults[ActionID] = new ActionResult();
 
-        if (!ConditionsMet(entity, actionResults))
+        if (!ConditionsMet(entity, target, actionResults))
         {
             return;
         }

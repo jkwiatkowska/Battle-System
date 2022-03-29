@@ -19,19 +19,12 @@ public class SkillData
         None                                                // Skills where it doesn't matter whether there is a target or not. 
     }
 
-    public enum eTargetStatePreferrence
-    {
-        Alive,
-        Dead,
-        Any
-    }
-
     public bool NeedsTarget;                                // If a skill requires a target, it can only be executed if a preferred target is selected. 
                                                             // This must be set to true if any of the actions require a selected entity.
                                                             // Friendly actions will always default to the caster if a suitable target is not selected.
 
     public eTargetPreferrence PreferredTarget;              // If a correct target is selected, the skill will only execute when it's in range.
-    public eTargetStatePreferrence PreferredTargetState;    // Normally targets are required to be alive. 
+    public Action.eTargetState PreferredTargetState;        // Normally targets are required to be alive. 
     public float Range;                                     // Maximum range from target required for the skill to be effective.
     public float MaxAngleFromTarget;                        // The target has to be within this angle from the entity's forward for a skill to work. 
 

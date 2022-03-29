@@ -155,7 +155,7 @@ public class EntityEditor : Editor
             {
                 var resourcesCurrent = entity.ResourcesCurrent;
                 var resourcesMax = entity.ResourcesMax;
-                var resources = resourcesCurrent.Keys;
+                var resources = resourcesMax.Keys;
 
                 BattleGUI.StartIndent();
                 foreach (var r in resources)

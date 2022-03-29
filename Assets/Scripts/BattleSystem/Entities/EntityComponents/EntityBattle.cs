@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class EntityBattle
@@ -220,7 +221,7 @@ public class EntityBattle
         {
             if (Target == null)
             {
-                Targeting.SelectTarget(Targeting.GetBestEnemy());
+                Targeting.SelectTarget(Targeting.GetBestEnemy(Action.eTargetState.Alive));
             }
 
             if (string.IsNullOrEmpty(SkillToUse))
@@ -310,36 +311,28 @@ public class EntityBattle
 
         var target = Targeting.SelectedTarget;
 
-        if (skillData.NeedsTarget)
+        // Ensure correct target.
+        if (!IsCorrectTargetSelected(target, skillData) && Data.AutoSelectTargetOnSkillUse)
         {
             if (skillData.PreferredTarget == SkillData.eTargetPreferrence.Enemy || 
                 skillData.PreferredTarget == SkillData.eTargetPreferrence.Any)
             {
-                var hasTarget = skillData.PreferredTarget == SkillData.eTargetPreferrence.Any ? 
-                                Targeting.SelectedTarget != null : Targeting.EnemySelected;
-
-                // If an enemy is not selected, try selecting one.
-                if (!hasTarget && Data.AutoSelectTargetOnSkillUse)
-                {
-                    target = Targeting.GetBestEnemy(skillData.PreferredTargetState);
-                }
+                target = Targeting.GetBestEnemy(skillData.PreferredTargetState);
             }
             else if (skillData.PreferredTarget == SkillData.eTargetPreferrence.Friendly)
             {
-                var hasTarget = Targeting.FriendlySelected;
-
-                // If a friendly entity is not selected, try selecting one.
-                if (!hasTarget && Data.AutoSelectTargetOnSkillUse)
-                {
-                    target = Targeting.GetBestFriend(skillData.PreferredTargetState);
-                }
+                target = Targeting.GetBestFriend(skillData.PreferredTargetState);
             }
-
-            // If a target could not be found, a skill cannot be used.
-            if (target == null)
+            else if (skillData.PreferredTarget == SkillData.eTargetPreferrence.None)
             {
-                return false;
+                target = null;
             }
+        }
+
+        // If a target could not be found, a skill cannot be used.
+        if (skillData.NeedsTarget && target == null)
+        {
+            return false;
         }
 
         // Ensure target is in range if a target is required or a preferred target is selected
@@ -382,6 +375,40 @@ public class EntityBattle
         return true;
     }
 
+    protected virtual bool IsCorrectTargetSelected(Entity target, SkillData skillData)
+    {
+        // No target preferred.
+        if (skillData.PreferredTarget == SkillData.eTargetPreferrence.None && target != null)
+        {
+            return false;
+        }
+
+        // A target is prefered or required, but one wasn't selected.
+        if (target == null)
+        {
+            return false;
+        }
+
+        // Check target state.
+        if (skillData.PreferredTargetState == Action.eTargetState.Alive && !target.Alive ||
+            skillData.PreferredTargetState == Action.eTargetState.Dead && target.Alive)
+        {
+            return false;
+        }
+
+        // Check faction relations.
+        if (skillData.PreferredTarget == SkillData.eTargetPreferrence.Enemy && !Entity.IsEnemy(target.Faction))
+        {
+            return false;
+        }
+        if (skillData.PreferredTarget == SkillData.eTargetPreferrence.Friendly && !Entity.IsFriendly(target.Faction))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     protected virtual bool GetInPosition()
     {
         // Returns false if the skill can no longer be used
@@ -391,8 +418,8 @@ public class EntityBattle
             return false;
         }
 
-        if ((PrepareSkill.PreferredTargetState == SkillData.eTargetStatePreferrence.Alive && !target.Alive) ||
-            (PrepareSkill.PreferredTargetState == SkillData.eTargetStatePreferrence.Dead && target.Alive))
+        if ((PrepareSkill.PreferredTargetState == Action.eTargetState.Alive && !target.Alive) ||
+            (PrepareSkill.PreferredTargetState == Action.eTargetState.Dead && target.Alive))
         {
             return false;
         }
@@ -438,7 +465,10 @@ public class EntityBattle
 
     protected virtual void UseSkill(SkillData skillData, Entity target)
     {
-        Targeting.SelectTarget(target);
+        if (target != null)
+        {
+            Targeting.SelectTarget(target);
+        }
         SkillCoroutine = Entity.StartCoroutine(UseSkillCoroutine(skillData));
     }
 
@@ -644,7 +674,9 @@ public class EntityBattle
         }
 
         // Check if target is in range
-        var distance = (target.Origin - Entity.Origin).sqrMagnitude;
+        var r = Entity.EntityData.Radius;
+        var r2 = target.EntityData.Radius;
+        var distance = (target.Origin - Entity.Origin).sqrMagnitude - r * r - r2 * r2;
         return distance < skillData.Range * skillData.Range;
     }
 
@@ -745,26 +777,39 @@ public class EntityBattle
 
     protected virtual bool CanAffordCost(List<ActionCostCollection> costActions)
     {
-        var costs = new Dictionary<string, float>();
+        var resources = new Dictionary<string, float>();
 
         foreach (var cost in costActions)
         {
-            if (costs.ContainsKey(cost.ResourceName))
+            // If a cost action cannot be invoked, the cost is not collected so ignore those.
+            if (!cost.ConditionsMet(Entity, Target, null))
             {
-                costs[cost.ResourceName] += cost.GetValue(Entity);
+                continue;
+            }
+
+            // Ignore costs that use a resource the entity does not have. 
+            // It can be changed to return false instead.
+            if (Entity.ResourcesCurrent.ContainsKey(cost.ResourceName))
+            {
+                continue;
+            }
+
+            // Add up all the costs
+            if (resources.ContainsKey(cost.ResourceName))
+            {
+                resources[cost.ResourceName] -= cost.GetValue(Entity);
             }
             else
             {
-                costs.Add(cost.ResourceName, cost.GetValue(Entity));
+                resources.Add(cost.ResourceName, Entity.ResourcesCurrent[cost.ResourceName] - cost.GetValue(Entity));
             }
-        }
-        foreach (var cost in costs)
-        {
-            if (cost.Value > Entity.ResourcesCurrent[cost.Key])
+
+            if (Entity.ResourcesCurrent[cost.ResourceName] < -Constants.Epsilon)
             {
                 return false;
             }
         }
+
         return true;
     }
     #endregion

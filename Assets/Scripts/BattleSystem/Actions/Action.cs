@@ -18,33 +18,12 @@ public abstract class Action
         SpawnEntity,                // Spawns an entity that can execute skills. Can be used to implement area of effect skills.
     }
 
-    public static Dictionary<Type, eActionType> ActionTypes = new Dictionary<Type, eActionType>()
+    public enum eTargetState
     {
-        [typeof(ActionCooldown)]        = eActionType.ApplyCooldown,
-        [typeof(ActionCostCollection)]  = eActionType.CollectCost,
-        [typeof(ActionDestroySelf)]     = eActionType.DestroySelf,
-        [typeof(ActionLoopBack)]        = eActionType.LoopBack,
-        [typeof(ActionMessage)]         = eActionType.Message,
-        [typeof(ActionPayloadArea)]     = eActionType.PayloadArea,
-        [typeof(ActionPayloadDirect)]   = eActionType.PayloadDirect,
-        [typeof(ActionAnimationSet)]    = eActionType.SetAnimation,
-        [typeof(ActionProjectile)]      = eActionType.SpawnProjectile,
-        [typeof(ActionSummon)]          = eActionType.SpawnEntity,
-    };
-
-    public static Dictionary<eActionType, Type> ActionTypesReverse = new Dictionary<eActionType, Type>()
-    {
-        [eActionType.ApplyCooldown]     = typeof(ActionCooldown),
-        [eActionType.CollectCost]       = typeof(ActionCostCollection),
-        [eActionType.DestroySelf]       = typeof(ActionDestroySelf),
-        [eActionType.LoopBack]          = typeof(ActionLoopBack),
-        [eActionType.Message]           = typeof(ActionMessage),
-        [eActionType.PayloadArea]       = typeof(ActionPayloadArea),
-        [eActionType.PayloadDirect]     = typeof(ActionPayloadDirect),
-        [eActionType.SetAnimation]      = typeof(ActionAnimationSet),
-        [eActionType.SpawnProjectile]   = typeof(ActionProjectile),
-        [eActionType.SpawnEntity]       = typeof(ActionSummon),
-    };
+        Alive,
+        Dead,
+        Any
+    }
 
     public string ActionID;         // Used to identify actions and their results.
     public string SkillID;          // For actions tied to skills. 
@@ -60,7 +39,7 @@ public abstract class Action
         return Formulae.ActionTime(entity, Timestamp);
     }
 
-    public virtual bool ConditionsMet(Entity entity, Dictionary<string, ActionResult> actionResults)
+    public virtual bool ConditionsMet(Entity entity, Entity target, Dictionary<string, ActionResult> actionResults)
     {
         if (ActionConditions == null)
         {
@@ -69,26 +48,12 @@ public abstract class Action
 
         foreach (var condition in ActionConditions)
         {
-            if (!condition.ConditionMet(entity, ActionID, actionResults))
+            if (!condition.ConditionMet(entity, target, ActionID, actionResults))
             {
                 return false;
             }
         }
         return true;
-    }
-
-    public static T Convert<T>(Action action) where T : Action, new()
-    {
-        var newAction = new T()
-        {
-            ActionType = ActionTypes[typeof(T)],
-            ActionID = action.ActionID,
-            SkillID = action.SkillID,
-            Timestamp = action.Timestamp,
-            ActionConditions = action.ActionConditions,
-        };
-
-        return newAction;
     }
 
     public static Action MakeAction(eActionType type, string skillID = "")

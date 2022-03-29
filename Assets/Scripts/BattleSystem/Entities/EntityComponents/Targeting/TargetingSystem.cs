@@ -81,17 +81,17 @@ public class TargetingSystem : MonoBehaviour
         SelectedTarget = null;
     }
 
-    public virtual Entity GetBestEnemy(SkillData.eTargetStatePreferrence requiredState = SkillData.eTargetStatePreferrence.Any)
+    public virtual Entity GetBestEnemy(Action.eTargetState requiredState = Action.eTargetState.Any)
     {
         UpdateEntityLists();
 
         var potentialTargets = EnemyEntities;
 
-        if (requiredState == SkillData.eTargetStatePreferrence.Alive)
+        if (requiredState == Action.eTargetState.Alive)
         {
             potentialTargets = EnemyEntities.Where((e) => e.Alive).ToList();
         }
-        else if (requiredState == SkillData.eTargetStatePreferrence.Dead)
+        else if (requiredState == Action.eTargetState.Dead)
         {
             potentialTargets = EnemyEntities.Where((e) => !e.Alive).ToList();
         }
@@ -109,7 +109,7 @@ public class TargetingSystem : MonoBehaviour
         return potentialTargets[0];
     }
 
-    public virtual void SelectNextEnemy(SkillData.eTargetStatePreferrence requiredState = SkillData.eTargetStatePreferrence.Any)
+    public virtual void SelectNextEnemy(Action.eTargetState requiredState = Action.eTargetState.Any)
     {
         if (SelectedTarget == null)
         {
@@ -133,17 +133,17 @@ public class TargetingSystem : MonoBehaviour
         SelectTarget(EnemyEntities[0]);
     }
 
-    public virtual Entity GetBestFriend(SkillData.eTargetStatePreferrence requiredState = SkillData.eTargetStatePreferrence.Any, bool selectSelf = false)
+    public virtual Entity GetBestFriend(Action.eTargetState requiredState = Action.eTargetState.Any, bool selectSelf = false)
     {
         UpdateEntityLists();
 
         var potentialTargets = FriendlyEntities;
 
-        if (requiredState == SkillData.eTargetStatePreferrence.Alive)
+        if (requiredState == Action.eTargetState.Alive)
         {
             potentialTargets = FriendlyEntities.Where((e) => e.Alive).ToList();
         }
-        else if (requiredState == SkillData.eTargetStatePreferrence.Dead)
+        else if (requiredState == Action.eTargetState.Dead)
         {
             potentialTargets = FriendlyEntities.Where((e) => !e.Alive).ToList();
         }
@@ -160,7 +160,7 @@ public class TargetingSystem : MonoBehaviour
         return potentialTargets[0];
     }
 
-    public virtual void SelectNextFriend(SkillData.eTargetStatePreferrence requiredState = SkillData.eTargetStatePreferrence.Any, bool selectSelf = false)
+    public virtual void SelectNextFriend(Action.eTargetState requiredState = Action.eTargetState.Any, bool selectSelf = false)
     {
         if (SelectedTarget == null || FriendlyEntities.Count < 1)
         {
