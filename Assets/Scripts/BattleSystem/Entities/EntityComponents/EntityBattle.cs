@@ -148,6 +148,34 @@ public class EntityBattle
             NextSkillTime = BattleSystem.Time + Formulae.SkillDelay(Entity);
         }
     }
+
+    public void OnMoved()
+    {
+        switch (SkillState)
+        {
+            case eSkillState.SkillPrepare:
+            {
+                SetIdle();
+                return;
+            }
+            case eSkillState.SkillCharge:
+            {
+                if (SkillCharge.MovementCancelsCharge)
+                {
+                    ChargeCancelled = true;
+                }
+                return;
+            }
+            case eSkillState.SkillCast:
+            {
+                if (CurrentSkill.MovementCancelsSkill)
+                {
+                    CancelSkill();
+                }
+                return;
+            }
+        }
+    }
     #endregion
 
     #region Update
@@ -158,9 +186,6 @@ public class EntityBattle
 
         // Check if an entity should use a skill and which.
         PickSkill();
-
-        // Skill and skill charge cancelation if a skill is being cast.
-        CheckForSkillCancel();
 
         // Aggro
         UpdateAggro();
@@ -446,7 +471,7 @@ public class EntityBattle
             else if (dot > 0.0f)
             {
                 Movement.SetRunning(true);
-                Movement.Move(Entity.transform.forward, updateRotation: false, speedMultiplier: 1.0f, updateLastMoved: false);
+                Movement.Move(Entity.transform.forward, faceMovementDirection: false, speedMultiplier: 1.0f, setMovementTrigger: false);
             }
         }
 
@@ -493,6 +518,7 @@ public class EntityBattle
 
     protected virtual IEnumerator ChargeSkillCoroutine(SkillData skillData)
     {
+        ChargeCancelled = false;
         SkillState = eSkillState.SkillCharge;
         SkillCharge = skillData.SkillChargeData;
         SkillStartTime = BattleSystem.Time;
@@ -519,10 +545,11 @@ public class EntityBattle
 
         var timeElapsed = BattleSystem.Time - SkillStartTime;
         var minCharge = SkillCharge.RequiredChargeTimeForEntity(Entity);
-        if (timeElapsed >= minCharge)
+        if (timeElapsed >= minCharge - Constants.Epsilon)
         {
             var fullCharge = SkillCharge.FullChargeTimeForEntity(Entity);
             SkillChargeRatio = timeElapsed / fullCharge;
+            Debug.Log($"Charge: {SkillChargeRatio}");
 
             SkillCharge = null;
         }
@@ -531,31 +558,9 @@ public class EntityBattle
             SkillCharge = null;
             CurrentSkill = null;
             Entity.StopCoroutine(SkillCoroutine);
+            Debug.Log("Charge failed");
         }
         yield return null;
-    }
-
-    protected virtual void CheckForSkillCancel()
-    {
-        if (SkillState == eSkillState.SkillCharge)
-        {
-            if (SkillCharge.MovementCancelsCharge && Movement != null &&
-               (Movement.LastMoved > SkillStartTime || Movement.LastJumped > SkillStartTime))
-            {
-                ChargeCancelled = true;
-            }
-        }
-        else if (SkillState == eSkillState.SkillCast)
-        {
-            if (CurrentSkill.MovementCancelsSkill)
-            {
-                var skillCancelled = Movement != null && (SkillStartTime < Movement.LastJumped || SkillStartTime < Movement.LastMoved);
-                if (skillCancelled)
-                {
-                    CancelSkill();
-                }
-            }
-        }
     }
 
     public virtual void CancelSkill()
@@ -703,11 +708,6 @@ public class EntityBattle
         }
 
         if (!CanAffordCost(PrepareSkill.SkillCost))
-        {
-            return true;
-        }
-
-        if (Movement != null && (Movement.LastMoved > PrepareStartTime || Movement.LastJumped > PrepareStartTime))
         {
             return true;
         }

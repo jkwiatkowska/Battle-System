@@ -47,12 +47,18 @@ public static class BattleGUI
     #endregion
 
     #region Basic Components
-    public static void EditBool(ref bool value, string label)
+    public static void EditBool(ref bool value, string label, bool makeHorizontal = true)
     {
-        GUILayout.BeginHorizontal();
+        if (makeHorizontal)
+        {
+            GUILayout.BeginHorizontal();
+        }
         value = EditorGUILayout.Toggle(value, GUILayout.Width(12));
         Label(label);
-        GUILayout.EndHorizontal();
+        if (makeHorizontal)
+        {
+            GUILayout.EndHorizontal();
+        }
     }
 
     public static void EditColor(ref Color color, string label, int labelWidth = 200, bool makeHorizontal = true)
@@ -725,6 +731,105 @@ public static class BattleGUI
         {
             GUILayout.EndHorizontal();
         }
+    }
+
+    public static Action CopyAction(Action action)
+    {
+        switch (action.ActionType)
+        {
+            case Action.eActionType.ApplyCooldown:
+            {
+                var a = action as ActionCooldown;
+                if (a != null)
+                {
+                    return Copy(a);
+                }
+                break;
+            }
+            case Action.eActionType.CollectCost:
+            {
+                var a = action as ActionCostCollection;
+                if (a != null)
+                {
+                    return Copy(a);
+                }
+                break;
+            }
+            case Action.eActionType.DestroySelf:
+            {
+                var a = action as ActionDestroySelf;
+                if (a != null)
+                {
+                    return Copy(a);
+                }
+                break;
+            }
+            case Action.eActionType.LoopBack:
+            {
+                var a = action as ActionLoopBack;
+                if (a != null)
+                {
+                    return Copy(a);
+                }
+                break;
+            }
+            case Action.eActionType.Message:
+            {
+                var a = action as ActionMessage;
+                if (a != null)
+                {
+                    return Copy(a);
+                }
+                break;
+            }
+            case Action.eActionType.PayloadArea:
+            {
+                var a = action as ActionPayloadArea;
+                if (a != null)
+                {
+                    return Copy(a);
+                }
+                break;
+            }
+            case Action.eActionType.PayloadDirect:
+            {
+                var a = action as ActionPayloadDirect;
+                if (a != null)
+                {
+                    return Copy(a);
+                }
+                break;
+            }
+            case Action.eActionType.SpawnProjectile:
+            {
+                var a = action as ActionProjectile;
+                if (a != null)
+                {
+                    return Copy(a);
+                }
+                break;
+            }
+            case Action.eActionType.SpawnEntity:
+            {
+                var a = action as ActionSummon;
+                if (a != null)
+                {
+                    return Copy(a);
+                }
+                break;
+            }
+            case Action.eActionType.SetAnimation:
+            {
+                var a = action as ActionAnimationSet;
+                if (a != null)
+                {
+                    return Copy(a);
+                }
+                break;
+            }
+        }
+
+        return null;
     }
     #endregion
 }

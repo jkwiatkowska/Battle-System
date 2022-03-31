@@ -270,7 +270,8 @@ public class Entity : MonoBehaviour
 
     protected virtual void OnTrigger(TriggerData.eTrigger trigger, Entity triggerSource = null, PayloadResult payloadResult = null, 
                                      ActionResult actionResult = null, Action action = null, string statusID = "", 
-                                     TriggerData.eEntityAffected entityAffected = TriggerData.eEntityAffected.Self)
+                                     TriggerData.eEntityAffected entityAffected = TriggerData.eEntityAffected.Self, 
+                                     string customIdentifier = "")
     {
         // Triggers can be caused by other entities, so the triggers gets passed along.
         if (entityAffected == TriggerData.eEntityAffected.Self)
@@ -288,7 +289,7 @@ public class Entity : MonoBehaviour
                         if (entity != null)
                         {
                             entity.OnTrigger(trigger, this, payloadResult, actionResult, action, statusID, 
-                                             entityAffected: TriggerData.eEntityAffected.Summoner);
+                                             entityAffected: TriggerData.eEntityAffected.Summoner, customIdentifier);
                         }
                     }
                 }
@@ -308,7 +309,7 @@ public class Entity : MonoBehaviour
                         if (entity != null)
                         {
                             entity.OnTrigger(trigger, this, payloadResult, actionResult, action, statusID, 
-                                             entityAffected: TriggerData.eEntityAffected.TaggedEntity);
+                                             entityAffected: TriggerData.eEntityAffected.TaggedEntity, customIdentifier);
                         }
                     }
                 }
@@ -345,6 +346,21 @@ public class Entity : MonoBehaviour
         }
     }
 
+    public virtual void OnCustomTrigger(string identifier, PayloadResult payloadResult = null)
+    {
+        OnTrigger(TriggerData.eTrigger.Custom, triggerSource: payloadResult?.Caster, customIdentifier: identifier);
+    }
+
+    #region Battle Triggers
+    public virtual void OnEngage()
+    {
+        OnTrigger(TriggerData.eTrigger.OnEngage);
+    }
+
+    public virtual void OnDisengage()
+    {
+        OnTrigger(TriggerData.eTrigger.OnDisengage);
+    }
     public virtual void OnPayloadApplied(PayloadResult payloadResult)
     {
         if (payloadResult == null)
@@ -423,6 +439,7 @@ public class Entity : MonoBehaviour
         OnTrigger(TriggerData.eTrigger.OnActionUsed, action: action, actionResult: actionResult);
     }
 
+    #region Status Triggers
     public virtual void OnStatusApplied(Entity target, string statusID)
     {
         OnTrigger(TriggerData.eTrigger.OnStatusApplied, triggerSource: target, statusID: statusID);
@@ -446,6 +463,22 @@ public class Entity : MonoBehaviour
     public virtual void OnStatusExpired(StatusEffect statusEffect)
     {
         OnTrigger(TriggerData.eTrigger.OnStatusExpired, triggerSource: statusEffect.Caster, statusID: statusEffect.Data.StatusID);
+    }
+    #endregion
+
+    public virtual void OnImmune(Entity source = null, PayloadResult payloadResult = null)
+    {
+        OnTrigger(TriggerData.eTrigger.OnImmune, source, payloadResult);
+        HUDPopupText.Instance.DisplayImmune(this);
+    }
+
+    public virtual void OnTargetOutOfRange() { }
+    #endregion
+
+    #region Life Triggers
+    protected virtual void OnSpawn()
+    {
+        OnTrigger(TriggerData.eTrigger.OnSpawn);
     }
 
     public virtual void OnDeath(Entity source = null, PayloadResult payloadResult = null)
@@ -485,12 +518,9 @@ public class Entity : MonoBehaviour
 
         OnTrigger(TriggerData.eTrigger.OnKill, triggerSource: payloadResult.Target, statusID: statusID);
     }
+    #endregion
 
-    protected virtual void OnSpawn()
-    {
-        OnTrigger(TriggerData.eTrigger.OnSpawn);
-    }
-
+    #region Physical Triggers
     public void OnTriggerEnter(Collider other)
     {
         var entityHit = other.GetComponentInParent<Entity>();
@@ -530,25 +560,28 @@ public class Entity : MonoBehaviour
         OnTrigger(TriggerData.eTrigger.OnCollisionTerrain);
     }
 
-    public virtual void OnImmune(Entity source = null, PayloadResult payloadResult = null)
+    public virtual void OnEntityMoved()
     {
-        OnTrigger(TriggerData.eTrigger.OnImmune, source, payloadResult);
-        HUDPopupText.Instance.DisplayImmune(this);
+        OnTrigger(TriggerData.eTrigger.OnEntityMoved);
+
+        Movement.CancelMovement();
+        EntityBattle.OnMoved();
     }
 
-    public virtual void OnTargetOutOfRange()
+    public virtual void OnEntityJumped()
     {
+        OnTrigger(TriggerData.eTrigger.OnEntityJumped);
+
+        Movement.CancelMovement();
+        EntityBattle.OnMoved();
     }
 
-    public virtual void OnEngage()
+    public virtual void OnEntityLanded()
     {
-        OnTrigger(TriggerData.eTrigger.OnEngage);
+        OnTrigger(TriggerData.eTrigger.OnEntityLanded);
     }
 
-    public virtual void OnDisengage()
-    {
-        OnTrigger(TriggerData.eTrigger.OnDisengage);
-    }
+    #endregion
     #endregion
 
     #region Status Effects
@@ -872,9 +905,11 @@ public class Entity : MonoBehaviour
         return false;
     }
 
-    public bool IsMovementLocked => Locks.ContainsKey(EffectLock.eLockType.Movement) && Locks[EffectLock.eLockType.Movement].Count > 0;
+    public bool IsMovementLocked => (Movement.CurrentMovement != null && Movement.CurrentMovement.LockEntityMovement) || 
+                                    (Locks.ContainsKey(EffectLock.eLockType.Movement) && Locks[EffectLock.eLockType.Movement].Count > 0);
 
-    public bool IsJumpingLocked => Locks.ContainsKey(EffectLock.eLockType.Jump) && Locks[EffectLock.eLockType.Jump].Count > 0;
+    public bool IsJumpingLocked => (Movement.CurrentMovement != null && Movement.CurrentMovement.LockEntityMovement) || 
+                                   (Locks.ContainsKey(EffectLock.eLockType.Jump) && Locks[EffectLock.eLockType.Jump].Count > 0);
 
     #endregion
 

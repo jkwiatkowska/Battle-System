@@ -16,51 +16,32 @@ public class TransformData
         //PositionFromInput     
     }
 
-    public enum eForwardSource
-    {
-        CasterForward,          // The entity casting the skill.
-        TargetForward,          // Forward of the target.
-        CasterToTarget,         // Direction vector between caster and target.
-        TaggedEntityForward,    // Forward of a tagged entity.
-        CasterToTaggedEntity,   // Direction vector between caster and tagged entity.
-        CasterToPositionOrigin, // Direction vector between caster and position origin.
-        Vector3Forward,         // North direction in the world.
-    }
+    public ePositionOrigin PositionOrigin;              // Where a skill is positioned.
 
-    public enum eTaggedTargetPriority
-    {
-        Random,
-        Nearest,
-        Furthest
-    }
+    public DirectionData Direction;                     // Direction along which the offset is applied.
+    public Vector3 PositionOffset;                      // Position offset from position origin. Relative to forward direction.
+    public Vector3 RandomPositionOffset;                // Range of a random offset from the summon position, for each x and y axis.
 
-    public ePositionOrigin PositionOrigin;              // Where a skill is positioned
-    public eForwardSource ForwardSource;                // How the direction is determined
-    public string EntityTag;                            // If using tagged entity position
-    public eTaggedTargetPriority TaggedTargetPriority;  // If there is more than one entity with a given tag, this is used.
-
-    public Vector3 PositionOffset;          // Position offset from position origin. Relative to forward direction.
-    public Vector3 RandomPositionOffset;    // Range of a random offset from the summon position, for each x and y axis.
-
-    public float ForwardRotationOffset;     // The forward vector can be rotated around its Y axis.
-    public float RandomForwardOffset;       // Randomness can be applied to this as well. 
+    public string EntityTag;                            // If using tagged entity position.
+    public TagData.eTagPriority TaggedTargetPriority;   // If there is more than one entity with a given tag, this is used.
 
     public TransformData()
     {
         PositionOrigin = ePositionOrigin.CasterPosition;
-        ForwardSource = eForwardSource.CasterForward;
+        Direction = new DirectionData();
         EntityTag = "";
-        TaggedTargetPriority = eTaggedTargetPriority.Random;
+        TaggedTargetPriority = TagData.eTagPriority.Random;
         PositionOffset = Vector3.zero;
         RandomPositionOffset = Vector3.zero;
-        ForwardRotationOffset = 0.0f;
-        RandomForwardOffset = 0.0f;
     }
 
     public bool TryGetTransformFromData(Entity caster, Entity target, out Vector3 position, out Vector3 forward)
     {
         position = new Vector3();
-        forward = new Vector3();
+        if (!Direction.TryGetRotationFromData(caster, target, out forward))
+        {
+            return false;
+        }
 
         switch (PositionOrigin)
         {
@@ -87,7 +68,7 @@ public class TransformData
             }
             case ePositionOrigin.TaggedEntityPosition:
             {
-                var taggedEntity = ChooseTaggedEntity(caster);
+                var taggedEntity = TagData.ChooseTaggedEntity(caster, EntityTag, TaggedTargetPriority);
                 if (taggedEntity != null)
                 { 
                     position = taggedEntity.transform.position;
@@ -117,7 +98,7 @@ public class TransformData
             }
             case ePositionOrigin.TaggedEntityOrigin:
             {
-                var taggedEntity = ChooseTaggedEntity(caster);
+                var taggedEntity = TagData.ChooseTaggedEntity(caster, EntityTag, TaggedTargetPriority);
                 if (taggedEntity != null)
                 {
                     position = taggedEntity.Origin;
@@ -136,90 +117,7 @@ public class TransformData
             }
         }
 
-        switch (ForwardSource)
-        {
-            case eForwardSource.CasterForward:
-            {
-                forward = caster.transform.forward;
-                break;
-            }
-            case eForwardSource.TargetForward:
-            {
-                if (target != null)
-                {
-                    forward = target.transform.forward;
-                }
-                else
-                {
-                    // No target
-                    return false;
-                }
-                break;
-            }
-            case eForwardSource.CasterToTarget:
-            {
-                if (target != null)
-                {
-                    forward = (target.transform.position - caster.transform.position).normalized;
-                }
-                else
-                {
-                    // No target
-                    return false;
-                }
-                break;
-            }
-            case eForwardSource.TaggedEntityForward:
-            {
-                var taggedEntity = ChooseTaggedEntity(caster);
-                if (taggedEntity != null)
-                {
-                    forward = taggedEntity.transform.forward;
-                }
-                else
-                {
-                    // No tagged entity
-                    return false;
-                }
-                break;
-            }
-            case eForwardSource.CasterToTaggedEntity:
-            {
-                var taggedEntity = ChooseTaggedEntity(caster);
-                if (taggedEntity != null)
-                {
-                    forward = (taggedEntity.transform.forward - caster.transform.position).normalized;
-                }
-                else
-                {
-                    // No tagged entity
-                    return false;
-                }
-                break;
-            }
-            case eForwardSource.CasterToPositionOrigin:
-            {
-                forward = (position - caster.transform.position).normalized;
-                break;
-            }
-            case eForwardSource.Vector3Forward:
-            {
-                forward = Vector3.forward;
-                break;
-            }
-            default:
-            {
-                Debug.LogError($"Unimplemented forward source: {ForwardSource}");
-                return false;
-            }
-        }
-
-        // Add offsets.
-        var randomOffset = RandomForwardOffset * (Random.value - 0.5f);
-        var forwardRotation = ForwardRotationOffset + Random.Range(0.0f, randomOffset);
-        forward = VectorUtility.Rotate(forward, forwardRotation);
-        forward.Normalize();
-
+        // Offset
         var positionOffset = PositionOffset;
         if (RandomPositionOffset.x != 0.0f)
         {
@@ -240,57 +138,116 @@ public class TransformData
         return true;
     }
 
-    Entity ChooseTaggedEntity(Entity caster)
+    
+}
+
+public class DirectionData
+{
+    public enum eDirectionSource
     {
-        var taggedEntities = caster.GetEntitiesWithTag(EntityTag);
-        if (taggedEntities.Count > 0)
+        CasterForward,          // The entity casting the skill.
+        TargetForward,          // Forward of the target.
+        CasterToTarget,         // Direction vector between caster and target.
+        TaggedEntityForward,    // Forward of a tagged entity.
+        CasterToTaggedEntity,   // Direction vector between caster and tagged entity.
+        Vector3Forward,         // North direction in the world.
+    }
+
+    public eDirectionSource DirectionSource;            // How the direction is determined
+    public float DirectionOffset;                       // The forward vector can be rotated around its Y axis.
+    public float RandomDirectionOffset;                 // Randomness can be applied to this as well. 
+
+    public string EntityTag;                            // If using tagged entity position
+    public TagData.eTagPriority TaggedTargetPriority;   // If there is more than one entity with a given tag, this is used.
+
+    public DirectionData()
+    {
+        DirectionOffset = 0.0f;
+        RandomDirectionOffset = 0.0f;
+    }
+
+    public bool TryGetRotationFromData(Entity caster, Entity target, out Vector3 forward)
+    {
+        forward = new Vector3();
+
+        switch (DirectionSource)
         {
-            var taggedEntity = taggedEntities[0];
-            var tagCount = taggedEntities.Count;
-            if (tagCount > 1)
+            case eDirectionSource.CasterForward:
             {
-                switch (TaggedTargetPriority)
-                {
-                    case eTaggedTargetPriority.Random:
-                    {
-                        taggedEntity = taggedEntities[Random.Range(0, tagCount)];
-                        break;
-                    }
-                    case eTaggedTargetPriority.Nearest:
-                    {
-                        for (int i = 1; i < tagCount; i++)
-                        {
-                            var taggedEntity2 = taggedEntities[i];
-                            if ((caster.transform.position - taggedEntity2.transform.position).sqrMagnitude <
-                                (caster.transform.position - taggedEntity.transform.position).sqrMagnitude)
-                            {
-                                taggedEntity = taggedEntity2;
-                            }
-                        }
-                        break;
-                    }
-                    case eTaggedTargetPriority.Furthest:
-                    {
-                        for (int i = 1; i < tagCount; i++)
-                        {
-                            var taggedEntity2 = taggedEntities[i];
-                            if ((caster.transform.position - taggedEntity2.transform.position).sqrMagnitude >
-                                (caster.transform.position - taggedEntity.transform.position).sqrMagnitude)
-                            {
-                                taggedEntity = taggedEntity2;
-                            }
-                        }
-                        break;
-                    }
-                    default:
-                    {
-                        Debug.LogError($"Unimplemented tagged target priority: {TaggedTargetPriority}");
-                        break;
-                    }
-                }
+                forward = caster.transform.forward;
+                break;
             }
-            return taggedEntity;
+            case eDirectionSource.TargetForward:
+            {
+                if (target != null)
+                {
+                    forward = target.transform.forward;
+                }
+                else
+                {
+                    // No target
+                    return false;
+                }
+                break;
+            }
+            case eDirectionSource.CasterToTarget:
+            {
+                if (target != null)
+                {
+                    forward = (target.transform.position - caster.transform.position).normalized;
+                }
+                else
+                {
+                    // No target
+                    return false;
+                }
+                break;
+            }
+            case eDirectionSource.TaggedEntityForward:
+            {
+                var taggedEntity = TagData.ChooseTaggedEntity(caster, EntityTag, TaggedTargetPriority);
+                if (taggedEntity != null)
+                {
+                    forward = taggedEntity.transform.forward;
+                }
+                else
+                {
+                    // No tagged entity
+                    return false;
+                }
+                break;
+            }
+            case eDirectionSource.CasterToTaggedEntity:
+            {
+                var taggedEntity = TagData.ChooseTaggedEntity(caster, EntityTag, TaggedTargetPriority);
+                if (taggedEntity != null)
+                {
+                    forward = (taggedEntity.transform.forward - caster.transform.position).normalized;
+                }
+                else
+                {
+                    // No tagged entity
+                    return false;
+                }
+                break;
+            }
+            case eDirectionSource.Vector3Forward:
+            {
+                forward = Vector3.forward;
+                break;
+            }
+            default:
+            {
+                Debug.LogError($"Unimplemented forward source: {DirectionSource}");
+                return false;
+            }
         }
-        else return null;
+
+        // Add offsets.
+        var randomOffset = RandomDirectionOffset * (Random.value - 0.5f);
+        var forwardRotation = DirectionOffset + Random.Range(0.0f, randomOffset);
+        forward = VectorUtility.Rotate(forward, forwardRotation);
+        forward.Normalize();
+        return true;
     }
 }

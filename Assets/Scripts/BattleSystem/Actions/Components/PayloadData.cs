@@ -27,14 +27,15 @@ public class PayloadData
 
     public bool Instakill = false;                      // Used to set an entity's OnDeath trigger.
     public bool Revive = false;                         // Revives dead entities.
+    public bool Interrupt = false;                      // If true, stops entity from casting skills. 
+
+    public ActionMovement Movement;                     // Causes the entity to move in a given direction or toward a specified position.
+    public ActionRotation Rotation;                     // Causes the entity to rotate toward a given direction.
 
     public float SuccessChance;
 
     public PayloadCondition PayloadCondition;           // Condition for the payload to be applied.
     public PayloadData AlternatePayload;                // If the condition isn't met, an alternate payload can be executed instead.
-
-    // TO DO:
-    // - Force applied to target.
 
     public PayloadData()
     {

@@ -50,7 +50,7 @@ public class Projectile : EntitySummon
             }
         }
 
-        Movement.GravitationalForce = ProjectileData.Gravity;
+        Movement.SetGravitationalForce(ProjectileData.Gravity);
 
         switch (projectileData.Target)
         {
@@ -146,7 +146,7 @@ public class Projectile : EntitySummon
                     {
                         if (rotationPerSecond > 0.0f && RotationY != 0.0f)
                         {
-                            Movement.RotateY(rotationPerSecond, ref RotationY);
+                            Movement.RotateAroundYAxis(rotationPerSecond, ref RotationY);
                         }
                         Movement.Move(transform.forward, false, speedMultiplier);
                         break;
@@ -161,7 +161,7 @@ public class Projectile : EntitySummon
                     {
                         var previousPos = RelativePosition;
 
-                        var movement = MovementEntity.GetEntityMovement(this, Time.fixedDeltaTime, speedMultiplier) * RelativePosition.normalized;
+                        var movement = MovementEntity.GetMovementAmount(this, Time.fixedDeltaTime, speedMultiplier) * RelativePosition.normalized;
                         RelativePosition += movement;
 
                         transform.position = TargetPosition + RelativePosition;
@@ -181,7 +181,7 @@ public class Projectile : EntitySummon
             }
             else
             {
-                transform.rotation = Quaternion.LookRotation(Movement.Velocity);
+                transform.rotation = Quaternion.LookRotation(Movement.EntityVelocity);
             }
         }
     }
@@ -219,8 +219,8 @@ public class Projectile : EntitySummon
     public override void OnDeath(Entity source = null, PayloadResult payloadResult = null)
     {
         TriggerCollider.enabled = false;
-        Movement.GravitationalForce = 0.0f;
-        Movement.Velocity = Vector3.zero;
+        Movement.SetGravitationalForce(0.0f);
+        Movement.SetVelocity(Vector3.zero);
 
         base.OnDeath(source, payloadResult);
     }

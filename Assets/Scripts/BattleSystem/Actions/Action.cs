@@ -63,54 +63,34 @@ public abstract class Action
         switch (type)
         {
             case eActionType.ApplyCooldown:
-            {
-                action = new ActionCooldown();
-                break;
+            {return action as ActionCooldown;
             }
             case eActionType.CollectCost:
-            {
-                action = new ActionCostCollection();
-                break;
+            {return action as ActionCostCollection;
             }
             case eActionType.DestroySelf:
-            {
-                action = new ActionDestroySelf();
-                break;
+            {return action as ActionDestroySelf;
             }
             case eActionType.LoopBack:
-            {
-                action = new ActionLoopBack();
-                break;
+            {return action as ActionLoopBack;
             }
             case eActionType.Message:
-            {
-                action = new ActionMessage();
-                break;
+            {return action as ActionMessage;
             }
             case eActionType.PayloadArea:
-            {
-                action = new ActionPayloadArea();
-                break;
+            {return action as ActionPayloadArea;
             }
             case eActionType.PayloadDirect:
-            {
-                action = new ActionPayloadDirect();
-                break;
+            {return action as ActionPayloadDirect;
             }
             case eActionType.SpawnProjectile:
-            {
-                action = new ActionProjectile();
-                break;
+            {return action as ActionProjectile;
             }
             case eActionType.SpawnEntity:
-            {
-                action = new ActionSummon();
-                break;
+            {return action as ActionSummon;
             }
             case eActionType.SetAnimation:
-            {
-                action = new ActionAnimationSet();
-                break;
+            {return action as ActionAnimationSet;
             }
         }
 

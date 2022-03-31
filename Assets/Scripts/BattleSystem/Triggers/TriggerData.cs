@@ -304,6 +304,7 @@ public class TriggerData
     public enum eTrigger
     {
         EveryFrame,                 // Fires every frame.
+        Custom,                     // Trigger fires if the custom identifier matches.
         OnPayloadApplied,           // Succesfully using a payload action.
         OnPayloadReceived,          // Having payload applied.
         OnHitMissed,                // Failing to apply a payload action.
@@ -325,6 +326,9 @@ public class TriggerData
         OnCollisionEnemy,           // Fires on trigger collision with an enemy.
         OnCollisionFriend,          // Fireso on trigger collision with a friend.
         OnCollisionTerrain,         // Fires on trigger collision with an object on terrain layer.
+        OnEntityMoved,              // Triggered by an entity moving (non-action movement).
+        OnEntityJumped,             // Triggered when an entity jumps.
+        OnEntityLanded,             // Triggered when an entity lands after a jump or fall. 
     }
 
     public enum eEntityAffected
@@ -341,6 +345,7 @@ public class TriggerData
     public float Cooldown;                      // A trigger can have a cooldown applied whenever it activates to limit its effects
     public int Limit;                           // A trigger can have a limit set. It will be removed from an entity when that limit is reached. Unlimited if 0. 
     public float TriggerChance = 1.0f;          // The odds of an effect triggering. 
+    public string CustomIdentifier;             // For custom triggers.
 
     public ActionTimeline Actions;
 

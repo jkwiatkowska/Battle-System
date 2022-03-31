@@ -20,12 +20,17 @@ public class Trigger
 
     public Coroutine TryExecute(Entity entity, out bool usesLeft, Entity triggerSource = null, PayloadResult payloadResult = null, 
                                 Action action = null, ActionResult actionResult = null, string statusName = "", 
-                                TriggerData.eEntityAffected entityAffected = TriggerData.eEntityAffected.Self)
+                                TriggerData.eEntityAffected entityAffected = TriggerData.eEntityAffected.Self, string customIdentifier = "")
     {
         usesLeft = true;
         if (triggerSource == null)
         {
             triggerSource = entity;
+        }
+
+        if (TriggerData.Trigger == TriggerData.eTrigger.Custom && TriggerData.CustomIdentifier != customIdentifier)
+        {
+            return null;
         }
 
         if (!ConditionsMet(entity, triggerSource, payloadResult, action, actionResult, statusName, entityAffected))

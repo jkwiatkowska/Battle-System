@@ -20,7 +20,7 @@ public class EntityData
     public List<string> Categories;                         // This doesn't do anything, but can be used in damage calculations.
     public Dictionary<string, Vector2> BaseAttributes;      // Attributes such as atk, def, hp, crit chance, speed, damage resistance, etc.
                                                             // Used to calculate damage. Minimum and maximum values can be stored.
-
+    #region Resources
     public class EntityResource
     {
         public string Resource;
@@ -39,12 +39,14 @@ public class EntityData
     }
     public Dictionary<string, EntityResource> Resources;    // Resources available to this entity and the rate at which they recover.
     public List<string> LifeResources;                      // If any of these resources reaches 0, the entity dies.
+    #endregion
 
     public bool IsTargetable;                               // If true, skills can be used on the entity.
     public bool CanEngage;                                  // If true, attacking the entity will enter combat.
 
     public string Faction;
 
+    #region Triggers and Effects
     public List<TriggerData> Triggers;                      // Occurences such as death or receiving damage and the actions they cause. 
     public class EntityStatusEffect
     {
@@ -52,6 +54,7 @@ public class EntityData
         public int Stacks;
     }
     public List<EntityStatusEffect> StatusEffects;          // Status effects applied when an entity is set up. 
+    #endregion
 
     public float Radius;                                    // Radius of an entity, used by area attacks.
     public float Height;                                    // Height of an entity. Used by area attacks and displaying UI elements above it.
