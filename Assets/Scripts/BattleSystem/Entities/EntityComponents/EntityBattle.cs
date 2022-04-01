@@ -549,7 +549,6 @@ public class EntityBattle
         {
             var fullCharge = SkillCharge.FullChargeTimeForEntity(Entity);
             SkillChargeRatio = timeElapsed / fullCharge;
-            Debug.Log($"Charge: {SkillChargeRatio}");
 
             SkillCharge = null;
         }
@@ -558,7 +557,6 @@ public class EntityBattle
             SkillCharge = null;
             CurrentSkill = null;
             Entity.StopCoroutine(SkillCoroutine);
-            Debug.Log("Charge failed");
         }
         yield return null;
     }

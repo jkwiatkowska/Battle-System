@@ -2451,7 +2451,7 @@ public class BattleSystemDataEditor : EditorWindow
         {
             a.SummonAtPosition = new TransformData();
         }
-        EditTransform(a.SummonAtPosition, "Summon At Position:");
+        EditPosition(a.SummonAtPosition, "Summon At Position:");
 
         BattleGUI.EditFloat(ref a.SummonDuration, "Summon Duration:", Space);
         BattleGUI.EditInt(ref a.SummonLimit, $"Max Summonned {a.EntityID}s:", Space);
@@ -2497,7 +2497,7 @@ public class BattleSystemDataEditor : EditorWindow
                     a.TargetPosition = new TransformData();
                 }
                 BattleGUI.StartIndent();
-                EditTransform(a.TargetPosition, "Position Transform:");
+                EditPosition(a.TargetPosition, "Position:");
                 BattleGUI.EndIndent();
             }
         }
@@ -2518,7 +2518,7 @@ public class BattleSystemDataEditor : EditorWindow
                     a.AnchorPosition = new TransformData();
                 }
                 BattleGUI.StartIndent();
-                EditTransform(a.AnchorPosition, "Position Transform:");
+                EditPosition(a.AnchorPosition, "Position:");
                 BattleGUI.EndIndent();
             }
         }
@@ -2840,9 +2840,9 @@ public class BattleSystemDataEditor : EditorWindow
         }
         if (area.Shape == ActionPayloadArea.Area.eShape.Cube)
         {
-            BattleGUI.EditVector3(area.Dimensions, "Dimensions:");
+            BattleGUI.EditVector3(ref area.Dimensions, "Dimensions:");
             var inner = new Vector3(area.InnerDimensions.x, 0.0f, area.InnerDimensions.y);
-            BattleGUI.EditVector3(inner, "Inner Dimensions:");
+            BattleGUI.EditVector3(ref inner, "Inner Dimensions:");
             area.InnerDimensions.x = inner.x;
             area.InnerDimensions.y = inner.z;
         }
@@ -2855,7 +2855,7 @@ public class BattleSystemDataEditor : EditorWindow
         {
             area.AreaTransform = new TransformData();
         }
-        EditTransform(area.AreaTransform, "Area Transform:");
+        EditPosition(area.AreaTransform, "Area Position:");
         BattleGUI.EndIndent();
     }
 
@@ -2894,16 +2894,15 @@ public class BattleSystemDataEditor : EditorWindow
     #region Action Movement/Rotation
     void EditActionMovement(ActionMovement movement, string label, ref bool show)
     {
+        BattleGUI.StartIndent();
         if (BattleGUI.EditFoldout(ref show, label))
         {
-            BattleGUI.StartIndent();
             BattleGUI.EditEnum(ref movement.MovementType, "Movement Type:", Space);
             if (movement.MovementType == ActionMovement.eMovementType.MoveToPosition ||
                 movement.MovementType == ActionMovement.eMovementType.LaunchToPosition ||
                 movement.MovementType == ActionMovement.eMovementType.TeleportToPosition)
             {
-                EditTransform(movement.TargetPosition, "Target Position:");
-                BattleGUI.EditBool(ref movement.FaceMovementDirection, "Face Movement Direction");
+                EditPosition(movement.TargetPosition, "Target Position:");
 
                 if (movement.MovementType == ActionMovement.eMovementType.MoveToPosition)
                 {
@@ -2916,51 +2915,57 @@ public class BattleSystemDataEditor : EditorWindow
                 }
             }
 
+            if (movement.MovementType == ActionMovement.eMovementType.MoveForward ||
+                movement.MovementType == ActionMovement.eMovementType.MoveBackward)
+            {
+                EditDirection(movement.TargetPosition.Direction, "Forward Direction");
+            }
+
             if (movement.MovementType != ActionMovement.eMovementType.TeleportToPosition)
             {
-                BattleGUI.EditFloat(ref movement.Speed, "Movement Speed:");
+                BattleGUI.EditBool(ref movement.FaceMovementDirection, "Face Movement Direction");
+
+                BattleGUI.EditFloat(ref movement.Speed, "Movement Speed:", Space);
                 if (movement.MovementType != ActionMovement.eMovementType.LaunchToPosition)
                 {
-                    BattleGUI.EditFloat(ref movement.Speed, "Movement Duration:");
+                    BattleGUI.EditFloat(ref movement.MaxDuration, "Movement Duration:", Space);
                 }
             }
 
-            BattleGUI.EditFloat(ref movement.InterruptionLevel, "Interruption Level");
-            BattleGUI.EditInt(ref movement.Priority, "Priority");
-
-
-            BattleGUI.EndIndent();
+            BattleGUI.EditFloat(ref movement.InterruptionLevel, "Interruption Level", Space);
+            BattleGUI.EditInt(ref movement.Priority, "Priority", Space);
         }
+        BattleGUI.EndIndent();
     }
 
     void EditActionRotation(ActionRotation rotation, string label, ref bool show)
     {
+        BattleGUI.StartIndent();
         if (BattleGUI.EditFoldout(ref show, label))
         {
 
-            BattleGUI.StartIndent();
-
-            BattleGUI.EndIndent();
         }
+        BattleGUI.EndIndent();
     }
     #endregion
 
     #region Transform
 
-    void EditTransform(TransformData transform, string label)
+    void EditPosition(TransformData transform, string label)
     {
         BattleGUI.Label(label);
 
         BattleGUI.StartIndent();
-        BattleGUI.EditEnum(ref transform.PositionOrigin, "Transform Position Origin:", Space);
-        if (transform.PositionOrigin == TransformData.ePositionOrigin.TaggedEntityPosition)
+        BattleGUI.EditEnum(ref transform.PositionOrigin, "Position Origin:", Space);
+        if (transform.PositionOrigin == TransformData.ePositionOrigin.EntityPosition ||
+            transform.PositionOrigin == TransformData.ePositionOrigin.EntityOrigin)
         {
-            BattleGUI.EditString(ref transform.EntityTag, "Entity Tag:", Space);
-            BattleGUI.EditEnum(ref transform.TaggedTargetPriority, "Tagged Entity Priority:", Space);
+            EditTransformTargetEntity(transform.TargetEntity, "Entity:");
         }
-        BattleGUI.EditVector3(transform.PositionOffset, "Position Offset: ");
-        BattleGUI.EditVector3(transform.RandomPositionOffset, "Random Position Offset: ");
 
+        BattleGUI.EditVector3(ref transform.PositionOffset, "Position Offset: ");
+        BattleGUI.EditVector3(ref transform.RandomPositionOffset, "Random Position Offset: ");
+        EditDirection(transform.Direction, "Offset Direction:");
 
         BattleGUI.EndIndent();
     }
@@ -2971,15 +2976,30 @@ public class BattleSystemDataEditor : EditorWindow
 
         BattleGUI.StartIndent();
         BattleGUI.EditEnum(ref direction.DirectionSource, "Direction Source:", Space);
-        if (direction.DirectionSource == DirectionData.eDirectionSource.TaggedEntityForward)
+        if (direction.DirectionSource == DirectionData.eDirectionSource.EntityForward)
         {
-            BattleGUI.EditString(ref direction.EntityTag, "Entity Tag:", Space);
-            BattleGUI.EditEnum(ref direction.TaggedTargetPriority, "Tagged Entity Priority:", Space);
+            EditTransformTargetEntity(direction.EntityFrom, "Entity:");
+        }
+        else if (direction.DirectionSource == DirectionData.eDirectionSource.EntityToEntity)
+        {
+            EditTransformTargetEntity(direction.EntityFrom, "From:");
+            EditTransformTargetEntity(direction.EntityTo, "To:");
         }
 
         BattleGUI.EditFloat(ref direction.DirectionOffset, "Rotation Offset: ", Space);
         BattleGUI.EditFloat(ref direction.RandomDirectionOffset, "Random Rotation Offset: ", Space);
         BattleGUI.EndIndent();
+    }
+
+    void EditTransformTargetEntity(TransformTargetEntity targetEntity, string label)
+    {
+        BattleGUI.EditEnum(ref targetEntity.EntityTarget, label, Space);
+
+        if (targetEntity.EntityTarget == TransformTargetEntity.eEntity.Tagged)
+        {
+            BattleGUI.EditString(ref targetEntity.EntityTag, "Entity Tag:", Space);
+            BattleGUI.EditEnum(ref targetEntity.TaggedTargetPriority, "Tagged Entity Priority:", Space);
+        }
     }
     #endregion
 
@@ -2998,6 +3018,7 @@ public class BattleSystemDataEditor : EditorWindow
         }
 
         // Damage/Recovery
+        BattleGUI.EditorDrawLine();
         if (BattleGUI.EditFoldout(ref editorPayload.ShowPayloadDamage, "Payload Damage"))
         {
             BattleGUI.StartIndent();
@@ -3050,6 +3071,7 @@ public class BattleSystemDataEditor : EditorWindow
         }
 
         // Other effects
+        BattleGUI.EditorDrawLine();
         if (BattleGUI.EditFoldout(ref editorPayload.ShowOtherEffects, "Other Effects"))
         {
             BattleGUI.StartIndent();
@@ -3135,24 +3157,8 @@ public class BattleSystemDataEditor : EditorWindow
             }
 
             // Movement
-            if (BattleGUI.EditFoldout(ref editorPayload.ShowTransformChanges, "Transform Changes"))
+            if (BattleGUI.EditFoldout(ref editorPayload.ShowTransformChanges, "Position/Direction Change"))
             {
-                var movement = payload.Movement != null;
-                BattleGUI.EditBool(ref movement, "Movement Caused");
-                if (movement)
-                {
-                    if (payload.Movement == null)
-                    {
-                        payload.Movement = new ActionMovement();
-                    }
-
-                    EditActionMovement(payload.Movement, "Movement", ref editorPayload.ShowMovement);
-                }
-                else
-                {
-                    payload.Movement = null;
-                }
-
                 var rotation = payload.Rotation != null;
                 BattleGUI.EditBool(ref rotation, "Rotation Caused");
                 if (rotation)
@@ -3168,11 +3174,28 @@ public class BattleSystemDataEditor : EditorWindow
                 {
                     payload.Rotation = null;
                 }
+
+                var movement = payload.Movement != null;
+                BattleGUI.EditBool(ref movement, "Movement Caused");
+                if (movement)
+                {
+                    if (payload.Movement == null)
+                    {
+                        payload.Movement = new ActionMovement();
+                    }
+
+                    EditActionMovement(payload.Movement, "Movement", ref editorPayload.ShowMovement);
+                }
+                else
+                {
+                    payload.Movement = null;
+                }
             }
             BattleGUI.EndIndent();
         }
 
         // Payload conditions
+        BattleGUI.EditorDrawLine();
         if (BattleGUI.EditFoldout(ref editorPayload.ShowConditions, "Payload Conditions"))
         {
             BattleGUI.StartIndent();
@@ -3214,6 +3237,7 @@ public class BattleSystemDataEditor : EditorWindow
             BattleGUI.EndIndent();
         }
         BattleGUI.EndIndent();
+        BattleGUI.EditorDrawLine();
     }
 
     void EditPayloadAction(ActionPayload action, EditorPayloadAction editorAction)
@@ -3735,7 +3759,7 @@ public class BattleSystemDataEditor : EditorWindow
 
         BattleGUI.EditBool(ref data.MovementCancelsCharge, "Movement Cancels Charge");
 
-        EditActionTimeline(data.PreChargeTimeline, ref newChargeAction, ref showTimeline, "Charge Timeline:", skillID: skillID);
+        EditActionTimeline(data.PreChargeTimeline, ref newChargeAction, ref showTimeline, "Charge Timeline", skillID: skillID);
 
         BattleGUI.EditBool(ref data.ShowUI, "Show Skill Charge UI");
     }

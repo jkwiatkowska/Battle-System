@@ -399,9 +399,9 @@ public static class BattleGUI
         value = EditorGUILayout.Vector2Field(label, value, GUILayout.Width(width));
     }
 
-    public static void EditVector3(Vector3 value, string label, int width = 300)
+    public static void EditVector3(ref Vector3 value, string label, int width = 300)
     {
-        EditorGUILayout.Vector3Field(label, value, GUILayout.Width(width));
+        value = EditorGUILayout.Vector3Field(label, value, GUILayout.Width(width));
     }
 
     public static void Help(string message)

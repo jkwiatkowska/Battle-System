@@ -54,6 +54,17 @@ public class Payload
             }
         }
 
+        // Movement
+        if (PayloadData.Rotation != null)
+        {
+
+        }
+
+        if (PayloadData.Movement != null)
+        {
+            target.Movement.InitiateMovement(PayloadData.Movement, caster, target);
+        }
+
         // Instant death
         if (PayloadData.Instakill)
         {

@@ -28,7 +28,7 @@ public class MovementEntity : MonoBehaviour
     public ActionMovement CurrentMovement               { get; protected set; }
     Coroutine MovementCoroutine;
 
-    public virtual bool InitiateMovement(ActionMovement movement, Entity target = null)
+    public virtual bool InitiateMovement(ActionMovement movement, Entity caster = null, Entity target = null)
     {
         if (CurrentMovement != null)
         {
@@ -48,27 +48,27 @@ public class MovementEntity : MonoBehaviour
         {
             case ActionMovement.eMovementType.MoveToPosition:
             {
-                MovementCoroutine = StartCoroutine(MoveToPositionEnumerator(target));
+                MovementCoroutine = StartCoroutine(MoveToPositionEnumerator(caster, target));
                 break;
             }
             case ActionMovement.eMovementType.TeleportToPosition:
             {
-                Teleport(movement, target);
+                Teleport(movement, caster, target);
                 break;
             }
             case ActionMovement.eMovementType.LaunchToPosition:
             {
-                MovementCoroutine = StartCoroutine(LaunchToPositionEnumerator(target));
+                MovementCoroutine = StartCoroutine(LaunchToPositionEnumerator(caster, target));
                 break;
             }
             case ActionMovement.eMovementType.MoveForward:
             {
-                MovementCoroutine = StartCoroutine(MoveAlongForwardEnumerator());
+                MovementCoroutine = StartCoroutine(MoveAlongDirectionEnumerator(caster, target));
                 break;
             }
             case ActionMovement.eMovementType.MoveBackward:
             {
-                MovementCoroutine = StartCoroutine(MoveAlongForwardEnumerator(true));
+                MovementCoroutine = StartCoroutine(MoveAlongDirectionEnumerator(caster, target, true));
                 break;
             }
             default:
@@ -95,7 +95,7 @@ public class MovementEntity : MonoBehaviour
         transform.position = position;
     }
 
-    public void Teleport(ActionMovement movement, Entity target)
+    public void Teleport(ActionMovement movement, Entity caster, Entity target)
     {
         // CurrentMovement has to be set first.
         if (movement == null)
@@ -105,18 +105,19 @@ public class MovementEntity : MonoBehaviour
         }
 
         // Find position from transform data. 
-        var found = movement.TargetPosition.TryGetTransformFromData(Entity, target, out var goal, out _);
+        var found = movement.TargetPosition.TryGetTransformFromData(caster, target, out var goal, out _);
         if (!found)
         {
-            Debug.LogError($"A position for movement action used by {Entity.EntityUID} could not be found.");
+            Debug.LogError($"A position for movement action used by {caster.EntityUID} could not be found.");
             movement = null;
             return;
         }
 
         SetPosition(goal);
+        CurrentMovement = null;
     }
 
-    public virtual IEnumerator MoveToPositionEnumerator(Entity target)
+    public virtual IEnumerator MoveToPositionEnumerator(Entity caster, Entity target)
     {
         // CurrentMovement has to be set first.
         if (CurrentMovement == null)
@@ -126,10 +127,10 @@ public class MovementEntity : MonoBehaviour
         }
 
         // Find position from transform data. 
-        var found = CurrentMovement.TargetPosition.TryGetTransformFromData(Entity, target, out var goal, out _);
+        var found = CurrentMovement.TargetPosition.TryGetTransformFromData(caster, target, out var goal, out _);
         if (!found)
         {
-            Debug.LogError($"A position for movement action used by {Entity.EntityUID} could not be found.");
+            Debug.LogError($"A position for movement action used by {caster.EntityUID} could not be found.");
             CurrentMovement = null;
             yield break;
         }
@@ -156,13 +157,18 @@ public class MovementEntity : MonoBehaviour
             dir = goal - Entity.Origin;
             dist = dir.sqrMagnitude;
 
-            var movement = Mathf.Min(Mathf.Pow(speed * elapsedTime, 2), dist);
             if (CurrentMovement.HorizontalMovementOnly)
             {
                 dir.y = 0.0f;
             }
 
-            Move(dir.normalized * movement, CurrentMovement.FaceMovementDirection, setMovementTrigger: false);
+            var movement = speed * elapsedTime * dir;
+            if (dist < movement.sqrMagnitude)
+            {
+                movement = dir;
+            }
+
+            Move(movement, CurrentMovement.FaceMovementDirection, setMovementTrigger: false);
 
             yield return null;
         }
@@ -171,7 +177,7 @@ public class MovementEntity : MonoBehaviour
         CurrentMovement = null;
     }
 
-    public virtual IEnumerator LaunchToPositionEnumerator(Entity target)
+    public virtual IEnumerator LaunchToPositionEnumerator(Entity caster, Entity target)
     {
         // CurrentMovement has to be set first.
         if (CurrentMovement == null)
@@ -181,7 +187,7 @@ public class MovementEntity : MonoBehaviour
         }
 
         // Find position from transform data. 
-        var found = CurrentMovement.TargetPosition.TryGetTransformFromData(Entity, target, out var goal, out _);
+        var found = CurrentMovement.TargetPosition.TryGetTransformFromData(caster, target, out var goal, out _);
         if (!found)
         {
             Debug.LogError($"A position for movement action used by {Entity.EntityUID} could not be found.");
@@ -190,10 +196,14 @@ public class MovementEntity : MonoBehaviour
         }
 
         // Rotate toward target position if required.
-        var dir = goal - Entity.Origin;
         if (CurrentMovement.FaceMovementDirection)
         {
-            transform.rotation = Quaternion.LookRotation(dir.normalized, Vector3.up);
+            var lookDir = goal - Entity.transform.position;
+            lookDir.y = 0.0f;
+            if (lookDir.sqrMagnitude > Constants.Epsilon)
+            {
+                transform.rotation = Quaternion.LookRotation(lookDir, Vector3.up);
+            }
         }
 
         var startTime = BattleSystem.Time;
@@ -201,7 +211,11 @@ public class MovementEntity : MonoBehaviour
         float lastTime = startTime;
 
         var gravityMultiplier = CurrentMovement.Speed > Constants.Epsilon ? CurrentMovement.Speed : 1.0f;
+        var gravity = GravitationalForce * gravityMultiplier;
         Velocity = LaunchVelocity(goal, CurrentMovement.LaunchAngle, gravityMultiplier);
+
+        float dist = (new Vector2(transform.position.x, transform.position.z) - new Vector2(goal.x, goal.z)).sqrMagnitude;
+        float previousDist;
 
         // Move toward position.
         do
@@ -209,16 +223,22 @@ public class MovementEntity : MonoBehaviour
             elapsedTime = BattleSystem.Time - lastTime;
             lastTime = BattleSystem.Time;
 
-            Velocity.y += GravitationalForce * gravityMultiplier * elapsedTime;
+            gameObject.transform.position += Velocity * elapsedTime;
+
+            previousDist = dist + Constants.Epsilon;
+            dist = (new Vector2(transform.position.x, transform.position.z) - new Vector2(goal.x, goal.z)).sqrMagnitude;
+
+            Velocity.y += gravity * elapsedTime;
+            Debug.Log(Velocity);
             yield return null;
         }
-        while (!(IsGrounded && Velocity.y < Constants.Epsilon));
+        while (!IsGrounded && (dist > Constants.Epsilon && dist < previousDist));
 
         Velocity = Vector3.zero;
         CurrentMovement = null;
     }
 
-    public virtual IEnumerator MoveAlongForwardEnumerator(bool reverse = false)
+    public virtual IEnumerator MoveAlongDirectionEnumerator(Entity caster, Entity target, bool reverse = false)
     {
         // CurrentMovement has to be set first.
         if (CurrentMovement == null)
@@ -227,14 +247,34 @@ public class MovementEntity : MonoBehaviour
             yield break;
         }
 
+        // Find forward direction.
+        var found = CurrentMovement.TargetPosition.Direction.TryGetRotationFromData(caster, target, out var direction);
+        if (!found)
+        {
+            Debug.LogError($"A position for movement action used by {Entity.EntityUID} could not be found.");
+            CurrentMovement = null;
+            yield break;
+        }
+
         var startTime = BattleSystem.Time;
         float totalElapsedTime;
         float elapsedTime;
         float lastTime = startTime;
 
+        if (CurrentMovement.HorizontalMovementOnly)
+        {
+            direction.y = 0.0f;
+        }
         var directionMultiplier = reverse ? -1.0f : 1.0f;
+        direction.Normalize();
+
+        if (CurrentMovement.FaceMovementDirection && direction.sqrMagnitude > Constants.Epsilon)
+        {
+            transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+        }
+
         var speed = (CurrentMovement.Speed > Constants.Epsilon ? CurrentMovement.Speed :
-                     Formulae.EntityMovementSpeed(Entity, false)) * directionMultiplier;
+                     Formulae.EntityMovementSpeed(Entity, false));
 
         // Move toward position.
         do
@@ -243,8 +283,7 @@ public class MovementEntity : MonoBehaviour
             elapsedTime = BattleSystem.Time - lastTime;
             lastTime = BattleSystem.Time;
 
-            var dir = transform.forward.normalized * directionMultiplier;
-            Move(elapsedTime * speed * dir, faceMovementDirection: false, setMovementTrigger: false);
+            Move(elapsedTime * speed * directionMultiplier * direction, faceMovementDirection: false, setMovementTrigger: false);
 
             yield return null;
         }
@@ -258,7 +297,7 @@ public class MovementEntity : MonoBehaviour
     public virtual void Move(Vector3 movement, bool faceMovementDirection, bool setMovementTrigger)
     {
         transform.position += movement;
-        if (faceMovementDirection)
+        if (faceMovementDirection && movement.sqrMagnitude > Constants.Epsilon)
         {
             transform.rotation = Quaternion.LookRotation(movement.normalized, Vector3.up);
         }
@@ -397,13 +436,13 @@ public class MovementEntity : MonoBehaviour
 
     protected void UpdateVelocity()
     {
+        IsGrounded = Velocity.y <= Constants.Epsilon && Physics.CheckSphere(transform.position + GroundCheckSphereOffset, GroundCheckSphereRadius, BattleSystem.Instance.TerrainLayers);
+
         // The launch movement mode takes control over velocity
         if (CurrentMovement != null && CurrentMovement.MovementType == ActionMovement.eMovementType.LaunchToPosition)
         {
             return;
         }
-
-        IsGrounded = Velocity.y <= Constants.Epsilon && Physics.CheckSphere(transform.position + GroundCheckSphereOffset, GroundCheckSphereRadius, BattleSystem.Instance.TerrainLayers);
 
         if (IsGrounded)
         {
@@ -431,10 +470,19 @@ public class MovementEntity : MonoBehaviour
     public Vector3 LaunchVelocity(Vector3 targetPosition, float angle, float gravityMultiplier = 1.0f)
     {
         float xzDistance = Vector3.Distance(new Vector3(transform.position.x, 0.0f, transform.position.z), new Vector3(targetPosition.x, 0.0f, targetPosition.z));
+        if (xzDistance < Constants.Epsilon)
+        {
+            return Vector3.zero;
+        }
+
         float yDistance = Mathf.Abs(targetPosition.y - transform.position.y);
         float tanAlpha = Mathf.Tan(angle * Mathf.Deg2Rad);
 
         float zSpeed = Mathf.Sqrt(GravitationalForce * gravityMultiplier * xzDistance * xzDistance / (2.0f * (yDistance - xzDistance * tanAlpha)));
+        if (float.IsNaN(zSpeed))
+        {
+            return Vector3.zero;
+        }
         float ySpeed = tanAlpha * zSpeed;
 
         Vector3 localVelocity = new Vector3(0f, ySpeed, zSpeed);
