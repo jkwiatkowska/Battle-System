@@ -81,11 +81,11 @@ public class TargetingSystem : MonoBehaviour
         SelectedTarget = null;
     }
 
-    public virtual Entity GetBestEnemy(Action.eTargetState requiredState = Action.eTargetState.Any)
+    public virtual Entity GetBestEnemy(Action.eTargetState requiredState = Action.eTargetState.Any, bool engagedOnly = false)
     {
         UpdateEntityLists();
 
-        var potentialTargets = EnemyEntities;
+        var potentialTargets = engagedOnly ? Entity.EntityBattle.EngagedEntityList : EnemyEntities;
 
         if (requiredState == Action.eTargetState.Alive)
         {
@@ -109,11 +109,11 @@ public class TargetingSystem : MonoBehaviour
         return potentialTargets[0];
     }
 
-    public virtual void SelectNextEnemy(Action.eTargetState requiredState = Action.eTargetState.Any)
+    public virtual void SelectNextEnemy(Action.eTargetState requiredState = Action.eTargetState.Any, bool engagedOnly = false)
     {
         if (SelectedTarget == null)
         {
-            SelectTarget(GetBestEnemy(requiredState));
+            SelectTarget(GetBestEnemy(requiredState, engagedOnly));
             return;
         }
         if (EnemyEntities.Count == 0)
@@ -193,24 +193,31 @@ public class TargetingSystem : MonoBehaviour
 
             var targetPos = target.Origin;
             var dist = (entityPos - targetPos).sqrMagnitude;
-            if (!DetectedEntities.Contains(target) && dist <= detectDist)
+            if (dist <= detectDist)
             {
-                if (detectFov >= 360.0f - Constants.Epsilon)
+                if (!DetectedEntities.Contains(target))
                 {
-                    DetectedEntities.Add(target);
-                    TryEngageTarget(target);
-                }
-                else
-                {
-                    var dir1 = (targetPos - entityPos).normalized;
-                    var dir2 = Entity.transform.forward;
-                    var angle = Vector3.Angle(dir1, dir2);
-
-                    if (angle * 2.0f < detectFov)
+                    if (detectFov >= 360.0f - Constants.Epsilon)
                     {
                         DetectedEntities.Add(target);
                         TryEngageTarget(target);
                     }
+                    else
+                    {
+                        var dir1 = (targetPos - entityPos).normalized;
+                        var dir2 = Entity.transform.forward;
+                        var angle = Vector3.Angle(dir1, dir2);
+
+                        if (angle * 2.0f < detectFov)
+                        {
+                            DetectedEntities.Add(target);
+                            TryEngageTarget(target);
+                        }
+                    }
+                }
+                else if (Entity.EntityBattle.EngagedEntities.ContainsKey(target.EntityUID))
+                {
+                    TryEngageTarget(target);
                 }
             }
         }
@@ -238,11 +245,26 @@ public class TargetingSystem : MonoBehaviour
 
     void TryEngageTarget(Entity target)
     {
-        if (target.Alive && Entity.EntityData.Skills.EngageOnSight && target.EntityData.CanEngage && Entity.IsEnemy(target.Faction))
+        var entityData = Entity.EntityData;
+        if (target.Alive && entityData.Skills.EngageOnSight && target.EntityData.CanEngage && Entity.IsEnemy(target.Faction))
         {
+            if (entityData.Skills.CheckLineOfSight)
+            {
+                if (!IsInLineOfSight(target))
+                {
+                    return;
+                }
+            }
+
             Entity.EntityBattle.Engage(target);
             target.EntityBattle.Engage(Entity);
         }
+    }
+
+    public bool IsInLineOfSight(Entity target)
+    {
+        var dir = target.Origin - Entity.Origin;
+        return !(Physics.Raycast(Entity.Origin, dir.normalized, out var hit) && hit.collider.gameObject != target.gameObject);
     }
 
     protected virtual void ProcessEnemyEntityList(EntityTargetingData targeting)

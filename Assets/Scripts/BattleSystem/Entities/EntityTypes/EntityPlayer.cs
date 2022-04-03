@@ -30,4 +30,12 @@ public class EntityPlayer : Entity
         var text = NamesAndText.OutOfRangeMessage(out var color);
         MessageHUD.Instance.DisplayMessage(text, color);
     }
+
+    public override void OnTargetNotInLineOfSight()
+    {
+        base.OnTargetNotInLineOfSight();
+
+        var text = NamesAndText.NotInLineOfSightMessage(out var color);
+        MessageHUD.Instance.DisplayMessage(text, color);
+    }
 }

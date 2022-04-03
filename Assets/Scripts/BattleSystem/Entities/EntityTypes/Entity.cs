@@ -484,6 +484,8 @@ public class Entity : MonoBehaviour
     }
 
     public virtual void OnTargetOutOfRange() { }
+
+    public virtual void OnTargetNotInLineOfSight() { }
     #endregion
 
     #region Life Triggers

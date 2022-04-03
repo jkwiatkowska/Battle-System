@@ -96,6 +96,14 @@ public static class NamesAndText
         return message;
     }
 
+    public static string NotInLineOfSightMessage(out Color color)
+    {
+        color = Color.white;
+        var message = "Target is not in line of sight.";
+
+        return message;
+    }
+
     public static string MessageFromString(string messageString)
     {
         var message = messageString;

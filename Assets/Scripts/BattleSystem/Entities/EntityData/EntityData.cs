@@ -280,9 +280,11 @@ public class EntitySkillsData
     public float AutoAttackInterval;                // Interval between the auto attacks.
     public bool AutoAttackRequiredTarget;           // Auto attack will only trigger if an enemy is selected.
     public float AutoAttackRange;                   // Max distance from target for an auto attack to be used.
+    public bool AutoAttackRequiresLineOfSight;      // Entity will only attack if the target is in line of sight.
 
     public bool EngageOnSight;                      // For auto skill modes.
                                                     // The entity will use its skills as soon as it spots a target they can be used on.
+    public bool CheckLineOfSight;                   // Entity won't engage in battle if there's terrain in the way.
 
     public bool MoveToTargetIfNotInRange;           // Allows the entity to move toward targets that are too far away.
     public bool RotateToTargetIfNotWithinAngle;     // Allows the entity to rotate toward target if it's required to face it. 

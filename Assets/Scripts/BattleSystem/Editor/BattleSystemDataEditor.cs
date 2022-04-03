@@ -1228,11 +1228,15 @@ public class BattleSystemDataEditor : EditorWindow
                     if (BattleGUI.EditFoldout(ref skill.ShowTarget, "Skill Target"))
                     {
                         BattleGUI.StartIndent();
-                        BattleGUI.EditBool(ref skill.SkillData.NeedsTarget, "TargetRequired");
+                        BattleGUI.EditBool(ref skill.SkillData.NeedsTarget, "Target Required");
                         BattleGUI.EditEnum(ref skill.SkillData.PreferredTarget, $"Preferred Target: ", Space);
                         BattleGUI.EditEnum(ref skill.SkillData.PreferredTargetState, $"Preferred Target State: ", Space);
                         BattleGUI.EditFloat(ref skill.SkillData.Range, "Skill Range:", Space, 150);
                         BattleGUI.EditFloatSlider(ref skill.SkillData.MaxAngleFromTarget, "Max Angle from Target:", 0.0f, 180.0f, Space, 150);
+                        if (skill.SkillData.NeedsTarget)
+                        {
+                            BattleGUI.EditBool(ref skill.SkillData.RequireLineOfSight, "Line of Sight Required");
+                        }
                         BattleGUI.EndIndent();
                     }
                     BattleGUI.EditorDrawLine();
@@ -1880,17 +1884,25 @@ public class BattleSystemDataEditor : EditorWindow
             BattleGUI.EditBool(ref entity.Data.Skills.RotateToTargetIfNotWithinAngle, "Rotate to Target if not within Skill Angle");
             BattleGUI.EditBool(ref entity.Data.Skills.AutoSelectTargetOnSkillUse, "Automatically select Target on Skill Use");
 
-            if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoRandom)
+            if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoRandom ||
+                entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoSequence)
             {
                 BattleGUI.EditBool(ref entity.Data.Skills.EngageOnSight, "Engage On Sight");
-                BattleGUI.EditList(ref entity.NewSkill, entity.Data.Skills.RandomSkills, BattleData.Skills.Keys.ToList(),
-                         EditRandomSkill, NewRandomSkill, "Enity Skills:", "(No Skills)", "Add Skill:");
-            }
-            else if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoSequence)
-            {
-                BattleGUI.EditBool(ref entity.Data.Skills.EngageOnSight, "Engage On Sight");
-                BattleGUI.EditList(ref entity.NewSkill, entity.Data.Skills.SequenceSkills, BattleData.Skills.Keys.ToList(),
-                         EditSequenceSkill, NewSequenceSkill, "Enity Skills:", "(No Skills)", "Add Skill:");
+                if (entity.Data.Skills.EngageOnSight)
+                {
+                    BattleGUI.EditBool(ref entity.Data.Skills.CheckLineOfSight, "Check Line of Sight");
+                }
+
+                if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoRandom)
+                {
+                    BattleGUI.EditList(ref entity.NewSkill, entity.Data.Skills.RandomSkills, BattleData.Skills.Keys.ToList(),
+                             EditRandomSkill, NewRandomSkill, "Enity Skills:", "(No Skills)", "Add Skill:");
+                }
+                else if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoSequence)
+                {
+                    BattleGUI.EditList(ref entity.NewSkill, entity.Data.Skills.SequenceSkills, BattleData.Skills.Keys.ToList(),
+                             EditSequenceSkill, NewSequenceSkill, "Enity Skills:", "(No Skills)", "Add Skill:");
+                }
             }
             else if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.Input)
             {
@@ -1913,6 +1925,7 @@ public class BattleSystemDataEditor : EditorWindow
                 {
                     BattleGUI.StartIndent();
                     BattleGUI.EditFloat(ref entity.Data.Skills.AutoAttackRange, "Auto Attack Range:", Space);
+                    BattleGUI.EditBool(ref entity.Data.Skills.AutoAttackRequiresLineOfSight, "Auto Attack requires Line of Sight");
                     BattleGUI.EndIndent();
                 }
                 EditActionTimeline(entity.Data.Skills.AutoAttack, ref NewAction, ref ShowValues[0], "Auto Attack Timeline", showIndex: 2000);

@@ -27,6 +27,7 @@ public class SkillData
     public Action.eTargetState PreferredTargetState;        // Normally targets are required to be alive. 
     public float Range;                                     // Maximum range from target required for the skill to be effective.
     public float MaxAngleFromTarget;                        // The target has to be within this angle from the entity's forward for a skill to work. 
+    public bool RequireLineOfSight;                         // If true, the entity will only use the skill if the target is in line of sight.
 
     public enum eCasterState
     {

@@ -25,6 +25,7 @@ public class EntityBattle
         }
     }
     public Dictionary<string, EngagedEntity> EngagedEntities   { get; protected set; }
+    public List<Entity> EngagedEntityList { get; protected set; }
     public bool InCombat => EngagedEntities.Count > 0;
 
     public enum eSkillState
@@ -63,6 +64,7 @@ public class EntityBattle
         SkillState = eSkillState.Idle;
         SkillAvailableTime = new Dictionary<string, float>();
         EngagedEntities = new Dictionary<string, EngagedEntity>();
+        EngagedEntityList = new List<Entity>();
         OnSkillCancel = new List<System.Action>();
     }
 
@@ -113,6 +115,7 @@ public class EntityBattle
 
             Entity.OnEngage(entity);
             EngagedEntities.Add(entity.EntityUID, new EngagedEntity(entity));
+            EngagedEntityList.Add(entity);
         }
     }
 
@@ -121,6 +124,7 @@ public class EntityBattle
         if (EngagedEntities.ContainsKey(entityUID))
         {
             Entity.OnDisengage(EngagedEntities[entityUID].Entity);
+            EngagedEntityList.Remove(EngagedEntities[entityUID].Entity);
             EngagedEntities.Remove(entityUID);
         }
 
@@ -250,11 +254,17 @@ public class EntityBattle
             }
         }
         // Otherwise select skills automatically.
-        else if (Data.SkillMode != EntitySkillsData.eSkillMode.None && SkillState == eSkillState.Idle)
+        else if (SkillState == eSkillState.Idle && (Data.SkillMode == EntitySkillsData.eSkillMode.AutoSequence ||
+                 Data.SkillMode == EntitySkillsData.eSkillMode.AutoRandom))
         {
-            if (Target == null)
+            if (Target == null || !InCombat)
             {
-                Targeting.SelectTarget(Targeting.GetBestEnemy(Action.eTargetState.Alive));
+                Targeting.SelectTarget(Targeting.GetBestEnemy(Action.eTargetState.Alive, engagedOnly: true));
+            }
+
+            if (!InCombat)
+            {
+                return;
             }
 
             if (string.IsNullOrEmpty(SkillToUse))
@@ -350,7 +360,7 @@ public class EntityBattle
             if (skillData.PreferredTarget == SkillData.eTargetPreferrence.Enemy || 
                 skillData.PreferredTarget == SkillData.eTargetPreferrence.Any)
             {
-                target = Targeting.GetBestEnemy(skillData.PreferredTargetState);
+                target = Targeting.GetBestEnemy(skillData.PreferredTargetState, engagedOnly: true);
             }
             else if (skillData.PreferredTarget == SkillData.eTargetPreferrence.Friendly)
             {
@@ -371,6 +381,12 @@ public class EntityBattle
         // Ensure target is in range if a target is required or a preferred target is selected
         if (target != null)
         {
+            if (skillData.NeedsTarget && !LineOfSightCheck(skillData, target))
+            {
+                Entity.OnTargetNotInLineOfSight();
+                return false;
+            }
+
             if (!IsInSkillRange(target, skillData))
             {
                 // Not in range, but the entity can automatically get in range before reattempting.
@@ -619,6 +635,11 @@ public class EntityBattle
                 {
                     return;
                 }
+
+                if (Data.AutoAttackRequiresLineOfSight && !Targeting.IsInLineOfSight(Target))
+                {
+                    return;
+                }
             }
 
             Entity.StartCoroutine(Data.AutoAttack.ExecuteActions(Entity, Target));
@@ -784,6 +805,16 @@ public class EntityBattle
                 return true;
             }
         }
+    }
+
+    public virtual bool LineOfSightCheck(SkillData skillData, Entity target)
+    {
+        if (skillData.RequireLineOfSight)
+        {
+            return Targeting.IsInLineOfSight(target);
+        }
+
+        return true;
     }
 
     protected virtual bool CanAffordCost(List<ActionCostCollection> costActions)
