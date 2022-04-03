@@ -69,6 +69,7 @@ public class ActionPayloadDirect : ActionPayload
                     case eTarget.FriendlyEntities:
                     {
                         targets = targetingSystem.FriendlyEntities.FindAll(t => CheckTargetableState(t));
+                        targets.Add(entity);
                         break;
                     }
                     case eTarget.AllEntities:

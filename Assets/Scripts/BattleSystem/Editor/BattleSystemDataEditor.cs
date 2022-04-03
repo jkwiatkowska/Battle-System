@@ -276,6 +276,7 @@ public class BattleSystemDataEditor : EditorWindow
 
     class EditorStatusEffect
     {
+        public string ID = "";
         public StatusEffectData Data = new StatusEffectData();
         public bool Show = false;
         public List<EditorPayload> OnInterval = new List<EditorPayload>();
@@ -287,6 +288,7 @@ public class BattleSystemDataEditor : EditorWindow
 
         public EditorStatusEffect(StatusEffectData data)
         {
+            ID = data.StatusID;
             Data = BattleGUI.Copy(data);
 
             if (Data.OnInterval == null)
@@ -1357,25 +1359,23 @@ public class BattleSystemDataEditor : EditorWindow
                     GUILayout.BeginHorizontal();
 
                     // ID
-                    BattleGUI.Label("Status ID: ", 70);
-                    var newID = status.Data.StatusID;
-                    newID = GUILayout.TextField(newID, GUILayout.Width(200));
+                    BattleGUI.EditString(ref status.ID, "Status ID:", 70, makeHorizontal: false);
 
                     // Save/Remove
                     if (BattleGUI.SaveChanges())
                     {
                         GUI.FocusControl(null);
 
-                        var value = BattleGUI.Copy(status.Data);
-
-                        if (status.Data.StatusID != newID)
+                        if (status.Data.StatusID != status.ID)
                         {
-                            if (!BattleData.StatusEffects.ContainsKey(newID))
+                            if (!BattleData.StatusEffects.ContainsKey(status.ID))
                             {
                                 BattleData.StatusEffects.Remove(status.Data.StatusID);
-                                status.Data.StatusID = newID;
+                                status.Data.StatusID = status.ID;
                             }
                         }
+
+                        var value = BattleGUI.Copy(status.Data);
                         BattleData.StatusEffects[status.Data.StatusID] = value;
                     }
 
@@ -1739,6 +1739,7 @@ public class BattleSystemDataEditor : EditorWindow
 
                 BattleGUI.EditInt(ref e.Limit, "Max Hits Absorbed:", Space);
                 BattleGUI.EditBool(ref e.EndStatusOnEffectEnd, "End Status when Limit Reached");
+                BattleGUI.EditBool(ref e.RemoveShieldResourceOnEffectEnd, "Remove Shield Resource on Status Effect End");
                 break;
             }
             case Effect.eEffectType.Trigger:

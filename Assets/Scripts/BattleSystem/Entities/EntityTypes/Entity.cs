@@ -385,7 +385,7 @@ public class Entity : MonoBehaviour
             EntityBattle.Engage(entity);
         }
 
-        OnTrigger(TriggerData.eTrigger.OnPayloadApplied, triggerSource: payloadResult.Target);
+        OnTrigger(TriggerData.eTrigger.OnPayloadApplied, triggerSource: payloadResult.Target, payloadResult: payloadResult);
     }
 
     public virtual void OnPayloadReceived(PayloadResult payloadResult)
@@ -410,7 +410,7 @@ public class Entity : MonoBehaviour
             }
         }
 
-        OnTrigger(TriggerData.eTrigger.OnPayloadReceived, triggerSource: payloadResult.Caster);
+        OnTrigger(TriggerData.eTrigger.OnPayloadReceived, triggerSource: payloadResult.Caster, payloadResult: payloadResult);
     }
 
     public virtual void OnHitMissed(Entity target, PayloadResult payloadResult)
@@ -483,6 +483,11 @@ public class Entity : MonoBehaviour
     public virtual void OnStatusExpired(StatusEffect statusEffect)
     {
         OnTrigger(TriggerData.eTrigger.OnStatusExpired, triggerSource: statusEffect.Caster, statusID: statusEffect.Data.StatusID);
+    }
+
+    public virtual void OnStatusEnded(StatusEffect statusEffect)
+    {
+        OnTrigger(TriggerData.eTrigger.OnStatusEnded, triggerSource: statusEffect.Caster, statusID: statusEffect.Data.StatusID);
     }
     #endregion
 
@@ -682,6 +687,7 @@ public class Entity : MonoBehaviour
     {
         if (StatusEffects.ContainsKey(statusID))
         {
+            OnStatusEnded(StatusEffects[statusID]);
             StatusEffects[statusID].RemoveStatus();
             StatusEffects.Remove(statusID);
         }

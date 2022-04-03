@@ -269,7 +269,7 @@ public class TriggerData
 
             bool isStatusTrigger = triggerType == eTrigger.OnStatusApplied || triggerType == eTrigger.OnStatusReceived ||
                                    triggerType == eTrigger.OnStatusClearedOutgoing || triggerType == eTrigger.OnStatusClearedIncoming ||
-                                   triggerType == eTrigger.OnStatusExpired;
+                                   triggerType == eTrigger.OnStatusExpired || triggerType == eTrigger.OnStatusEnded;
 
             if (isPayloadTrigger || isActionTrigger)
             {
@@ -314,6 +314,7 @@ public class TriggerData
         OnActionUsed,                   // Use of an action.
         OnStatusApplied,                // Status applied to another entity.
         OnStatusReceived,               // Status applied to this entity.
+        OnStatusEnded,                  // Status ends either by being cleared or expiring.
         OnStatusClearedOutgoing,        // Another entity's status cleared.
         OnStatusClearedIncoming,        // This entity's status cleared.
         OnStatusExpired,                // This entity's status expired.
