@@ -31,7 +31,7 @@ public class MultiplierAttributeData
     public void ApplyDamageMultipliers(Dictionary<string, float> casterAttributes, Dictionary<string, float> targetAttributes, 
                                        ref float damage, PayloadData payloadData, ref List<string> resultFlags)
     {
-        foreach (var multiplier in BattleData.Multipliers.DamageDealtMultipliers)
+        foreach (var multiplier in DamageDealtMultipliers)
         {
             var flag = multiplier.ApplyDamageMultiplier(casterAttributes, ref damage, payloadData.Flags);
             if (!string.IsNullOrEmpty(flag))
@@ -40,7 +40,7 @@ public class MultiplierAttributeData
             }
         }
 
-        foreach (var multiplier in BattleData.Multipliers.DamageReceivedMultipliers)
+        foreach (var multiplier in DamageReceivedMultipliers)
         {
             var flag = multiplier.ApplyDamageMultiplier(targetAttributes, ref damage, payloadData.Flags);
             if (!string.IsNullOrEmpty(flag))
@@ -51,9 +51,9 @@ public class MultiplierAttributeData
 
         foreach (var category in payloadData.Categories)
         {
-            if (BattleData.Multipliers.CategoryDamageDealtMultipliers.ContainsKey(category))
+            if (CategoryDamageDealtMultipliers.ContainsKey(category))
             {
-                foreach (var multiplier in BattleData.Multipliers.CategoryDamageDealtMultipliers[category])
+                foreach (var multiplier in CategoryDamageDealtMultipliers[category])
                 {
                     var flag = multiplier.ApplyDamageMultiplier(casterAttributes, ref damage, payloadData.Flags);
                     if (!string.IsNullOrEmpty(flag))
@@ -62,7 +62,7 @@ public class MultiplierAttributeData
                     }
                 }
 
-                foreach (var multiplier in BattleData.Multipliers.CategoryDamageReceivedMultipliers[category])
+                foreach (var multiplier in CategoryDamageReceivedMultipliers[category])
                 {
                     var flag = multiplier.ApplyDamageMultiplier(targetAttributes, ref damage, payloadData.Flags);
                     if (!string.IsNullOrEmpty(flag))

@@ -622,6 +622,13 @@ public class MovementEntity : MonoBehaviour
     #endregion
 
     #region Movement
+    public bool ObstacleCheck(Vector3 direction)
+    {
+        var ray = new Ray(transform.position + Vector3.up * Constants.ObstacleDetectHeight, direction);
+        var rayLength = Entity.EntityData.Radius + Constants.ObstacleDetectRange;
+        return Physics.Raycast(ray, rayLength, BattleSystem.Instance.TerrainLayers);
+    }
+
     public virtual void Move(Vector3 movement, bool faceMovementDirection, bool setMovementTrigger)
     {
         transform.position += movement;
@@ -639,7 +646,7 @@ public class MovementEntity : MonoBehaviour
 
     public virtual Vector3 Move(Vector3 direction, bool faceMovementDirection, float speedMultiplier = 1.0f, bool setMovementTrigger = true, bool ignoreLock = false)
     {
-        if (!ignoreLock && Entity.IsMovementLocked)
+        if ((!ignoreLock && Entity.IsMovementLocked) || Entity.EntityData.Movement.MovementSpeed < Constants.Epsilon || ObstacleCheck(direction))
         {
             return Vector3.zero;
         }

@@ -2513,6 +2513,15 @@ public class BattleSystemDataEditor : EditorWindow
 
                     break;
                 }
+                case Action.eActionType.DoNothing:
+                {
+                    if (!(action is ActionDoNothing a))
+                    {
+                        return BattleGUI.eReturnResult.Remove;
+                    }
+
+                    break;
+                }
                 case Action.eActionType.LoopBack:
                 {
                     if (!(action is ActionLoopBack a))
@@ -2631,6 +2640,24 @@ public class BattleSystemDataEditor : EditorWindow
 
         BattleGUI.EditBool(ref a.LifeLink, "Kill Entity When Summoner Dies");
         BattleGUI.EditBool(ref a.InheritFaction, "Inherit Summoner's Faction");
+
+        // Summon behaviour
+        if (summonType == EntityData.eEntityType.SummonnedEntity)
+        {
+            var follow = a.PreferredDistanceFromSummoner > Constants.Epsilon;
+            BattleGUI.EditBool(ref follow, "Follow Summoner");
+
+            if (follow)
+            {
+                if (a.PreferredDistanceFromSummoner < Constants.Epsilon)
+                {
+                    a.PreferredDistanceFromSummoner = 5.0f;
+                }
+                BattleGUI.EditFloat(ref a.PreferredDistanceFromSummoner, "Preferred Distance from Summoner:", Space + 70);
+            }
+            BattleGUI.EditFloat(ref a.MaxDistanceFromSummoner, "Max Distance from Summoner:", Space + 70);
+            BattleGUI.EditEnum(ref a.OnSummonerOutOfRange, "On Summoner out of range:", Space + 70);
+        }
     }
 
     void EditActionProjectile(ActionProjectile a)

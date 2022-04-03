@@ -26,7 +26,7 @@ public class EntityEditor : Editor
     {
         var entity = (Entity)target;
         SelectEntity(entity);
-        if (Application.IsPlaying(entity))
+        if (Application.IsPlaying(entity) && entity.EntityBattle != null)
         {
             if (BattleGUI.Button("Refresh Entity"))
             {

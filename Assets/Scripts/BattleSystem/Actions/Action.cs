@@ -8,7 +8,8 @@ public abstract class Action
     {
         ApplyCooldown,              // If a skill has a cooldown, this action is used to put it on cooldown at the desired time.
         CollectCost,                // If a skill has a cost to be used, this action is used to collect it at the desired time.
-        Destroy,                // Typically used after an entity dies or expires.
+        Destroy,                    // Typically used after an entity dies or expires.
+        DoNothing,                  // Empty action. Can be used for condition checks or to delay end of action timeline.
         LoopBack,                   // This action can be used to go back in the timeline and repeat previous actions.
         Message,                    // Displays a message on screen. Can be used to show warnings, explain mechanics, etc.
         PayloadArea,                // Applies a defined payload to all entities in a given area.

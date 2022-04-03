@@ -321,8 +321,10 @@ public class TriggerData
         OnSpawn,                        // Fires after setup.
         OnReviveOutgoing,               // Fires if an entity revives another entity.
         OnReviveIncoming,               // Fires if an entity is revived by another entity.
-        OnEngage,                       // Entity enters battle.
-        OnDisengage,                    // Entity leaves battle.
+        OnEngage,                       // Entity engages another in battle.
+        OnDisengage,                    // Battle with an entity ends.
+        OnBattleStart,                  // Entity enters battle.
+        OnBattleEnd,                    // Entity leaves battle.
         OnCollisionEntity,              // Fires on trigger collision with any entity.
         OnCollisionTargetableEntity,    // Fires on trigger collision with an entity that's targetable.
         OnCollisionTerrain,             // Fires on trigger collision with an object on terrain layer.

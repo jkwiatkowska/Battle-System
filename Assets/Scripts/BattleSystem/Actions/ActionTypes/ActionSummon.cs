@@ -17,6 +17,16 @@ public class ActionSummon : Action
     public bool LifeLink;                               // If true, the entity will disappear when the caster dies
     public bool InheritFaction;                         // The summoned entity will have its faction overriden with summoner's if true.
 
+    public float PreferredDistanceFromSummoner;         // If not zero and the entity can move, it will follow the summoner and try to stay within this range.
+    public float MaxDistanceFromSummoner;               // If not zero and the summoner moves out of this range, the entity will react to the event.
+    public enum eOutOfRangeReaction
+    {
+        Destroy,
+        Death,
+        TeleportInRange,
+    }
+    public eOutOfRangeReaction OnSummonerOutOfRange;
+
     public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
     {
         actionResults[ActionID] = new ActionResult();

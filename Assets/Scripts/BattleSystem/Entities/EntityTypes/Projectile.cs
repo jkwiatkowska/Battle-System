@@ -219,10 +219,15 @@ public class Projectile : EntitySummon
 
     public override void OnDeath(Entity source = null, PayloadResult payloadResult = null)
     {
-        TriggerCollider.enabled = false;
-        Movement.SetGravitationalForce(0.0f);
-        Movement.SetVelocity(Vector3.zero);
-
+        if (TriggerCollider != null)
+        {
+            TriggerCollider.enabled = false;
+        }
+        if (Movement != null)
+        {
+            Movement.SetGravitationalForce(0.0f);
+            Movement.SetVelocity(Vector3.zero);
+        }
         base.OnDeath(source, payloadResult);
     }
 

@@ -49,11 +49,83 @@ public class EntitySummon : Entity
             if (SummonAction != null && SummonAction.SummonDuration > 0 && SummonTime + SummonAction.SummonDuration < BattleSystem.Time)
             {
                 OnDeath();
+                return;
+            }
+
+            CheckRange();
+        }
+    }
+
+    public void CheckRange()
+    {
+        var dir = Summoner.transform.position - transform.position;
+        var dist = dir.sqrMagnitude;
+        if (SummonAction.MaxDistanceFromSummoner > Constants.Epsilon && 
+            dist > SummonAction.MaxDistanceFromSummoner * SummonAction.MaxDistanceFromSummoner)
+        {
+            OnSummonerOutOfRange();
+            return;
+        }
+
+        if (SummonAction.PreferredDistanceFromSummoner > Constants.Epsilon && Movement != null)
+        {
+            if (dist > SummonAction.PreferredDistanceFromSummoner * SummonAction.PreferredDistanceFromSummoner)
+            {
+                Movement.Move(dir.normalized, true);
+            }
+        }
+    }
+
+    public void OnSummonerOutOfRange()
+    {
+        switch(SummonAction.OnSummonerOutOfRange)
+        {
+            case ActionSummon.eOutOfRangeReaction.Destroy:
+            {
+                DestroyEntity();
+                break;
+            }
+            case ActionSummon.eOutOfRangeReaction.Death:
+            {
+                OnDeath();
+                break;
+            }
+            case ActionSummon.eOutOfRangeReaction.TeleportInRange:
+            {
+                var summonerPos = Summoner.transform.position;
+                var dir = transform.position - summonerPos;
+                var newPos = summonerPos + SummonAction.PreferredDistanceFromSummoner * dir.normalized;
+                newPos.y = summonerPos.y;
+
+                transform.position = newPos;
+                break;
             }
         }
     }
 
     #region Triggers
+    protected override void OnTrigger(TriggerData.eTrigger trigger, Entity triggerSource = null, PayloadResult payloadResult = null, 
+                                      ActionResult actionResult = null, Action action = null, string statusID = "", 
+                                      TriggerData.eEntityAffected entityAffected = TriggerData.eEntityAffected.Self, string customIdentifier = "")
+    {
+        base.OnTrigger(trigger, triggerSource, payloadResult, actionResult, action, statusID, entityAffected, customIdentifier);
+
+        if (entityAffected == TriggerData.eEntityAffected.Summoner)
+        {
+            if (trigger == TriggerData.eTrigger.OnEngage)
+            {
+                EntityBattle.Engage(triggerSource);
+            }
+            else if (trigger == TriggerData.eTrigger.OnDisengage)
+            {
+                if (triggerSource != null)
+                {
+                    EntityBattle.Disengage(triggerSource.EntityUID);
+                }
+            }
+        }
+    }
+
     public override void OnPayloadApplied(PayloadResult payloadResult)
     {
         base.OnPayloadApplied(payloadResult);

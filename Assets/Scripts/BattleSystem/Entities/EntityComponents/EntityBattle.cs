@@ -107,9 +107,11 @@ public class EntityBattle
                 {
                     SequenceSkillUses = Random.Range(Data.SequenceSkills[0].UsesMin, Data.SequenceSkills[0].UsesMax + 1);
                 }
+
+                Entity.OnBattleStart(entity);
             }
 
-            Entity.OnEngage();
+            Entity.OnEngage(entity);
             EngagedEntities.Add(entity.EntityUID, new EngagedEntity(entity));
         }
     }
@@ -118,8 +120,13 @@ public class EntityBattle
     {
         if (EngagedEntities.ContainsKey(entityUID))
         {
+            Entity.OnDisengage(EngagedEntities[entityUID].Entity);
             EngagedEntities.Remove(entityUID);
-            Entity.OnDisengage();
+        }
+
+        if (!InCombat)
+        {
+            Entity.OnbattleEnd();
         }
     }
 
@@ -464,7 +471,7 @@ public class EntityBattle
         if (!inRange)
         {
             // Target out of range and the entity cannot move.
-            if (!Data.MoveToTargetIfNotInRange)
+            if (!Data.MoveToTargetIfNotInRange || Movement == null)
             {
                 return false;
             }

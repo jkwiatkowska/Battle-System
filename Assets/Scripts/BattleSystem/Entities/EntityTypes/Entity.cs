@@ -352,15 +352,26 @@ public class Entity : MonoBehaviour
     }
 
     #region Battle Triggers
-    public virtual void OnEngage()
+    public virtual void OnEngage(Entity triggerSource)
     {
-        OnTrigger(TriggerData.eTrigger.OnEngage);
+        OnTrigger(TriggerData.eTrigger.OnEngage, triggerSource: triggerSource);
     }
 
-    public virtual void OnDisengage()
+    public virtual void OnDisengage(Entity triggerSource)
     {
-        OnTrigger(TriggerData.eTrigger.OnDisengage);
+        OnTrigger(TriggerData.eTrigger.OnDisengage, triggerSource: triggerSource);
     }
+
+    public virtual void OnBattleStart(Entity triggerSource)
+    {
+        OnTrigger(TriggerData.eTrigger.OnBattleStart, triggerSource: triggerSource);
+    }
+
+    public virtual void OnbattleEnd()
+    {
+        OnTrigger(TriggerData.eTrigger.OnBattleEnd);
+    }
+
     public virtual void OnPayloadApplied(PayloadResult payloadResult)
     {
         if (payloadResult == null)
@@ -490,7 +501,10 @@ public class Entity : MonoBehaviour
 
         payloadResult?.Caster.OnKill(payloadResult);
 
-        StopAllCoroutines();
+        if (gameObject != null)
+        {
+            StopAllCoroutines();
+        }
         EntityState = eEntityState.Dead;
         EntityBattle.SetIdle();
 

@@ -13,7 +13,9 @@ GameObject:
   - component: {fileID: 2045683188067523889}
   - component: {fileID: 8279393368966299802}
   - component: {fileID: 2045683188067523891}
-  m_Layer: 7
+  - component: {fileID: 6435218584187987661}
+  - component: {fileID: 6632487260596839720}
+  m_Layer: 6
   m_Name: Bomb
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -96,6 +98,32 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 80
   m_CollisionDetection: 0
+--- !u!114 &6435218584187987661
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2045683188067523887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25ea60739dda0a34a9b47451c3749605, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GroundCheckSphereRadius: 0.01
+--- !u!135 &6632487260596839720
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2045683188067523887}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.35
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &8483731562537873397
 GameObject:
   m_ObjectHideFlags: 0
@@ -107,7 +135,7 @@ GameObject:
   - component: {fileID: 1061687083225793196}
   - component: {fileID: 8868126882031854581}
   - component: {fileID: 4382697253097764022}
-  m_Layer: 7
+  m_Layer: 6
   m_Name: Direction
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -188,9 +216,8 @@ GameObject:
   - component: {fileID: 8497379034768385341}
   - component: {fileID: 8497379034768385312}
   - component: {fileID: 8497379034768385315}
-  - component: {fileID: 8497379034768385314}
   - component: {fileID: 4764887197382678411}
-  m_Layer: 7
+  m_Layer: 6
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -260,19 +287,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!135 &8497379034768385314
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8497379034768385340}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!135 &4764887197382678411
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -295,11 +309,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1982214088500069976, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_Layer
-      value: 7
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 3393264046130242964, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_Layer
-      value: 7
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 5256719702630343121, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_PresetInfoIsWorld
@@ -407,11 +421,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5256719702630343125, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_Layer
-      value: 7
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 5968998175909932700, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_Layer
-      value: 7
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 5968998175909932700, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_IsActive
@@ -419,11 +433,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6002871545557316829, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_Layer
-      value: 7
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7700611649510957745, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_Layer
-      value: 7
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7700611649510957745, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_IsActive
