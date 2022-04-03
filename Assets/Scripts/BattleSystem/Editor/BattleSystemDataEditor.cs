@@ -1379,6 +1379,23 @@ public class BattleSystemDataEditor : EditorWindow
                         BattleData.StatusEffects[status.Data.StatusID] = value;
                     }
 
+                    if (BattleGUI.Copy())
+                    {
+                        var copy = BattleGUI.Copy(status.Data);
+
+                        var count = 2;
+                        var id = status.ID + count;
+                        while(BattleData.StatusEffects.ContainsKey(id))
+                        {
+                            count++;
+                            id = status.ID + count;
+                        }
+
+                        copy.StatusID = id;
+                        StatusEffects.Add(new EditorStatusEffect(copy));
+                        BattleData.StatusEffects[id] = copy;
+                    }
+
                     if (BattleGUI.Remove())
                     {
                         StatusEffects.RemoveAt(i);
