@@ -400,6 +400,15 @@ public class Entity : MonoBehaviour
         {
             EntityBattle.Engage(entity);
         }
+        if (entity.EntityData.EntityType == EntityData.eEntityType.SummonnedEntity ||
+            entity.EntityData.EntityType == EntityData.eEntityType.Projectile)
+        {
+            var summon = entity as EntitySummon;
+            if (summon != null && summon.Summoner != null)
+            {
+                EntityBattle.Engage(summon.Summoner);
+            }
+        }
 
         OnTrigger(TriggerData.eTrigger.OnPayloadReceived, triggerSource: payloadResult.Caster);
     }
