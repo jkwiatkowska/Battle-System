@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8279130233239129743}
   - component: {fileID: 526733939209465814}
   - component: {fileID: 4651312681831757973}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: Direction
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -97,7 +97,7 @@ GameObject:
   - component: {fileID: 6934705420198072593}
   - component: {fileID: 7141314107999586230}
   - component: {fileID: 2801246277733239384}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: Dummy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -232,7 +232,7 @@ GameObject:
   - component: {fileID: 6934705421952962649}
   - component: {fileID: 6934705421952962655}
   - component: {fileID: 6934705421952962648}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -312,7 +312,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8562004424072579328}
   - component: {fileID: 5461171136715056918}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: EntityCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -358,6 +358,14 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 8562004424072579328}
     m_Modifications:
+    - target: {fileID: 1982214088500069976, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 3393264046130242964, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 5256719702630343121, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_PresetInfoIsWorld
       value: 1
@@ -440,7 +448,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5256719702630343124, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 1.4
+      value: 1.7
       objectReference: {fileID: 0}
     - target: {fileID: 5256719702630343124, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -457,6 +465,22 @@ PrefabInstance:
     - target: {fileID: 5256719702630343125, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_Name
       value: EntityCanvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 5256719702630343125, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 5968998175909932700, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6002871545557316829, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 7700611649510957745, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 8654776745752794701, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: ResourceName

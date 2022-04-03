@@ -28,8 +28,13 @@ public class MovementEntity : MonoBehaviour
     public ActionMovement CurrentMovement               { get; protected set; }
     Coroutine MovementCoroutine;
 
-    public virtual bool InitiateMovement(ActionMovement movement, Entity caster = null, Entity target = null)
+    public virtual bool InitiateMovement(ActionMovement movement, Entity caster = null, Entity target = null, bool isSkill = false)
     {
+        if (movement.InterruptionLevel > Constants.Epsilon && movement.InterruptionLevel > Formulae.EntityInterruptResistance(Entity))
+        {
+            return false;
+        }
+
         if (CurrentMovement != null)
         {
             if (CurrentMovement.Priority > movement.Priority)
@@ -48,7 +53,7 @@ public class MovementEntity : MonoBehaviour
         {
             case ActionMovement.eMovementType.MoveToPosition:
             {
-                MovementCoroutine = StartCoroutine(MoveToPositionEnumerator(caster, target));
+                MovementCoroutine = StartCoroutine(MoveToPositionEnumerator(caster, target, isSkill));
                 break;
             }
             case ActionMovement.eMovementType.TeleportToPosition:
@@ -58,17 +63,17 @@ public class MovementEntity : MonoBehaviour
             }
             case ActionMovement.eMovementType.LaunchToPosition:
             {
-                MovementCoroutine = StartCoroutine(LaunchToPositionEnumerator(caster, target));
+                MovementCoroutine = StartCoroutine(LaunchToPositionEnumerator(caster, target, isSkill));
                 break;
             }
-            case ActionMovement.eMovementType.MoveForward:
+            case ActionMovement.eMovementType.MoveInDirection:
             {
-                MovementCoroutine = StartCoroutine(MoveAlongDirectionEnumerator(caster, target));
+                MovementCoroutine = StartCoroutine(MoveAlongDirectionEnumerator(caster, target, isSkill));
                 break;
             }
-            case ActionMovement.eMovementType.MoveBackward:
+            case ActionMovement.eMovementType.FreezePosition:
             {
-                MovementCoroutine = StartCoroutine(MoveAlongDirectionEnumerator(caster, target, true));
+                MovementCoroutine = StartCoroutine(FreezePositionCoroutine(isSkill));
                 break;
             }
             default:
@@ -83,10 +88,41 @@ public class MovementEntity : MonoBehaviour
 
     public virtual void CancelMovement()
     {
+        if (CurrentMovement == null)
+        {
+            return;
+        }
+
+        Velocity = Vector3.zero;
         CurrentMovement = null;
+
         if (MovementCoroutine != null)
         {
             StopCoroutine(MovementCoroutine);
+        }
+
+        if (Entity.EntityBattle.OnSkillCancel.Contains(CancelMovement))
+        {
+            Entity.EntityBattle.OnSkillCancel.Remove(CancelMovement);
+        }
+    }
+
+    void UpdateActionMovementSpeed(ref float speed, float timeElapsed)
+    {
+        if (CurrentMovement == null)
+        {
+            Debug.Log("UpdateActionMovementSpeed was called, but there is no CurrentMovement set.");
+            return;
+        }
+
+        speed += CurrentMovement.SpeedChangeOverTime * timeElapsed;
+        if (speed < CurrentMovement.MinSpeed)
+        {
+            speed = CurrentMovement.MinSpeed;
+        }
+        else if (CurrentMovement.MaxSpeed > Constants.Epsilon && speed > CurrentMovement.MaxSpeed)
+        {
+            speed = CurrentMovement.MaxSpeed;
         }
     }
 
@@ -109,7 +145,6 @@ public class MovementEntity : MonoBehaviour
         if (!found)
         {
             Debug.LogError($"A position for movement action used by {caster.EntityUID} could not be found.");
-            movement = null;
             return;
         }
 
@@ -117,7 +152,35 @@ public class MovementEntity : MonoBehaviour
         CurrentMovement = null;
     }
 
-    public virtual IEnumerator MoveToPositionEnumerator(Entity caster, Entity target)
+    public virtual IEnumerator FreezePositionCoroutine(bool isSkill)
+    {
+        // CurrentMovement has to be set first.
+        if (CurrentMovement == null)
+        {
+            Debug.LogError($"CurrentMovement was not set.");
+            yield break;
+        }
+
+        if (isSkill)
+        {
+            Entity.EntityBattle.OnSkillCancel.Add(CancelMovement);
+        }
+
+        var startTime = BattleSystem.Time;
+        do
+        {
+            yield return null;
+        } 
+        while (BattleSystem.Time - startTime > CurrentMovement.MaxDuration);
+
+        CurrentMovement = null;
+        if (isSkill)
+        {
+            Entity.EntityBattle.OnSkillCancel.Remove(CancelMovement);
+        }
+    }
+
+    public virtual IEnumerator MoveToPositionEnumerator(Entity caster, Entity target, bool isSkill)
     {
         // CurrentMovement has to be set first.
         if (CurrentMovement == null)
@@ -133,6 +196,11 @@ public class MovementEntity : MonoBehaviour
             Debug.LogError($"A position for movement action used by {caster.EntityUID} could not be found.");
             CurrentMovement = null;
             yield break;
+        }
+
+        if (isSkill)
+        {
+            Entity.EntityBattle.OnSkillCancel.Add(CancelMovement);
         }
 
         // Rotate toward target position if required.
@@ -168,16 +236,32 @@ public class MovementEntity : MonoBehaviour
                 movement = dir;
             }
 
-            Move(movement, CurrentMovement.FaceMovementDirection, setMovementTrigger: false);
+            transform.position += movement;
+            if (movement.sqrMagnitude > Constants.Epsilon)
+            {
+                if (CurrentMovement.FaceDirection == ActionMovement.eFaceDirection.FaceMovementDirection)
+                {
+                    transform.rotation = Quaternion.LookRotation(movement.normalized, Vector3.up);
+                }
+                else if (CurrentMovement.FaceDirection == ActionMovement.eFaceDirection.FaceOppositeOfMovementDirection)
+                {
+                    transform.rotation = Quaternion.LookRotation(-movement.normalized, Vector3.up);
+                }
+            }
 
+            UpdateActionMovementSpeed(ref speed, elapsedTime);
             yield return null;
         }
         while (dist > Constants.Epsilon && totalElapsedTime < CurrentMovement.MaxDuration);
 
         CurrentMovement = null;
+        if (isSkill)
+        {
+            Entity.EntityBattle.OnSkillCancel.Remove(CancelMovement);
+        }
     }
 
-    public virtual IEnumerator LaunchToPositionEnumerator(Entity caster, Entity target)
+    public virtual IEnumerator LaunchToPositionEnumerator(Entity caster, Entity target, bool isSkill)
     {
         // CurrentMovement has to be set first.
         if (CurrentMovement == null)
@@ -195,14 +279,23 @@ public class MovementEntity : MonoBehaviour
             yield break;
         }
 
-        // Rotate toward target position if required.
-        if (CurrentMovement.FaceMovementDirection)
+        if (isSkill)
         {
-            var lookDir = goal - Entity.transform.position;
-            lookDir.y = 0.0f;
-            if (lookDir.sqrMagnitude > Constants.Epsilon)
+            Entity.EntityBattle.OnSkillCancel.Add(CancelMovement);
+        }
+
+        // Rotate toward target position if required.
+        var dir = goal - Entity.transform.position;
+        dir.y = 0.0f;
+        if (dir.sqrMagnitude > Constants.Epsilon)
+        {
+            if (CurrentMovement.FaceDirection == ActionMovement.eFaceDirection.FaceMovementDirection)
             {
-                transform.rotation = Quaternion.LookRotation(lookDir, Vector3.up);
+                transform.rotation = Quaternion.LookRotation(dir.normalized, Vector3.up);
+            }
+            else if (CurrentMovement.FaceDirection == ActionMovement.eFaceDirection.FaceOppositeOfMovementDirection)
+            {
+                transform.rotation = Quaternion.LookRotation(-dir.normalized, Vector3.up);
             }
         }
 
@@ -215,7 +308,10 @@ public class MovementEntity : MonoBehaviour
         Velocity = LaunchVelocity(goal, CurrentMovement.LaunchAngle, gravityMultiplier);
 
         float dist = (new Vector2(transform.position.x, transform.position.z) - new Vector2(goal.x, goal.z)).sqrMagnitude;
-        float previousDist;
+        var maxDist = Entity.EntityData.Radius * Entity.EntityData.Radius;
+
+        var launched = false;
+        var land = false;
 
         // Move toward position.
         do
@@ -225,20 +321,29 @@ public class MovementEntity : MonoBehaviour
 
             gameObject.transform.position += Velocity * elapsedTime;
 
-            previousDist = dist + Constants.Epsilon;
             dist = (new Vector2(transform.position.x, transform.position.z) - new Vector2(goal.x, goal.z)).sqrMagnitude;
 
             Velocity.y += gravity * elapsedTime;
-            Debug.Log(Velocity);
+
+            if (!launched)
+            {
+                launched = !IsGrounded;
+            }
+
+            land = launched && (IsGrounded || dist < maxDist);
+
             yield return null;
         }
-        while (!IsGrounded && (dist > Constants.Epsilon && dist < previousDist));
+        while (!land);
 
         Velocity = Vector3.zero;
         CurrentMovement = null;
+        if (isSkill)
+        {
+            Entity.EntityBattle.OnSkillCancel.Remove(CancelMovement);
+        }
     }
-
-    public virtual IEnumerator MoveAlongDirectionEnumerator(Entity caster, Entity target, bool reverse = false)
+    public virtual IEnumerator MoveAlongDirectionEnumerator(Entity caster, Entity target, bool isSkill)
     {
         // CurrentMovement has to be set first.
         if (CurrentMovement == null)
@@ -248,12 +353,17 @@ public class MovementEntity : MonoBehaviour
         }
 
         // Find forward direction.
-        var found = CurrentMovement.TargetPosition.Direction.TryGetRotationFromData(caster, target, out var direction);
+        var found = CurrentMovement.TargetPosition.Direction.TryGetDirectionFromData(caster, target, out var direction);
         if (!found)
         {
             Debug.LogError($"A position for movement action used by {Entity.EntityUID} could not be found.");
             CurrentMovement = null;
             yield break;
+        }
+
+        if (isSkill)
+        {
+            Entity.EntityBattle.OnSkillCancel.Add(CancelMovement);
         }
 
         var startTime = BattleSystem.Time;
@@ -265,12 +375,18 @@ public class MovementEntity : MonoBehaviour
         {
             direction.y = 0.0f;
         }
-        var directionMultiplier = reverse ? -1.0f : 1.0f;
         direction.Normalize();
 
-        if (CurrentMovement.FaceMovementDirection && direction.sqrMagnitude > Constants.Epsilon)
+        if (direction.sqrMagnitude > Constants.Epsilon)
         {
-            transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+            if (CurrentMovement.FaceDirection == ActionMovement.eFaceDirection.FaceMovementDirection)
+            {
+                transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+            }
+            else if (CurrentMovement.FaceDirection == ActionMovement.eFaceDirection.FaceOppositeOfMovementDirection)
+            {
+                transform.rotation = Quaternion.LookRotation(-direction.normalized, Vector3.up);
+            }
         }
 
         var speed = (CurrentMovement.Speed > Constants.Epsilon ? CurrentMovement.Speed :
@@ -283,13 +399,225 @@ public class MovementEntity : MonoBehaviour
             elapsedTime = BattleSystem.Time - lastTime;
             lastTime = BattleSystem.Time;
 
-            Move(elapsedTime * speed * directionMultiplier * direction, faceMovementDirection: false, setMovementTrigger: false);
+            Move(elapsedTime * speed * direction, faceMovementDirection: false, setMovementTrigger: false);
 
+            UpdateActionMovementSpeed(ref speed, elapsedTime);
             yield return null;
         }
         while (totalElapsedTime < CurrentMovement.MaxDuration);
 
         CurrentMovement = null;
+        if (isSkill)
+        {
+            Entity.EntityBattle.OnSkillCancel.Remove(CancelMovement);
+        }
+    }
+    #endregion
+
+    #region Action Rotation
+    public ActionRotation CurrentRotation { get; protected set; }
+    Coroutine RotationCoroutine;
+
+    public virtual bool InitiateRotation(ActionRotation rotation, Entity caster = null, Entity target = null, bool isSkill = false)
+    {
+        if (rotation.InterruptionLevel > Constants.Epsilon && rotation.InterruptionLevel > Formulae.EntityInterruptResistance(Entity))
+        {
+            return false;
+        }
+
+        if (CurrentRotation != null)
+        {
+            if (CurrentRotation.Priority > rotation.Priority)
+            {
+                return false;
+            }
+            else
+            {
+                CancelRotation();
+            }
+        }
+
+        CurrentRotation = rotation;
+
+        switch (rotation.RotationType)
+        {
+            case ActionRotation.eRotationType.SetRotation:
+            {
+                SetRotation(caster, target);
+                break;
+            }
+            case ActionRotation.eRotationType.Rotate:
+            {
+                RotationCoroutine = StartCoroutine(RotateCoroutine(isSkill));
+                break;
+            }
+            case ActionRotation.eRotationType.RotateToDirection:
+            {
+                RotationCoroutine = StartCoroutine(RotateTowardDirectionCoroutine(caster, target, isSkill));
+                break;
+            }
+            default:
+            {
+                Debug.LogError($"Unimplemented rotation type: {rotation.RotationType}");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public virtual void CancelRotation()
+    {
+        CurrentRotation = null;
+        if (RotationCoroutine != null)
+        {
+            StopCoroutine(RotationCoroutine);
+        }
+
+        if (Entity.EntityBattle.OnSkillCancel.Contains(CancelRotation))
+        {
+            Entity.EntityBattle.OnSkillCancel.Remove(CancelRotation);
+        }
+    }
+
+
+    void UpdateActionRotationSpeed(ref float speed, float timeElapsed)
+    {
+        if (CurrentRotation == null)
+        {
+            Debug.Log("UpdateActionRotationSpeed was called, but there is no CurrentRotation set.");
+            return;
+        }
+
+        speed += CurrentRotation.SpeedChangeOverTime * timeElapsed;
+        if (speed < CurrentRotation.MinSpeed)
+        {
+            speed = CurrentRotation.MinSpeed;
+        }
+        else if (CurrentRotation.MaxSpeed > Constants.Epsilon && speed > CurrentRotation.MaxSpeed)
+        {
+            speed = CurrentRotation.MaxSpeed;
+        }
+    }
+
+    public void SetRotation(Entity caster, Entity target)
+    {
+        // CurrentRotation has to be set first.
+        if (CurrentRotation == null)
+        {
+            Debug.LogError($"CurrentRotation was not set.");
+            return;
+        }
+
+        // Find target rotation.
+        var found = CurrentRotation.Direction.TryGetDirectionFromData(caster, target, out var targetDirection);
+        if (!found)
+        {
+            Debug.LogError($"A direction for rotation action used by {caster.EntityUID} could not be found.");
+            CurrentRotation = null;
+            return;
+        }
+
+        FaceDirection(targetDirection);
+        CurrentRotation = null;
+    }
+
+    public IEnumerator RotateCoroutine(bool isSkill)
+    {
+        // CurrentRotation has to be set first.
+        if (CurrentRotation == null)
+        {
+            Debug.LogError($"CurrentRotation was not set.");
+            yield break;
+        }
+
+        if (isSkill)
+        {
+            Entity.EntityBattle.OnSkillCancel.Add(CancelRotation);
+        }
+
+        var rotationSpeed = (CurrentRotation.Speed > Constants.Epsilon || CurrentRotation.Speed < -Constants.Epsilon) ?
+                            CurrentRotation.Speed : Formulae.EntityRotateSpeed(Entity);
+
+        var lastTime = BattleSystem.Time;
+        float elapsedTime;
+        var totalElapsedTime = 0.0f;
+
+        do
+        {
+            elapsedTime = BattleSystem.Time - lastTime;
+            totalElapsedTime += elapsedTime;
+
+            RotateAroundYAxis(rotationSpeed * elapsedTime);
+            UpdateActionRotationSpeed(ref rotationSpeed, elapsedTime);
+
+            yield return null;
+        }
+        while (totalElapsedTime < CurrentRotation.MaxDuration);
+
+        CurrentRotation = null;
+        if (isSkill)
+        {
+            Entity.EntityBattle.OnSkillCancel.Remove(CancelRotation);
+        }
+    }
+
+    public IEnumerator RotateTowardDirectionCoroutine(Entity caster, Entity target, bool isSkill)
+    {
+        // CurrentRotation has to be set first.
+        if (CurrentRotation == null)
+        {
+            Debug.LogError($"CurrentRotation was not set.");
+            yield break;
+        }
+
+        // Find target rotation.
+        var found = CurrentRotation.Direction.TryGetDirectionFromData(caster, target, out var targetDirection);
+        if (!found)
+        {
+            Debug.LogError($"A direction for rotation action used by {caster.EntityUID} could not be found.");
+            CurrentRotation = null;
+            yield break;
+        }
+
+        if (isSkill)
+        {
+            Entity.EntityBattle.OnSkillCancel.Add(CancelRotation);
+        }
+
+        var rotationSpeed = (CurrentRotation.Speed > Constants.Epsilon || CurrentRotation.Speed < -Constants.Epsilon) ? 
+                            CurrentRotation.Speed : Formulae.EntityRotateSpeed(Entity);
+        var currentSpeed = 0.0f;
+
+        targetDirection.y = 0.0f;
+
+        var startTime = BattleSystem.Time;
+        var elapsedTime = 0.0f;
+        var lastTime = startTime;
+        var totalElapsedTime = 0.0f;
+
+        do
+        {
+            elapsedTime = BattleSystem.Time - lastTime;
+            totalElapsedTime = BattleSystem.Time - startTime;
+
+            currentSpeed = elapsedTime * rotationSpeed;
+
+            var direction = Vector3.RotateTowards(transform.forward, targetDirection, currentSpeed, 0.0f);
+            FaceDirection(direction);
+
+            UpdateActionRotationSpeed(ref rotationSpeed, elapsedTime);
+            lastTime = BattleSystem.Time;
+            yield return null;
+        }
+        while (totalElapsedTime < CurrentRotation.MaxDuration && Vector3.Angle(transform.forward, targetDirection) > currentSpeed);
+        FaceDirection(targetDirection);
+
+        CurrentRotation = null;
+        if (isSkill)
+        {
+            Entity.EntityBattle.OnSkillCancel.Remove(CancelRotation);
+        }
     }
     #endregion
 
@@ -369,26 +697,6 @@ public class MovementEntity : MonoBehaviour
         transform.rotation = Quaternion.LookRotation(direction);
     }
 
-    public IEnumerator RotateTowardDirectionCoroutine(Vector3 targetDirection, float rotationSpeed)
-    {
-        targetDirection.y = 0.0f;
-        var initialForward = transform.forward;
-
-        var startTime = BattleSystem.Time;
-
-        do
-        {
-            var timeElapsed = BattleSystem.Time - startTime;
-            var direction = Vector3.RotateTowards(initialForward, targetDirection, timeElapsed * rotationSpeed, 0.0f);
-
-            FaceDirection(direction);
-
-            yield return null;
-        }
-        while (Vector3.Angle(transform.forward, targetDirection) > 0.5f);
-        FaceDirection(targetDirection);
-    }
-
     public void FaceDirection(Vector3 direction)
     {
         transform.rotation = Quaternion.LookRotation(direction);
@@ -436,12 +744,27 @@ public class MovementEntity : MonoBehaviour
 
     protected void UpdateVelocity()
     {
+        var wasGrounded = IsGrounded;
         IsGrounded = Velocity.y <= Constants.Epsilon && Physics.CheckSphere(transform.position + GroundCheckSphereOffset, GroundCheckSphereRadius, BattleSystem.Instance.TerrainLayers);
 
-        // The launch movement mode takes control over velocity
-        if (CurrentMovement != null && CurrentMovement.MovementType == ActionMovement.eMovementType.LaunchToPosition)
+        var landed = !wasGrounded && IsGrounded;
+        if (landed)
         {
-            return;
+            Entity.OnEntityLanded();
+        }
+
+        // The launch movement mode takes control over velocity
+        if (CurrentMovement != null && CurrentMovement.MovementType == ActionMovement.eMovementType.LaunchToPosition || 
+            CurrentMovement.MovementType == ActionMovement.eMovementType.FreezePosition)
+        {
+            if (landed)
+            {
+                CancelMovement();
+            }
+            else
+            {
+                return;
+            }
         }
 
         if (IsGrounded)
@@ -472,6 +795,7 @@ public class MovementEntity : MonoBehaviour
         float xzDistance = Vector3.Distance(new Vector3(transform.position.x, 0.0f, transform.position.z), new Vector3(targetPosition.x, 0.0f, targetPosition.z));
         if (xzDistance < Constants.Epsilon)
         {
+            Debug.Log("xz distance is too small to launch.");
             return Vector3.zero;
         }
 
@@ -481,6 +805,7 @@ public class MovementEntity : MonoBehaviour
         float zSpeed = Mathf.Sqrt(GravitationalForce * gravityMultiplier * xzDistance * xzDistance / (2.0f * (yDistance - xzDistance * tanAlpha)));
         if (float.IsNaN(zSpeed))
         {
+            Debug.Log("zSpeed is not a number.");
             return Vector3.zero;
         }
         float ySpeed = tanAlpha * zSpeed;

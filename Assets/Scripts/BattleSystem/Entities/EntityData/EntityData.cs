@@ -56,6 +56,7 @@ public class EntityData
     public List<EntityStatusEffect> StatusEffects;          // Status effects applied when an entity is set up. 
     #endregion
 
+    public float InterruptResistance;                       // If higher than interruption level of a movement or rotation applied, the effect is ignored.
     public float Radius;                                    // Radius of an entity, used by area attacks.
     public float Height;                                    // Height of an entity. Used by area attacks and displaying UI elements above it.
     public float OriginHeight;                              // The middle of an entity's height, used by homing projectile attacks. 

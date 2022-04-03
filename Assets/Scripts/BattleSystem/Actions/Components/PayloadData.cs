@@ -30,9 +30,11 @@ public class PayloadData
     public bool Interrupt = false;                      // If true, stops entity from casting skills. 
 
     public ActionMovement Movement;                     // Causes the entity to move in a given direction or toward a specified position.
+    public bool StopCurrentMovement;                    // Stops previously applied movement.
     public ActionRotation Rotation;                     // Causes the entity to rotate toward a given direction.
+    public bool StopCurrentRotation;                    // Stops previously applied rotation.
 
-    public float SuccessChance;
+    public float SuccessChance;                         // Chance for a payload to be applied.
 
     public PayloadCondition PayloadCondition;           // Condition for the payload to be applied.
     public PayloadData AlternatePayload;                // If the condition isn't met, an alternate payload can be executed instead.

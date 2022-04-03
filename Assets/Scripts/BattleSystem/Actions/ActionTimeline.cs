@@ -11,6 +11,7 @@ public class ActionTimeline : List<Action>
 
         for (int i = 0; i < Count; i++)
         {
+            // Wait until the action timestamp, then execute it.
             var action = this[i];
 
             var timestamp = startTime + action.TimestampForEntity(entity);
@@ -21,27 +22,33 @@ public class ActionTimeline : List<Action>
 
             action.Execute(entity, target, ref actionResults);
 
-            if (action.ActionType == Action.eActionType.LoopBack && actionResults[action.ActionID].Success)
+            // Some actions affect the timeline on success.
+            if (actionResults[action.ActionID].Success)
             {
-                var loopBackAction = action as ActionLoopBack;
-                if (loopBackAction != null)
+                if (action.ActionType == Action.eActionType.LoopBack)
                 {
-                    var goToTimestamp = startTime + Formulae.ActionTime(entity, loopBackAction.GoToTimestamp);
-                    var difference = BattleSystem.Time - goToTimestamp;
-
-                    startTime += difference;
-
-                    while (i >= 0 && this[i].Timestamp >= loopBackAction.GoToTimestamp)
+                    if (action is ActionLoopBack loopBackAction)
                     {
-                        i--;
+                        var goToTimestamp = startTime + Formulae.ActionTime(entity, loopBackAction.GoToTimestamp);
+                        var difference = BattleSystem.Time - goToTimestamp;
+
+                        startTime += difference;
+
+                        while (i >= 0 && this[i].Timestamp >= loopBackAction.GoToTimestamp)
+                        {
+                            i--;
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError($"Action {action.ActionID} is not a loop back action.");
                     }
                 }
-                else
+                else if (action.ActionType == Action.eActionType.Cancel)
                 {
-                    Debug.LogError($"Action {action.ActionID} is not a loop back action.");
+                    yield break;
                 }
             }
         }
-        yield return null;
     }
 }

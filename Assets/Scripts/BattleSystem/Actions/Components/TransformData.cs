@@ -31,7 +31,7 @@ public class TransformData
     public bool TryGetTransformFromData(Entity caster, Entity target, out Vector3 position, out Vector3 forward)
     {
         position = new Vector3();
-        if (!Direction.TryGetRotationFromData(caster, target, out forward))
+        if (!Direction.TryGetDirectionFromData(caster, target, out forward))
         {
             return false;
         }
@@ -121,7 +121,7 @@ public class DirectionData
         EntityTo = new TransformTargetEntity();
     }
 
-    public bool TryGetRotationFromData(Entity caster, Entity target, out Vector3 forward)
+    public bool TryGetDirectionFromData(Entity caster, Entity target, out Vector3 forward)
     {
         forward = new Vector3();
 

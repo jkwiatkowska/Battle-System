@@ -120,19 +120,33 @@ public abstract class ActionPayload : Action
 
         foreach (var payloadData in PayloadData)
         {
-            var payload = new Payload(entity, payloadData, action: this, statusID: null, actionResults);
             foreach (var t in targets)
             {
+                // Target is in an incorrect state.
                 if (t == null || (TargetState == eTargetState.Alive && !t.Alive) || (TargetState == eTargetState.Dead && t.Alive))
                 {
                     continue;
                 }
 
-                if (payloadData.PayloadCondition != null && !payloadData.PayloadCondition.CheckCondition(entity, t))
+                var payloadToApply = payloadData;
+
+                // A payload can be applied if it has no conditions or conditions are met.
+                var canApplyPayload = payloadToApply.PayloadCondition == null || !payloadToApply.PayloadCondition.CheckCondition(entity, t);
+
+                // If conditions aren't met, but an alternate payload exist, check the alternate payload's conditions.
+                // Keep going until a payload that can be applied is found or all options are exhausted.
+                while (!canApplyPayload)
                 {
-                    continue;
+                    payloadToApply = payloadToApply.AlternatePayload;
+                    if (payloadToApply == null)
+                    {
+                        continue;
+                    }
+
+                    canApplyPayload = payloadToApply.PayloadCondition == null || payloadToApply.PayloadCondition.CheckCondition(entity, t);
                 }
 
+                var payload = new Payload(entity, payloadToApply, action: this, statusID: null, actionResults);
                 var result = new PayloadResult(payloadData, entity, t, SkillID, ActionID);
 
                 var immunity = t.HasImmunityAgainstAction(this);

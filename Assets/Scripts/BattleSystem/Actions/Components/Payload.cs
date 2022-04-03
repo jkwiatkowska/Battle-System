@@ -54,15 +54,17 @@ public class Payload
             }
         }
 
+        var isSkill = caster == target && !string.IsNullOrEmpty(Action.SkillID);
+
         // Movement
         if (PayloadData.Rotation != null)
         {
-
+            target.Movement.InitiateRotation(PayloadData.Rotation, caster, target, isSkill);
         }
 
         if (PayloadData.Movement != null)
         {
-            target.Movement.InitiateMovement(PayloadData.Movement, caster, target);
+            target.Movement.InitiateMovement(PayloadData.Movement, caster, target, isSkill);
         }
 
         // Instant death
@@ -118,19 +120,6 @@ public class Payload
         }
 
         // Status effects
-        if (PayloadData.ApplyStatus != null)
-        {
-            foreach (var status in PayloadData.ApplyStatus)
-            {
-                var immunity = target.HasImmunityAgainstStatus(status.StatusID);
-                if (immunity != null)
-                {
-                    continue;
-                }
-                target.ApplyStatusEffect(caster, status.StatusID, status.Stacks, Action, this);
-            }
-        }
-
         if (PayloadData.ClearStatus != null)
         {
             foreach (var status in PayloadData.ClearStatus)
@@ -157,6 +146,19 @@ public class Payload
             foreach (var status in PayloadData.RemoveStatusStacks)
             {
                 target.RemoveStatusEffectStacks(caster, status.StatusID, status.Stacks);
+            }
+        }
+
+        if (PayloadData.ApplyStatus != null)
+        {
+            foreach (var status in PayloadData.ApplyStatus)
+            {
+                var immunity = target.HasImmunityAgainstStatus(status.StatusID);
+                if (immunity != null)
+                {
+                    continue;
+                }
+                target.ApplyStatusEffect(caster, status.StatusID, status.Stacks, Action, this);
             }
         }
 

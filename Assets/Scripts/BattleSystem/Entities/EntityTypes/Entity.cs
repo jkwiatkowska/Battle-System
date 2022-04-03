@@ -527,16 +527,11 @@ public class Entity : MonoBehaviour
 
         if (entityHit != null && entityHit.EntityUID != EntityUID)
         {
+            OnCollisionEntity(entityHit);
+
             if (entityHit.IsTargetable)
             {
-                if (IsEnemy(entityHit.Faction))
-                {
-                    OnCollisionEnemy(entityHit);
-                }
-                else if (IsFriendly(entityHit.Faction))
-                {
-                    OnCollisionFriend(entityHit);
-                }
+                OnCollisionTargetableEntity(entityHit);
             }
         }
         else if (BattleSystem.IsOnTerrainLayer(other.gameObject))
@@ -545,14 +540,14 @@ public class Entity : MonoBehaviour
         }
     }
 
-    protected virtual void OnCollisionEnemy(Entity entity)
+    protected virtual void OnCollisionTargetableEntity(Entity entity)
     {
-        OnTrigger(TriggerData.eTrigger.OnCollisionEnemy, triggerSource: entity);
+        OnTrigger(TriggerData.eTrigger.OnCollisionTargetableEntity, triggerSource: entity);
     }
 
-    protected virtual void OnCollisionFriend(Entity entity)
+    protected virtual void OnCollisionEntity(Entity entity)
     {
-        OnTrigger(TriggerData.eTrigger.OnCollisionFriend, triggerSource: entity);
+        OnTrigger(TriggerData.eTrigger.OnCollisionEntity, triggerSource: entity);
     }
 
     protected virtual void OnCollisionTerrain(Collider collider)

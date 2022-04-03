@@ -11,6 +11,8 @@ public class EntityBattle
     Entity Target => Targeting.SelectedTarget;
     MovementEntity Movement => Entity.Movement;
 
+    public List<System.Action> OnSkillCancel;
+
     public class EngagedEntity
     {
         public Entity Entity;
@@ -36,7 +38,6 @@ public class EntityBattle
     public eSkillState SkillState                       { get; protected set; }
     Dictionary<string, float> SkillAvailableTime;
 
-    float PrepareStartTime;
     SkillData PrepareSkill;
 
     Coroutine SkillChargeCoroutine;
@@ -62,6 +63,7 @@ public class EntityBattle
         SkillState = eSkillState.Idle;
         SkillAvailableTime = new Dictionary<string, float>();
         EngagedEntities = new Dictionary<string, EngagedEntity>();
+        OnSkillCancel = new List<System.Action>();
     }
 
     #region States
@@ -80,7 +82,6 @@ public class EntityBattle
 
     void SetPrepare(Entity target, SkillData skillData)
     {
-        PrepareStartTime = BattleSystem.Time + 1.0f;
         SkillState = eSkillState.SkillPrepare;
         Targeting.SelectTarget(target);
         PrepareSkill = skillData;
@@ -584,6 +585,11 @@ public class EntityBattle
         if (SkillCoroutine != null)
         {
             Entity.StopCoroutine(SkillCoroutine);
+        }
+
+        foreach (var action in OnSkillCancel)
+        {
+            action.Invoke();
         }
 
         SetIdle();

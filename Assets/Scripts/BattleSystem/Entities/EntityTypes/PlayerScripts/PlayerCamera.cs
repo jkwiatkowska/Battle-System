@@ -58,17 +58,30 @@ public class PlayerCamera : MonoBehaviour
         CameraDistance = Mathf.Clamp(CameraDistance, 1.5f, 10f);
     }
 
-
     void LateUpdate()
     {
+        UpdateCamera();
+    }
+
+    private void Update()
+    {
+        UpdateCamera();
+    }
+
+    void UpdateCamera()
+    {
+        if (Target == null)
+        {
+            return;
+
+        }
         transform.parent.position = Target.transform.position;
         transform.parent.position += new Vector3(0f, (Target.transform.up * OffsetY).y, 0f);
 
-        Vector3 targetToCamera = transform.position - transform.parent.position;
+        var targetToCamera = transform.position - transform.parent.position;
         targetToCamera.Normalize();
-        RaycastHit hit;
 
-        if (Physics.Raycast(transform.parent.position, targetToCamera, out hit, CameraDistance, CollisionMask))
+        if (Physics.Raycast(transform.parent.position, targetToCamera, out var hit, CameraDistance, CollisionMask))
         {
             transform.position = hit.point;
         }

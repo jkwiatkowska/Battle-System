@@ -739,8 +739,7 @@ public static class BattleGUI
         {
             case Action.eActionType.ApplyCooldown:
             {
-                var a = action as ActionCooldown;
-                if (a != null)
+                if (action is ActionCooldown a)
                 {
                     return Copy(a);
                 }
@@ -748,17 +747,15 @@ public static class BattleGUI
             }
             case Action.eActionType.CollectCost:
             {
-                var a = action as ActionCostCollection;
-                if (a != null)
+                if (action is ActionCostCollection a)
                 {
                     return Copy(a);
                 }
                 break;
             }
-            case Action.eActionType.DestroySelf:
+            case Action.eActionType.Destroy:
             {
-                var a = action as ActionDestroySelf;
-                if (a != null)
+                if (action is ActionDestroy a)
                 {
                     return Copy(a);
                 }
@@ -766,8 +763,7 @@ public static class BattleGUI
             }
             case Action.eActionType.LoopBack:
             {
-                var a = action as ActionLoopBack;
-                if (a != null)
+                if (action is ActionLoopBack a)
                 {
                     return Copy(a);
                 }
@@ -775,8 +771,7 @@ public static class BattleGUI
             }
             case Action.eActionType.Message:
             {
-                var a = action as ActionMessage;
-                if (a != null)
+                if (action is ActionMessage a)
                 {
                     return Copy(a);
                 }
@@ -784,8 +779,7 @@ public static class BattleGUI
             }
             case Action.eActionType.PayloadArea:
             {
-                var a = action as ActionPayloadArea;
-                if (a != null)
+                if (action is ActionPayloadArea a)
                 {
                     return Copy(a);
                 }
@@ -793,8 +787,7 @@ public static class BattleGUI
             }
             case Action.eActionType.PayloadDirect:
             {
-                var a = action as ActionPayloadDirect;
-                if (a != null)
+                if (action is ActionPayloadDirect a)
                 {
                     return Copy(a);
                 }
@@ -802,8 +795,7 @@ public static class BattleGUI
             }
             case Action.eActionType.SpawnProjectile:
             {
-                var a = action as ActionProjectile;
-                if (a != null)
+                if (action is ActionProjectile a)
                 {
                     return Copy(a);
                 }
@@ -811,8 +803,7 @@ public static class BattleGUI
             }
             case Action.eActionType.SpawnEntity:
             {
-                var a = action as ActionSummon;
-                if (a != null)
+                if (action is ActionSummon a)
                 {
                     return Copy(a);
                 }
@@ -820,12 +811,24 @@ public static class BattleGUI
             }
             case Action.eActionType.SetAnimation:
             {
-                var a = action as ActionAnimationSet;
-                if (a != null)
+                if (action is ActionAnimationSet a)
                 {
                     return Copy(a);
                 }
                 break;
+            }
+            case Action.eActionType.Cancel:
+            {
+                if (action is ActionCancel a)
+                {
+                    return Copy(a);
+                }
+                break;
+            }
+            default:
+            {
+                Debug.LogError($"Unimplemented action type: {action.ActionType}");
+                return null;
             }
         }
 

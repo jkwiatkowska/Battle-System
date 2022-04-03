@@ -303,32 +303,32 @@ public class TriggerData
     #endregion
     public enum eTrigger
     {
-        EveryFrame,                 // Fires every frame.
-        Custom,                     // Trigger fires if the custom identifier matches.
-        OnPayloadApplied,           // Succesfully using a payload action.
-        OnPayloadReceived,          // Having payload applied.
-        OnHitMissed,                // Failing to apply a payload action.
-        OnImmune,                   // Immunity status effect.
-        OnResourceChanged,          // Damage or recovery of a resource.
-        OnActionUsed,               // Use of an action.
-        OnStatusApplied,            // Status applied to another entity.
-        OnStatusReceived,           // Status applied to this entity.
-        OnStatusClearedOutgoing,    // Another entity's status cleared.
-        OnStatusClearedIncoming,    // This entity's status cleared.
-        OnStatusExpired,            // This entity's status expired.
-        OnDeath,                    // Life resource reaches 0.
-        OnKill,                     // Killing another entity.
-        OnSpawn,                    // Fires after setup.
-        OnReviveOutgoing,           // Fires if an entity revives another entity.
-        OnReviveIncoming,           // Fires if an entity is revived by another entity.
-        OnEngage,                   // Entity enters battle.
-        OnDisengage,                // Entity leaves battle.
-        OnCollisionEnemy,           // Fires on trigger collision with an enemy.
-        OnCollisionFriend,          // Fireso on trigger collision with a friend.
-        OnCollisionTerrain,         // Fires on trigger collision with an object on terrain layer.
-        OnEntityMoved,              // Triggered by an entity moving (non-action movement).
-        OnEntityJumped,             // Triggered when an entity jumps.
-        OnEntityLanded,             // Triggered when an entity lands after a jump or fall. 
+        EveryFrame,                     // Fires every frame.
+        Custom,                         // Trigger fires if the custom identifier matches.
+        OnPayloadApplied,               // Succesfully using a payload action.
+        OnPayloadReceived,              // Having payload applied.
+        OnHitMissed,                    // Failing to apply a payload action.
+        OnImmune,                       // Immunity status effect.
+        OnResourceChanged,              // Damage or recovery of a resource.
+        OnActionUsed,                   // Use of an action.
+        OnStatusApplied,                // Status applied to another entity.
+        OnStatusReceived,               // Status applied to this entity.
+        OnStatusClearedOutgoing,        // Another entity's status cleared.
+        OnStatusClearedIncoming,        // This entity's status cleared.
+        OnStatusExpired,                // This entity's status expired.
+        OnDeath,                        // Life resource reaches 0.
+        OnKill,                         // Killing another entity.
+        OnSpawn,                        // Fires after setup.
+        OnReviveOutgoing,               // Fires if an entity revives another entity.
+        OnReviveIncoming,               // Fires if an entity is revived by another entity.
+        OnEngage,                       // Entity enters battle.
+        OnDisengage,                    // Entity leaves battle.
+        OnCollisionEntity,              // Fires on trigger collision with any entity.
+        OnCollisionTargetableEntity,    // Fires on trigger collision with an entity that's targetable.
+        OnCollisionTerrain,             // Fires on trigger collision with an object on terrain layer.
+        OnEntityMoved,                  // Triggered by an entity moving (non-action movement).
+        OnEntityJumped,                 // Triggered when an entity jumps.
+        OnEntityLanded,                 // Triggered when an entity lands after a jump or fall. 
     }
 
     public enum eEntityAffected

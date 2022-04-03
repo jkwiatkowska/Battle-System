@@ -153,6 +153,12 @@ public static class Formulae
     }
 
     #region Movement
+
+    public static float EntityInterruptResistance(Entity entity)
+    {
+        return entity.EntityData.InterruptResistance;
+    }
+
     public static float EntityMovementSpeed(Entity entity, bool running = false)
     {
         var speed = entity.EntityData.Movement.MovementSpeed;

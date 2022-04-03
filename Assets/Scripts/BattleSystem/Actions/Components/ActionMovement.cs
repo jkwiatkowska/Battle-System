@@ -2,18 +2,29 @@ public class ActionMovement
 {
     public enum eMovementType
     {
-        MoveToPosition,
-        TeleportToPosition,
-        LaunchToPosition,
-        MoveForward,
-        MoveBackward,
+        MoveToPosition,                     // Entity moves in the direction of a given position.
+        TeleportToPosition,                 // Entity teleports to a given position.
+        LaunchToPosition,                   // Entity is launched toward a given position.
+        MoveInDirection,                    // Entity moves in a given direction.
+        FreezePosition,                     // Entity is unable to move for the duration of the movement.
+    }
+
+    public enum eFaceDirection
+    {
+        FaceMovementDirection,
+        FaceOppositeOfMovementDirection,
+        KeepOriginalDirection,
     }
 
     public eMovementType MovementType;
     public TransformData TargetPosition;    // Position to move to.
-    public float Speed;                     // If 0, use entity movement speed.
 
-    public bool FaceMovementDirection;      // If true, the entity will face the direction it's moving in.
+    public float Speed;                     // If 0, use entity movement speed.
+    public float SpeedChangeOverTime;       // Decrease or increase in speed per second.
+    public float MinSpeed;                  // If the speed changes over time, a limit can be set
+    public float MaxSpeed;
+
+    public eFaceDirection FaceDirection;    // If true, the entity will face the direction it's moving in.
     public bool HorizontalMovementOnly;     // If true, the entity will only move along the X and Z axis.
 
     public float LaunchAngle;               // For launch movement type. 
@@ -27,7 +38,6 @@ public class ActionMovement
     public ActionMovement()
     {
         TargetPosition = new TransformData();
-        FaceMovementDirection = true;
         MaxDuration = 1.0f;
         HorizontalMovementOnly = true;
         LockEntityMovement = true;
@@ -38,14 +48,18 @@ public class ActionRotation
 {
     public enum eRotationType
     {
-        RotateToFaceTarget,
-        RotateClockwise,
-        RotateCounterClockwise,
+        SetRotation,                        // Immediately set rotation.
+        RotateToDirection,                  // Rotate toward a specific direction over time.
+        Rotate,                             // Rotates clockwise by default, counter-clockwise if speed is negative.
     }
 
     public eRotationType RotationType;
-    public TransformData Transform;         // Rotation to shift to.
+    public DirectionData Direction;         // Rotation to shift to.
+
     public float Speed;                     // If 0, use entity rotation speed.
+    public float SpeedChangeOverTime;       // Decrease or increase in speed per second.
+    public float MinSpeed;                  // If the speed changes over time, a limit can be set
+    public float MaxSpeed;
 
     public float MaxDuration;               // Rotation will stop after this much time.
 
@@ -54,7 +68,7 @@ public class ActionRotation
 
     public ActionRotation()
     {
-        Transform = new TransformData();
+        Direction = new DirectionData();
         MaxDuration = 1.0f;
     }
 }

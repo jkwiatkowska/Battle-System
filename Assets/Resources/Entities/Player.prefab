@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8458580312892934461}
   - component: {fileID: 7282475843214483961}
   - component: {fileID: 1902395084336630063}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: Direction
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -214,6 +214,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9508ae16dcb767040b68fc3f04bcbd7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  EntityID: Player
+  EntityLevel: 1
   EntitiesToTag: []
 --- !u!114 &8799224501291485268
 MonoBehaviour:
@@ -255,7 +257,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   GroundCheckSphereRadius: 0.22
-  IsRunning: 0
 --- !u!54 &8799224501291485271
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -279,7 +280,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8799224501291485266}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 123f42e010b0e0d4bb070185d245fa95, type: 2}
   m_IsTrigger: 0
   m_Enabled: 1
   m_Radius: 0.25
@@ -401,7 +402,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5256719702630343124, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.8
+      value: 0.85
       objectReference: {fileID: 0}
     - target: {fileID: 5256719702630343124, guid: 621ad08bf72137a4f83a3f57bd3b5e56, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

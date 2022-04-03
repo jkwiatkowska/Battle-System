@@ -179,7 +179,8 @@ public class Projectile : EntitySummon
                     }
                 }
             }
-            else
+            // Arched
+            else if (Movement.EntityVelocity.sqrMagnitude > Constants.Epsilon)
             {
                 transform.rotation = Quaternion.LookRotation(Movement.EntityVelocity);
             }
@@ -225,23 +226,23 @@ public class Projectile : EntitySummon
         base.OnDeath(source, payloadResult);
     }
 
-    protected override void OnCollisionEnemy(Entity entity)
+    protected override void OnCollisionTargetableEntity(Entity entity)
     {
-        base.OnCollisionEnemy(entity);
+        base.OnCollisionTargetableEntity(entity);
 
-        foreach (var reaction in ProjectileData.OnEnemyHit)
+        if (IsEnemy(entity.Faction))
         {
-            ProjectileReaction(reaction, entity);
+            foreach (var reaction in ProjectileData.OnEnemyHit)
+            {
+                ProjectileReaction(reaction, entity);
+            }
         }
-    }
-
-    protected override void OnCollisionFriend(Entity entity)
-    {
-        base.OnCollisionFriend(entity);
-
-        foreach (var reaction in ProjectileData.OnFriendHit)
+        else if (IsFriendly(entity.Faction))
         {
-            ProjectileReaction(reaction, entity);
+            foreach (var reaction in ProjectileData.OnFriendHit)
+            {
+                ProjectileReaction(reaction, entity);
+            }
         }
     }
 

@@ -159,9 +159,12 @@ public class BattleSystemDataEditor : EditorWindow
         public bool ShowMovement = false;
         public bool ShowRotation = false;
 
-        public EditorPayload()
+        public EditorPayload(PayloadData payloadData)
         {
-
+            if (payloadData.AlternatePayload != null)
+            {
+                AlternatePayload = new EditorPayload(payloadData.AlternatePayload);
+            }
         }
     }
 
@@ -170,13 +173,13 @@ public class BattleSystemDataEditor : EditorWindow
         public bool ShowPayloads;
         public bool ShowAreas = false;
 
-        public EditorPayloadAction(int payloads)
+        public EditorPayloadAction(ActionPayload action)
         {
             ShowPayloads = false;
 
-            for (int i = 0; i < payloads; i++)
+            for (int i = 0; i < action.PayloadData.Count; i++)
             {
-                Add(new EditorPayload());
+                Add(new EditorPayload(action.PayloadData[i]));
             }
         }
 
@@ -194,7 +197,7 @@ public class BattleSystemDataEditor : EditorWindow
 
         public static void AddPayloadAction(ActionPayload action)
         {
-            EditorPayloads[ActionKey(action)] = new EditorPayloadAction(action.PayloadData.Count);
+            EditorPayloads[ActionKey(action)] = new EditorPayloadAction(action);
         }
 
         public static void RemovePayloadAction(Action action)
@@ -234,7 +237,7 @@ public class BattleSystemDataEditor : EditorWindow
 
     string NewString = "";
     Action.eActionType NewAction;
-    bool ShowValues;
+    bool[] ShowValues = Enumerable.Repeat(false, 3072).ToArray();
     ActionProjectile.OnCollisionReaction.eReactionType NewReaction;
 
     ActionCondition.eActionCondition NewActionCondition;
@@ -278,9 +281,9 @@ public class BattleSystemDataEditor : EditorWindow
                 Data.OnInterval = new List<(PayloadData PayloadData, float Interval)>();
             }
             OnInterval = new List<EditorPayload>();
-            while(OnInterval.Count < Data.OnInterval.Count)
+            for (int i = 0; i < Data.OnInterval.Count; i++)
             {
-                OnInterval.Add(new EditorPayload());
+                OnInterval.Add(new EditorPayload(Data.OnInterval[i].PayloadData));
             }
 
             if (Data.OnCleared == null)
@@ -288,9 +291,9 @@ public class BattleSystemDataEditor : EditorWindow
                 Data.OnCleared = new List<PayloadData>();
             }
             OnCleared = new List<EditorPayload>();
-            while (OnCleared.Count < Data.OnCleared.Count)
+            for (int i = 0; i < Data.OnCleared.Count; i++)
             {
-                OnCleared.Add(new EditorPayload());
+                OnCleared.Add(new EditorPayload(Data.OnCleared[i]));
             }
 
             if (Data.OnExpired == null)
@@ -298,9 +301,9 @@ public class BattleSystemDataEditor : EditorWindow
                 Data.OnExpired = new List<PayloadData>();
             }
             OnExpired = new List<EditorPayload>();
-            while (OnCleared.Count < Data.OnExpired.Count)
+            for (int i = 0; i < Data.OnExpired.Count; i++)
             {
-                OnExpired.Add(new EditorPayload());
+                OnExpired.Add(new EditorPayload(Data.OnExpired[i]));
             }
         }
     }
@@ -491,6 +494,8 @@ public class BattleSystemDataEditor : EditorWindow
 
     void UpdateValues()
     {
+        ShowValues = Enumerable.Repeat(false, 3072).ToArray();
+
         EntityAttributes = new List<string>();
         foreach (var attribute in BattleData.EntityAttributes)
         {
@@ -1056,7 +1061,7 @@ public class BattleSystemDataEditor : EditorWindow
 
                     // Actions
                     EditActionTimeline(skill.SkillData.SkillTimeline, ref skill.NewTimelineAction,
-                                       ref skill.ShowTimeline, "Skill Timeline:", skillID: skill.SkillID);
+                                       ref skill.ShowTimeline, "Skill Timeline:", skillID: skill.SkillID, showIndex: 2500);
 
                     // Target
                     if (BattleGUI.EditFoldout(ref skill.ShowTarget, "Skill Target"))
@@ -1749,7 +1754,7 @@ public class BattleSystemDataEditor : EditorWindow
                     BattleGUI.EditFloat(ref entity.Data.Skills.AutoAttackRange, "Auto Attack Range:", Space);
                     BattleGUI.EndIndent();
                 }
-                EditActionTimeline(entity.Data.Skills.AutoAttack, ref NewAction, ref ShowValues, "Auto Attack Timeline");
+                EditActionTimeline(entity.Data.Skills.AutoAttack, ref NewAction, ref ShowValues[0], "Auto Attack Timeline", showIndex: 2000);
                 BattleGUI.EndIndent();
             }
             else
@@ -1800,6 +1805,7 @@ public class BattleSystemDataEditor : EditorWindow
         if (BattleGUI.EditFoldout(ref entity.ShowMovement, "Movement"))
         {
             BattleGUI.StartIndent();
+            BattleGUI.EditFloat(ref entity.Data.InterruptResistance, "Interruption Resistance:", Space);
             BattleGUI.EditFloat(ref entity.Data.Movement.MovementSpeed, "Movement Speed:", Space);
             BattleGUI.EditFloat(ref entity.Data.Movement.MovementSpeedRunMultiplier, "Running Speed Multiplier:", Space);
             BattleGUI.EditBool(ref entity.Data.Movement.ConsumeResourceWhenRunning, "Consume Resource When Running");
@@ -2240,7 +2246,7 @@ public class BattleSystemDataEditor : EditorWindow
     {
         [Action.eActionType.ApplyCooldown] = "",
         [Action.eActionType.CollectCost] = "",
-        [Action.eActionType.DestroySelf] = "",
+        [Action.eActionType.Destroy] = "",
         [Action.eActionType.LoopBack] = "",
         [Action.eActionType.Message] = "",
         [Action.eActionType.PayloadArea] = "",
@@ -2249,196 +2255,198 @@ public class BattleSystemDataEditor : EditorWindow
         [Action.eActionType.SpawnProjectile] = "",
         [Action.eActionType.SetAnimation] = "",
     };
-    BattleGUI.eReturnResult EditAction(Action action)
+    BattleGUI.eReturnResult EditAction(Action action, ref bool show)
     {
-        BattleGUI.EditorDrawLine();
-
-        GUILayout.BeginHorizontal();
-        BattleGUI.Label($"{action.ActionType} Action", Space);
-        var remove = BattleGUI.Remove();
-        var copy = BattleGUI.Copy();
-        GUILayout.EndHorizontal();
-
-        if (remove)
+        if (BattleGUI.EditFoldout(ref show, $"{action.ActionType} Action : {action.Timestamp}"))
         {
-            return BattleGUI.eReturnResult.Remove;
-        }
-        if (copy)
-        {
-            return BattleGUI.eReturnResult.Copy;
-        }
+            GUILayout.BeginHorizontal();
+            var remove = BattleGUI.Remove();
+            var copy = BattleGUI.Copy();
+            GUILayout.EndHorizontal();
 
-        if (ShowHelp && ActionHelp.ContainsKey(action.ActionType))
-        {
-            BattleGUI.Help(ActionHelp[action.ActionType]);
-        }
-
-        BattleGUI.StartIndent();
-
-        BattleGUI.EditString(ref action.ActionID, "Action ID:", Space);
-        BattleGUI.EditFloat(ref action.Timestamp, "Timestamp:", Space);
-
-        switch (action.ActionType)
-        {
-            case Action.eActionType.ApplyCooldown:
+            if (remove)
             {
-                if (!(action is ActionCooldown a))
-                {
-                    return BattleGUI.eReturnResult.Remove;
-                }
-
-                BattleGUI.EditFloat(ref a.Cooldown, "Cooldown:", Space, 120);
-
-                BattleGUI.EditEnum(ref a.ChangeMode, "Change Mode:", Space, 120);
-                BattleGUI.EditEnum(ref a.CooldownTarget, "Cooldown Target:", Space, 120);
-
-                GUILayout.BeginHorizontal();
-                if (a.CooldownTarget == ActionCooldown.eCooldownTarget.Skill)
-                {
-                    BattleGUI.SelectSkill(ref a.CooldownTargetName, "Cooldown Skill ID:", Space);
-                }
-                else if (a.CooldownTarget == ActionCooldown.eCooldownTarget.SkillGroup)
-                {
-                    EditSkillGroup(ref a.CooldownTargetName, "Cooldown Skill Group Name:", Space);
-                }
-
-                GUILayout.EndHorizontal();
-
-                break;
+                return BattleGUI.eReturnResult.Remove;
             }
-            case Action.eActionType.CollectCost:
+            if (copy)
             {
-                if (!(action is ActionCostCollection a))
+                return BattleGUI.eReturnResult.Copy;
+            }
+
+            if (ShowHelp && ActionHelp.ContainsKey(action.ActionType))
+            {
+                BattleGUI.Help(ActionHelp[action.ActionType]);
+            }
+
+            BattleGUI.StartIndent();
+
+            BattleGUI.EditString(ref action.ActionID, "Action ID:", Space);
+            BattleGUI.EditFloat(ref action.Timestamp, "Timestamp:", Space);
+
+            switch (action.ActionType)
+            {
+                case Action.eActionType.ApplyCooldown:
                 {
-                    return BattleGUI.eReturnResult.Remove;
-                }
-
-                BattleGUI.SelectResource(ref a.ResourceName, "Resource Collected: ", Space);
-
-                EditValue(a.Cost, ValueComponent.eValueType.CasterOnly, "Cost:");
-                var maxValue = a.MaxCost != null;
-                BattleGUI.EditBool(ref maxValue, "Limit Cost");
-
-                if (maxValue)
-                {
-                    if (a.MaxCost == null)
+                    if (!(action is ActionCooldown a))
                     {
-                        a.MaxCost = new Value();
+                        return BattleGUI.eReturnResult.Remove;
                     }
-                    EditValue(a.MaxCost, ValueComponent.eValueType.CasterOnly, "Max Cost:");
+
+                    BattleGUI.EditFloat(ref a.Cooldown, "Cooldown:", Space, 120);
+
+                    BattleGUI.EditEnum(ref a.ChangeMode, "Change Mode:", Space, 120);
+                    BattleGUI.EditEnum(ref a.CooldownTarget, "Cooldown Target:", Space, 120);
+
+                    GUILayout.BeginHorizontal();
+                    if (a.CooldownTarget == ActionCooldown.eCooldownTarget.Skill)
+                    {
+                        BattleGUI.SelectSkill(ref a.CooldownTargetName, "Cooldown Skill ID:", Space);
+                    }
+                    else if (a.CooldownTarget == ActionCooldown.eCooldownTarget.SkillGroup)
+                    {
+                        EditSkillGroup(ref a.CooldownTargetName, "Cooldown Skill Group Name:", Space);
+                    }
+
+                    GUILayout.EndHorizontal();
+
+                    break;
                 }
-                else
+                case Action.eActionType.CollectCost:
                 {
-                    a.MaxCost = null;
+                    if (!(action is ActionCostCollection a))
+                    {
+                        return BattleGUI.eReturnResult.Remove;
+                    }
+
+                    BattleGUI.SelectResource(ref a.ResourceName, "Resource Collected: ", Space);
+
+                    EditValue(a.Cost, ValueComponent.eValueType.CasterOnly, "Cost:");
+                    var maxValue = a.MaxCost != null;
+                    BattleGUI.EditBool(ref maxValue, "Limit Cost");
+
+                    if (maxValue)
+                    {
+                        if (a.MaxCost == null)
+                        {
+                            a.MaxCost = new Value();
+                        }
+                        EditValue(a.MaxCost, ValueComponent.eValueType.CasterOnly, "Max Cost:");
+                    }
+                    else
+                    {
+                        a.MaxCost = null;
+                    }
+
+                    BattleGUI.EditBool(ref a.Optional, "Is Optional");
+
+                    break;
                 }
+                case Action.eActionType.Destroy:
+                {
+                    if (!(action is ActionDestroy a))
+                    {
+                        return BattleGUI.eReturnResult.Remove;
+                    }
 
-                BattleGUI.EditBool(ref a.Optional, "Is Optional");
+                    BattleGUI.EditEnum(ref a.EntityToDestroy, "Entity to Destroy:");
 
-                break;
+                    break;
+                }
+                case Action.eActionType.LoopBack:
+                {
+                    if (!(action is ActionLoopBack a))
+                    {
+                        return BattleGUI.eReturnResult.Remove;
+                    }
+
+                    BattleGUI.EditFloatSlider(ref a.GoToTimestamp, "Go To Timestamp:", 0.0f, a.Timestamp, Space);
+                    BattleGUI.EditInt(ref a.Loops, "Loops:", Space);
+
+                    break;
+                }
+                case Action.eActionType.Message:
+                {
+                    if (!(action is ActionMessage a))
+                    {
+                        return BattleGUI.eReturnResult.Remove;
+                    }
+
+                    BattleGUI.EditString(ref a.MessageString, "Message Text:", Space, 300);
+                    BattleGUI.EditColor(ref a.MessageColor, "Message Colour:", Space);
+
+                    break;
+                }
+                case Action.eActionType.PayloadArea:
+                {
+                    if (!(action is ActionPayloadArea a))
+                    {
+                        return BattleGUI.eReturnResult.Remove;
+                    }
+
+                    var editorAction = EditorPayloadAction.GetEditorPayloadAction(a);
+                    if (editorAction == null)
+                    {
+                        EditorPayloadAction.AddPayloadAction(a);
+                        return BattleGUI.eReturnResult.None;
+                    }
+
+                    EditPayloadAction(a, editorAction);
+                    EditAreas(a.AreasAffected, "Areas Affected By Payload", ref editorAction.ShowAreas);
+
+                    break;
+                }
+                case Action.eActionType.PayloadDirect:
+                {
+                    if (!(action is ActionPayloadDirect a))
+                    {
+                        return BattleGUI.eReturnResult.Remove;
+                    }
+
+                    EditPayloadAction(a, EditorPayloadAction.GetEditorPayloadAction(a));
+                    BattleGUI.EditEnum(ref a.ActionTargets, "Payload Targets:", Space);
+                    if (a.ActionTargets == ActionPayloadDirect.eDirectActionTargets.TaggedEntity)
+                    {
+                        BattleGUI.EditString(ref a.EntityTag, "Target Tag:", Space);
+                    }
+
+                    break;
+                }
+                case Action.eActionType.SpawnProjectile:
+                {
+                    if (!(action is ActionProjectile a))
+                    {
+                        return BattleGUI.eReturnResult.Remove;
+                    }
+
+                    EditActionProjectile(a);
+
+                    break;
+                }
+                case Action.eActionType.SpawnEntity:
+                {
+                    if (!(action is ActionSummon a))
+                    {
+                        return BattleGUI.eReturnResult.Remove;
+                    }
+
+                    EditActionSummon(a);
+
+                    break;
+                }
+                case Action.eActionType.SetAnimation:
+                {
+                    if (!(action is ActionAnimationSet a))
+                    {
+                        return BattleGUI.eReturnResult.Remove;
+                    }
+
+                    break;
+                }
             }
-            case Action.eActionType.DestroySelf:
-            {
-                if (!(action is ActionDestroySelf a))
-                {
-                    return BattleGUI.eReturnResult.Remove;
-                }
 
-                break;
-            }
-            case Action.eActionType.LoopBack:
-            {
-                if (!(action is ActionLoopBack a))
-                {
-                    return BattleGUI.eReturnResult.Remove;
-                }
-
-                BattleGUI.EditFloatSlider(ref a.GoToTimestamp, "Go To Timestamp:", 0.0f, a.Timestamp, Space);
-                BattleGUI.EditInt(ref a.Loops, "Loops:", Space);
-
-                break;
-            }
-            case Action.eActionType.Message:
-            {
-                if (!(action is ActionMessage a))
-                {
-                    return BattleGUI.eReturnResult.Remove;
-                }
-
-                BattleGUI.EditString(ref a.MessageString, "Message Text:", Space, 300);
-                BattleGUI.EditColor(ref a.MessageColor, "Message Colour:", Space);
-
-                break;
-            }
-            case Action.eActionType.PayloadArea:
-            {
-                if (!(action is ActionPayloadArea a))
-                {
-                    return BattleGUI.eReturnResult.Remove;
-                }
-
-                var editorAction = EditorPayloadAction.GetEditorPayloadAction(a);
-                if (editorAction == null)
-                {
-                    EditorPayloadAction.AddPayloadAction(a);
-                    return BattleGUI.eReturnResult.None;
-                }
-
-                EditPayloadAction(a, editorAction);
-                EditAreas(a.AreasAffected, "Areas Affected By Payload", ref editorAction.ShowAreas);
-
-                break;
-            }
-            case Action.eActionType.PayloadDirect:
-            {
-                if (!(action is ActionPayloadDirect a))
-                {
-                    return BattleGUI.eReturnResult.Remove;
-                }
-
-                EditPayloadAction(a, EditorPayloadAction.GetEditorPayloadAction(a));
-                BattleGUI.EditEnum(ref a.ActionTargets, "Payload Targets:", Space);
-                if (a.ActionTargets == ActionPayloadDirect.eDirectActionTargets.TaggedEntity)
-                {
-                    BattleGUI.EditString(ref a.EntityTag, "Target Tag:", Space);
-                }
-
-                break;
-            }
-            case Action.eActionType.SpawnProjectile:
-            {
-                if (!(action is ActionProjectile a))
-                {
-                    return BattleGUI.eReturnResult.Remove;
-                }
-
-                EditActionProjectile(a);
-
-                break;
-            }
-            case Action.eActionType.SpawnEntity:
-            {
-                if (!(action is ActionSummon a))
-                {
-                    return BattleGUI.eReturnResult.Remove;
-                }
-
-                EditActionSummon(a);
-
-                break;
-            }
-            case Action.eActionType.SetAnimation:
-            {
-                if (!(action is ActionAnimationSet a))
-                {
-                    return BattleGUI.eReturnResult.Remove;
-                }
-
-                break;
-            }
+            EditActionConditions(action);
+            BattleGUI.EndIndent();
         }
-
-        EditActionConditions(action);
-        BattleGUI.EndIndent();
         return BattleGUI.eReturnResult.None;
     }
 
@@ -2565,7 +2573,7 @@ public class BattleSystemDataEditor : EditorWindow
 
             if (reactions[i].Reaction == ActionProjectile.OnCollisionReaction.eReactionType.ExecuteActions)
             {
-                EditActionTimeline(reactions[i].Actions, ref NewAction, ref ShowValues, "Projectile Action Timeline:", skillID);
+                EditActionTimeline(reactions[i].Actions, ref NewAction, ref ShowValues[i], "Projectile Action Timeline:", skillID, showIndex: 1500);
             }
         }
 
@@ -2637,7 +2645,7 @@ public class BattleSystemDataEditor : EditorWindow
     }   
     #endregion
 
-    void EditActionTimeline(ActionTimeline timeline, ref Action.eActionType newAction, ref bool showTimeline, string title = "", string skillID = "")
+    void EditActionTimeline(ActionTimeline timeline, ref Action.eActionType newAction, ref bool showTimeline, string title = "", string skillID = "", int showIndex = 300)
     {
         if (BattleGUI.EditFoldout(ref showTimeline, title))
         {
@@ -2651,7 +2659,7 @@ public class BattleSystemDataEditor : EditorWindow
             for (int i = 0; i < timeline.Count; i++)
             {
                 // Show and edit an action and check if remove button was pressed.
-                var result = EditAction(timeline[i]);
+                var result = EditAction(timeline[i], ref ShowValues[showIndex+i]);
                 if (result == BattleGUI.eReturnResult.Remove)
                 {
                     timeline.RemoveAt(i);
@@ -2892,65 +2900,106 @@ public class BattleSystemDataEditor : EditorWindow
     #endregion
 
     #region Action Movement/Rotation
-    void EditActionMovement(ActionMovement movement, string label, ref bool show)
+    void EditActionMovement(ActionMovement movement, string label, ref bool show, ref bool hasMovement, ref bool stopMovement)
     {
-        BattleGUI.StartIndent();
         if (BattleGUI.EditFoldout(ref show, label))
         {
-            BattleGUI.EditEnum(ref movement.MovementType, "Movement Type:", Space);
-            if (movement.MovementType == ActionMovement.eMovementType.MoveToPosition ||
-                movement.MovementType == ActionMovement.eMovementType.LaunchToPosition ||
-                movement.MovementType == ActionMovement.eMovementType.TeleportToPosition)
-            {
-                EditPosition(movement.TargetPosition, "Target Position:");
+            BattleGUI.EditBool(ref stopMovement, "Stop Current Movement");
 
-                if (movement.MovementType == ActionMovement.eMovementType.MoveToPosition)
+            BattleGUI.EditBool(ref hasMovement, "Apply Movement");
+
+            if (hasMovement && movement != null)
+            {
+                BattleGUI.StartIndent();
+                BattleGUI.EditEnum(ref movement.MovementType, "Movement Type:", Space);
+                if (movement.MovementType == ActionMovement.eMovementType.MoveToPosition ||
+                    movement.MovementType == ActionMovement.eMovementType.LaunchToPosition ||
+                    movement.MovementType == ActionMovement.eMovementType.TeleportToPosition)
                 {
-                    BattleGUI.EditBool(ref movement.HorizontalMovementOnly, "Horizontal Movement Only");
+                    EditPosition(movement.TargetPosition, "Target Position:");
+
+                    if (movement.MovementType == ActionMovement.eMovementType.MoveToPosition)
+                    {
+                        BattleGUI.EditBool(ref movement.HorizontalMovementOnly, "Horizontal Movement Only");
+                    }
+
+                    if (movement.MovementType == ActionMovement.eMovementType.LaunchToPosition)
+                    {
+                        BattleGUI.EditFloatSlider(ref movement.LaunchAngle, "Launch Angle:", 1.0f, 85.0f, 200);
+                    }
                 }
 
-                if (movement.MovementType == ActionMovement.eMovementType.LaunchToPosition)
+                if (movement.MovementType == ActionMovement.eMovementType.MoveInDirection)
                 {
-                    BattleGUI.EditFloatSlider(ref movement.LaunchAngle, "Launch Angle:", 1.0f, 85.0f, 200);
+                    EditDirection(movement.TargetPosition.Direction, "Forward Direction:");
                 }
-            }
 
-            if (movement.MovementType == ActionMovement.eMovementType.MoveForward ||
-                movement.MovementType == ActionMovement.eMovementType.MoveBackward)
-            {
-                EditDirection(movement.TargetPosition.Direction, "Forward Direction");
-            }
-
-            if (movement.MovementType != ActionMovement.eMovementType.TeleportToPosition)
-            {
-                BattleGUI.EditBool(ref movement.FaceMovementDirection, "Face Movement Direction");
-
-                BattleGUI.EditFloat(ref movement.Speed, "Movement Speed:", Space);
-                if (movement.MovementType != ActionMovement.eMovementType.LaunchToPosition)
+                if (movement.MovementType != ActionMovement.eMovementType.TeleportToPosition)
                 {
-                    BattleGUI.EditFloat(ref movement.MaxDuration, "Movement Duration:", Space);
-                }
-            }
+                    BattleGUI.EditEnum(ref movement.FaceDirection, "Face Direction");
+                    BattleGUI.EditFloat(ref movement.Speed, "Movement Speed:", Space);
 
-            BattleGUI.EditFloat(ref movement.InterruptionLevel, "Interruption Level", Space);
-            BattleGUI.EditInt(ref movement.Priority, "Priority", Space);
+                    if (movement.MovementType != ActionMovement.eMovementType.LaunchToPosition)
+                    {
+                        BattleGUI.EditFloat(ref movement.SpeedChangeOverTime, "Speed Change per sec:", Space);
+                        if (movement.SpeedChangeOverTime > Constants.Epsilon || movement.SpeedChangeOverTime < -Constants.Epsilon)
+                        {
+                            BattleGUI.EditFloat(ref movement.MinSpeed, "Movement Min Speed:", Space);
+                            BattleGUI.EditFloat(ref movement.MaxSpeed, "Movement Max Speed:", Space);
+                        }
+
+                        BattleGUI.EditFloat(ref movement.MaxDuration, "Movement Duration:", Space);
+                    }
+                }
+
+                BattleGUI.EditFloat(ref movement.InterruptionLevel, "Interruption Level", Space);
+                BattleGUI.EditInt(ref movement.Priority, "Priority", Space);
+
+                BattleGUI.EndIndent();
+            }
         }
-        BattleGUI.EndIndent();
     }
 
-    void EditActionRotation(ActionRotation rotation, string label, ref bool show)
+    void EditActionRotation(ActionRotation rotation, string label, ref bool show, ref bool hasRotation, ref bool stopRotation)
     {
-        BattleGUI.StartIndent();
         if (BattleGUI.EditFoldout(ref show, label))
         {
+            BattleGUI.EditBool(ref stopRotation, "Stop Current Rotation");
 
+            BattleGUI.EditBool(ref hasRotation, "Apply Rotation");
+
+            if (hasRotation && rotation != null)
+            {
+                BattleGUI.StartIndent();
+                BattleGUI.EditEnum(ref rotation.RotationType, "Rotation Type:", Space);
+
+                if (rotation.RotationType == ActionRotation.eRotationType.RotateToDirection ||
+                    rotation.RotationType == ActionRotation.eRotationType.SetRotation)
+                {
+                    EditDirection(rotation.Direction, "Direction:");
+                }
+
+                if (rotation.RotationType != ActionRotation.eRotationType.SetRotation)
+                {
+                    BattleGUI.EditFloat(ref rotation.Speed, "Rotation Speed:", Space);
+                    BattleGUI.EditFloat(ref rotation.SpeedChangeOverTime, "Speed Change per sec:", Space);
+                    if (rotation.SpeedChangeOverTime > Constants.Epsilon || rotation.SpeedChangeOverTime < -Constants.Epsilon)
+                    {
+                        BattleGUI.EditFloat(ref rotation.MinSpeed, "Movement Min Speed:", Space);
+                        BattleGUI.EditFloat(ref rotation.MaxSpeed, "Movement Max Speed:", Space);
+                    }
+                    BattleGUI.EditFloat(ref rotation.MaxDuration, "Max Rotation Duration:", Space);
+                }
+
+                BattleGUI.EditFloat(ref rotation.InterruptionLevel, "Interruption Level", Space);
+                BattleGUI.EditInt(ref rotation.Priority, "Priority", Space);
+                BattleGUI.EndIndent();
+            }
         }
-        BattleGUI.EndIndent();
     }
     #endregion
 
     #region Transform
-
     void EditPosition(TransformData transform, string label)
     {
         BattleGUI.Label(label);
@@ -2986,8 +3035,8 @@ public class BattleSystemDataEditor : EditorWindow
             EditTransformTargetEntity(direction.EntityTo, "To:");
         }
 
-        BattleGUI.EditFloat(ref direction.DirectionOffset, "Rotation Offset: ", Space);
-        BattleGUI.EditFloat(ref direction.RandomDirectionOffset, "Random Rotation Offset: ", Space);
+        BattleGUI.EditFloat(ref direction.DirectionOffset, "Direction Offset: ", Space);
+        BattleGUI.EditFloat(ref direction.RandomDirectionOffset, "Random Direction Offset: ", Space);
         BattleGUI.EndIndent();
     }
 
@@ -3159,34 +3208,28 @@ public class BattleSystemDataEditor : EditorWindow
             // Movement
             if (BattleGUI.EditFoldout(ref editorPayload.ShowTransformChanges, "Position/Direction Change"))
             {
-                var rotation = payload.Rotation != null;
-                BattleGUI.EditBool(ref rotation, "Rotation Caused");
-                if (rotation)
-                {
-                    if (payload.Rotation == null)
-                    {
-                        payload.Rotation = new ActionRotation();
-                    }
+                // Rotation
+                var hasRotation = payload.Rotation != null;
+                EditActionRotation(payload.Rotation, "Rotation", ref editorPayload.ShowRotation, ref hasRotation, ref payload.StopCurrentRotation);
 
-                    EditActionRotation(payload.Rotation, "Rotation", ref editorPayload.ShowRotation);
+                if (hasRotation && payload.Rotation == null)
+                {
+                    payload.Rotation = new ActionRotation();
                 }
-                else
+                else if (!hasRotation)
                 {
                     payload.Rotation = null;
                 }
 
-                var movement = payload.Movement != null;
-                BattleGUI.EditBool(ref movement, "Movement Caused");
-                if (movement)
-                {
-                    if (payload.Movement == null)
-                    {
-                        payload.Movement = new ActionMovement();
-                    }
+                // Movement
+                var hasMovement = payload.Movement != null;
+                EditActionMovement(payload.Movement, "Movement", ref editorPayload.ShowMovement, ref hasMovement, ref payload.StopCurrentMovement);
 
-                    EditActionMovement(payload.Movement, "Movement", ref editorPayload.ShowMovement);
+                if (hasMovement && payload.Movement == null)
+                {
+                    payload.Movement = new ActionMovement();
                 }
-                else
+                else if (!hasMovement)
                 {
                     payload.Movement = null;
                 }
@@ -3212,15 +3255,15 @@ public class BattleSystemDataEditor : EditorWindow
                 EditPayloadCondition(payload.PayloadCondition);
 
                 // Alternate payload
-                var hasAlternatePayload = editorPayload.AlternatePayload != null;
+                var hasAlternatePayload = payload.AlternatePayload != null;
                 BattleGUI.EditBool(ref hasAlternatePayload, "Alternate Payload");
                 if (hasAlternatePayload)
                 {
-                    if (editorPayload.AlternatePayload == null)
+                    if (payload.AlternatePayload == null)
                     {
                         var newPayload = new PayloadData();
                         payload.AlternatePayload = newPayload;
-                        editorPayload.AlternatePayload = new EditorPayload();
+                        editorPayload.AlternatePayload = new EditorPayload(newPayload);
                     }
                     EditPayload(payload.AlternatePayload, editorPayload.AlternatePayload, isSkill);
                 }
@@ -3299,11 +3342,11 @@ public class BattleSystemDataEditor : EditorWindow
                 if (editorPayloads == null)
                 {
                     editorPayloads = new List<EditorPayload>();
-                }
 
-                while (editorPayloads.Count < payloadData.Count)
-                {
-                    editorPayloads.Add(new EditorPayload());
+                    for (int j = 0; j < payloadData.Count; j++)
+                    {
+                        editorPayloads.Add(new EditorPayload(payloadData[j]));
+                    }
                 }
 
                 var isSkill = action != null && !string.IsNullOrEmpty(action.SkillID);
@@ -3318,7 +3361,7 @@ public class BattleSystemDataEditor : EditorWindow
                 payloadData.Add(newPayload);
                 if (action != null)
                 {
-                    EditorPayloads[EditorPayloadAction.ActionKey(action)].Add(new EditorPayload());
+                    EditorPayloads[EditorPayloadAction.ActionKey(action)].Add(new EditorPayload(newPayload));
                 }
             }
             GUILayout.EndHorizontal();
@@ -3357,9 +3400,9 @@ public class BattleSystemDataEditor : EditorWindow
                     editorPayloads = new List<EditorPayload>();
                 }
 
-                while (editorPayloads.Count < list.Count)
+                for (int j = 0; j < list.Count; j++)
                 {
-                    editorPayloads.Add(new EditorPayload());
+                    editorPayloads.Add(new EditorPayload(list[i].Item1));
                 }
 
                 var payload = list[i].Item1;
@@ -3483,7 +3526,7 @@ public class BattleSystemDataEditor : EditorWindow
             BattleGUI.StartIndent();
             for (int i = 0; i < list.Count; i++)
             {
-                var result = EditTrigger(list[i], $"Trigger {i}", true);
+                var result = EditTrigger(list[i], $"Trigger {i}", i, listElement: true);
                 if (result == BattleGUI.eReturnResult.Remove)
                 {
                     list.RemoveAt(i);
@@ -3496,48 +3539,56 @@ public class BattleSystemDataEditor : EditorWindow
             }
             BattleGUI.EndIndent();
 
-            BattleGUI.EditEnum(ref newTrigger, "New Trigger:", Space);
+            GUILayout.BeginHorizontal();
+            BattleGUI.EditEnum(ref newTrigger, "New Trigger:", Space, makeHorizontal: false);
             if (BattleGUI.Add())
             {
                 list.Add(new TriggerData(newTrigger));
             }
+            GUILayout.EndHorizontal();
         }
     }
 
-    BattleGUI.eReturnResult EditTrigger(TriggerData trigger, string label, bool listElement = false)
+    BattleGUI.eReturnResult EditTrigger(TriggerData trigger, string label, int index = 0, bool listElement = false)
     {
         if (trigger == null)
         {
             trigger = new TriggerData();
         }
 
-        GUILayout.BeginHorizontal();
-        BattleGUI.Label(label, Space);
-        var copy = (listElement && BattleGUI.Copy());
-        var remove = (listElement && BattleGUI.Remove());
-        GUILayout.EndHorizontal();
-
-        if (remove)
+        if (BattleGUI.EditFoldout(ref ShowValues[index], label))
         {
-            return BattleGUI.eReturnResult.Remove;
+            GUILayout.BeginHorizontal();
+            BattleGUI.Label(label, Space);
+            var copy = (listElement && BattleGUI.Copy());
+            var remove = (listElement && BattleGUI.Remove());
+            GUILayout.EndHorizontal();
+
+            if (remove)
+            {
+                return BattleGUI.eReturnResult.Remove;
+            }
+            else if (copy)
+            {
+                return BattleGUI.eReturnResult.Copy;
+            }
+
+            BattleGUI.StartIndent();
+            BattleGUI.EditEnum(ref trigger.Trigger, "Trigger:", Space);
+            BattleGUI.EditEnum(ref trigger.EntityAffected, "Entity Affected:", Space);
+
+            EditTriggerConditions(trigger.Trigger, trigger.Conditions, "Trigger Conditions:", ref ShowTriggerConditions);
+
+            BattleGUI.EditFloat(ref trigger.Cooldown, "Trigger Cooldown", Space);
+            BattleGUI.EditInt(ref trigger.Limit, "Trigger Limit", Space);
+
+            BattleGUI.EditFloatSlider(ref trigger.TriggerChance, "Trigger Chance:", 0.0f, 1.0f, Space);
+
+            EditActionTimeline(trigger.Actions, ref NewAction, ref ShowValues[index+100], "On Trigger:", showIndex: index * 100);
+
+            BattleGUI.EndIndent();
         }
-
-        BattleGUI.StartIndent();
-        BattleGUI.EditEnum(ref trigger.Trigger, "Trigger:", Space);
-        BattleGUI.EditEnum(ref trigger.EntityAffected, "Entity Affected:", Space);
-
-        EditTriggerConditions(trigger.Trigger, trigger.Conditions, "Trigger Conditions:", ref ShowTriggerConditions);
-
-        BattleGUI.EditFloat(ref trigger.Cooldown, "Trigger Cooldown", Space);
-        BattleGUI.EditInt(ref trigger.Limit, "Trigger Limit", Space);
-
-        BattleGUI.EditFloatSlider(ref trigger.TriggerChance, "Trigger Chance:", 0.0f, 1.0f, Space);
-
-        EditActionTimeline(trigger.Actions, ref NewAction, ref ShowValues, "On Trigger:");
-
-        BattleGUI.EndIndent();
-
-        return copy ? BattleGUI.eReturnResult.Copy : BattleGUI.eReturnResult.None;
+        return BattleGUI.eReturnResult.None;
     }
 
     void EditTriggerConditions(TriggerData.eTrigger trigger, List<TriggerData.TriggerCondition> conditions, string label, ref bool show)
@@ -3547,42 +3598,37 @@ public class BattleSystemDataEditor : EditorWindow
             conditions = new List<TriggerData.TriggerCondition>();
         }
 
-        show = EditorGUILayout.Foldout(show, label);
-
-        BattleGUI.StartIndent();
-        for (int i = 0; i < conditions.Count; i++)
+        if (BattleGUI.EditFoldout(ref show, label))
         {
-            var remove = !EditTriggerCondition(conditions[i], trigger, $"Condition {i}");
-            if (remove)
+            BattleGUI.StartIndent();
+            for (int i = 0; i < conditions.Count; i++)
             {
-                conditions.RemoveAt(i);
-                i--;
+                var remove = !EditTriggerCondition(conditions[i], trigger);
+                if (remove)
+                {
+                    conditions.RemoveAt(i);
+                    i--;
+                }
             }
-        }
 
-        if (BattleGUI.Add())
-        {
-            conditions.Add(new TriggerData.TriggerCondition());
+            if (BattleGUI.Add())
+            {
+                conditions.Add(new TriggerData.TriggerCondition());
+            }
+            BattleGUI.EndIndent();
         }
-        BattleGUI.EndIndent();
     }
 
-    bool EditTriggerCondition(TriggerData.TriggerCondition condition, TriggerData.eTrigger trigger, string label = "", bool removable = true)
+    bool EditTriggerCondition(TriggerData.TriggerCondition condition, TriggerData.eTrigger trigger, bool removable = true)
     {
+        BattleGUI.StartIndent();
         GUILayout.BeginHorizontal();
-        if (!string.IsNullOrEmpty(label))
-        {
-            BattleGUI.Label(label);
-        }
-
+        BattleGUI.EditEnum(ref condition.ConditionType, condition.AvailableConditions(trigger), "Condition:", makeHorizontal: false);
         if (removable && BattleGUI.Remove())
         {
             return false;
         }
         GUILayout.EndHorizontal();
-
-        BattleGUI.StartIndent();
-        BattleGUI.EditEnum(ref condition.ConditionType, condition.AvailableConditions(trigger), "Condition:");
         BattleGUI.EditBool(ref condition.DesiredOutcome, $"Desired Outcome: {(condition.DesiredOutcome ? "Success" : "Fail")}");
 
         switch (condition.ConditionType)
@@ -3706,7 +3752,7 @@ public class BattleSystemDataEditor : EditorWindow
             {
                 condition.AndCondition = new TriggerData.TriggerCondition();
             }
-            EditTriggerCondition(condition.AndCondition, trigger);
+            EditTriggerCondition(condition.AndCondition, trigger, removable: false);
         }
         else
         {
@@ -3721,7 +3767,7 @@ public class BattleSystemDataEditor : EditorWindow
             {
                 condition.OrCondition = new TriggerData.TriggerCondition();
             }
-            EditTriggerCondition(condition.OrCondition, trigger);
+            EditTriggerCondition(condition.OrCondition, trigger, removable: false);
         }
         else
         {
@@ -3759,7 +3805,7 @@ public class BattleSystemDataEditor : EditorWindow
 
         BattleGUI.EditBool(ref data.MovementCancelsCharge, "Movement Cancels Charge");
 
-        EditActionTimeline(data.PreChargeTimeline, ref newChargeAction, ref showTimeline, "Charge Timeline", skillID: skillID);
+        EditActionTimeline(data.PreChargeTimeline, ref newChargeAction, ref showTimeline, "Charge Timeline", skillID: skillID, showIndex: 1000);
 
         BattleGUI.EditBool(ref data.ShowUI, "Show Skill Charge UI");
     }

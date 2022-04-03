@@ -8,14 +8,15 @@ public abstract class Action
     {
         ApplyCooldown,              // If a skill has a cooldown, this action is used to put it on cooldown at the desired time.
         CollectCost,                // If a skill has a cost to be used, this action is used to collect it at the desired time.
-        DestroySelf,                // Typically used after an entity dies or expires.
+        Destroy,                // Typically used after an entity dies or expires.
         LoopBack,                   // This action can be used to go back in the timeline and repeat previous actions.
         Message,                    // Displays a message on screen. Can be used to show warnings, explain mechanics, etc.
         PayloadArea,                // Applies a defined payload to all entities in a given area.
         PayloadDirect,              // Applies a payload to specified entities. 
-        SetAnimation,           // Can be used to set animation triggers in the entity. 
+        SetAnimation,               // Can be used to set animation triggers in the entity. 
         SpawnProjectile,            // Spawns an entity that moves in a specific way and can execute skills on contact or timeout. 
         SpawnEntity,                // Spawns an entity that can execute skills. Can be used to implement area of effect skills.
+        Cancel,                     // This will stop the timeline from continuing. 
     }
 
     public enum eTargetState
@@ -72,9 +73,9 @@ public abstract class Action
                 action = new ActionCostCollection();
                 break;
             }
-            case eActionType.DestroySelf:
+            case eActionType.Destroy:
             {
-                action = new ActionDestroySelf();
+                action = new ActionDestroy();
                 break;
             }
             case eActionType.LoopBack:
@@ -111,6 +112,16 @@ public abstract class Action
             {
                 action = new ActionAnimationSet();
                 break;
+            }
+            case eActionType.Cancel:
+            {
+                action = new ActionCancel();
+                break;
+            }
+            default:
+            {
+                Debug.LogError($"Unimplemented action type: {type}");
+                return null;
             }
         }
 
