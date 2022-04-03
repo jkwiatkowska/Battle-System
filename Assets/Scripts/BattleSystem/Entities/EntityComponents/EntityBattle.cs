@@ -238,9 +238,9 @@ public class EntityBattle
         {
             foreach (var skill in Data.InputSkills)
             {
-                if (SkillState == eSkillState.SkillCharge && CurrentSkill != null && CurrentSkill.SkillID == skill.SkillID)
+                if (SkillState == eSkillState.SkillCharge && CurrentSkill != null && CurrentSkill.SkillID == skill.SkillID && skill.HoldToCharge)
                 {
-                    if (Input.GetKeyUp(skill.KeyCode))
+                    if (!Input.GetKey(skill.KeyCode))
                     {
                         ChargeCancelled = true;
                     }
@@ -547,7 +547,7 @@ public class EntityBattle
         SkillCharge = skillData.SkillChargeData;
         SkillStartTime = BattleSystem.Time;
 
-        if (Entity.EntityCanvas != null)
+        if (Entity.EntityCanvas != null && SkillCharge.ShowUI)
         {
             Entity.EntityCanvas.StartSkillCharge(SkillCharge, skillData.SkillID);
         }
@@ -562,7 +562,7 @@ public class EntityBattle
         }
         while (!chargeComplete && !ChargeCancelled);
 
-        if (Entity.EntityCanvas != null)
+        if (Entity.EntityCanvas != null && SkillCharge.ShowUI)
         {
             Entity.EntityCanvas.StopSkillCharge();
         }
