@@ -1232,7 +1232,7 @@ public class BattleSystemDataEditor : EditorWindow
                         BattleGUI.EditEnum(ref skill.SkillData.PreferredTarget, $"Preferred Target: ", Space);
                         BattleGUI.EditEnum(ref skill.SkillData.PreferredTargetState, $"Preferred Target State: ", Space);
                         BattleGUI.EditFloat(ref skill.SkillData.Range, "Skill Range:", Space, 150);
-                        BattleGUI.EditFloatSlider(ref skill.SkillData.MaxAngleFromTarget, "Max Angle from Target:", 0.0f, 180.0f, Space, 150);
+                        BattleGUI.EditFloatSlider(ref skill.SkillData.MaxAngleFromTarget, "Max Angle from Target:", 1.0f, 180.0f, Space, 150);
                         if (skill.SkillData.NeedsTarget)
                         {
                             BattleGUI.EditBool(ref skill.SkillData.RequireLineOfSight, "Line of Sight Required");

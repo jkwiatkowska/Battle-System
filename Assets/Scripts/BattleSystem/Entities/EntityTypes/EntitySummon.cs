@@ -103,6 +103,12 @@ public class EntitySummon : Entity
         }
     }
 
+    public override bool IsEnemy(string targetFaction)
+    {
+        var summonerFaction = Summoner != null ? Summoner.Faction : SummonerFaction;
+        return targetFaction != summonerFaction && base.IsEnemy(targetFaction);
+    }
+
     #region Triggers
     protected override void OnTrigger(TriggerData.eTrigger trigger, Entity triggerSource = null, PayloadResult payloadResult = null, 
                                       ActionResult actionResult = null, Action action = null, string statusID = "", 

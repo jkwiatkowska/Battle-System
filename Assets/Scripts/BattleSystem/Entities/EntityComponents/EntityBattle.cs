@@ -722,14 +722,14 @@ public class EntityBattle
         var maxAngle = skillData.MaxAngleFromTarget + Constants.Epsilon;
 
         // No angle requirement
-        if (maxAngle >= 180.0f)
+        if (maxAngle >= 180.0f - Constants.Epsilon)
         {
             return true;
         }
 
         // Check if target is in angle range
         var angle = Vector3.Angle(Entity.transform.forward, (target.transform.position - Entity.transform.position).normalized);
-        return angle <= maxAngle;
+        return angle <= maxAngle + Constants.Epsilon;
     }
 
     public virtual bool PrepareInterrupted()

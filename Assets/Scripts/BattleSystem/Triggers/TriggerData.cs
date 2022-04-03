@@ -226,17 +226,18 @@ public class TriggerData
                 }
             }
 
-            if (conditionMet == DesiredOutcome && AndCondition != null)
+            var success = conditionMet == DesiredOutcome;
+            if (success && AndCondition != null)
             {
-                conditionMet = AndCondition.ConditionMet(entity, triggerSource, payloadResult, action, actionResult, statusID);
+                success = AndCondition.ConditionMet(entity, triggerSource, payloadResult, action, actionResult, statusID);
             }
 
-            if (conditionMet != DesiredOutcome && OrCondition != null)
+            if (!success && OrCondition != null)
             {
                 return OrCondition.ConditionMet(entity, triggerSource, payloadResult, action, actionResult, statusID);
             }
 
-            return conditionMet == DesiredOutcome;
+            return success;
         }
 
         public List<eConditionType> AvailableConditions(eTrigger triggerType)
