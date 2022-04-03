@@ -264,7 +264,12 @@ public class TargetingSystem : MonoBehaviour
     public bool IsInLineOfSight(Entity target)
     {
         var dir = target.Origin - Entity.Origin;
-        return !(Physics.Raycast(Entity.Origin, dir.normalized, out var hit) && hit.collider.gameObject != target.gameObject);
+        if (Physics.Raycast(Entity.Origin, dir.normalized, out var hit))
+        {
+            var entityHit = hit.collider.gameObject.GetComponentInParent<Entity>();
+            return entityHit == target;
+        }
+        return false;
     }
 
     protected virtual void ProcessEnemyEntityList(EntityTargetingData targeting)

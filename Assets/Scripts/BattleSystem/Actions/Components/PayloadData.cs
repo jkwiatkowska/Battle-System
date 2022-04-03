@@ -47,6 +47,7 @@ public class PayloadData
         Flags = new List<string>();
         SuccessChance = 1.0f;
         CategoryMult = new Dictionary<string, float>();
+        CasterAttributesIgnored = new List<string>();
         TargetAttributesIgnored = new List<string>();
 
         ApplyStatus = new List<(string StatusID, int Stacks)>();

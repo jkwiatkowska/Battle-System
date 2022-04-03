@@ -154,7 +154,7 @@ public class Projectile : EntitySummon
                     case ActionProjectile.eProjectileMovementMode.Homing:
                     {
                         Movement.RotateTowardPosition(TargetPosition, rotationPerSecond);
-                        Movement.Move(transform.forward, false, speedMultiplier);
+                        Movement.Move(transform.forward, faceMovementDirection:false, speedMultiplier);
                         break;
                     }
                     case ActionProjectile.eProjectileMovementMode.Orbit:

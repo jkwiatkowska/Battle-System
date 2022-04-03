@@ -48,6 +48,19 @@ public class BattleData
     public static readonly fsSerializer Serializer = new fsSerializer();
     const string BackupPath = "Data/Backup";
 
+    public static void LoadData(TextAsset textAsset)
+    {
+        Instance = new BattleData();
+
+        // Parse the JSON data.
+        fsData data = fsJsonParser.Parse(textAsset.text);
+
+        // Deserialize the data.
+        Serializer.TryDeserialize(data, ref Instance);
+    }
+
+    #region Editor
+#if UNITY_EDITOR
     public static void LoadData(string path)
     {
         Instance = new BattleData();
@@ -62,8 +75,6 @@ public class BattleData
         Serializer.TryDeserialize(data, ref Instance);
     }
 
-    #region Editor
-#if UNITY_EDITOR
     public static void SaveData(string path)
     {
         // Backup the data from the file we're overwriting.

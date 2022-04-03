@@ -57,10 +57,12 @@ public class PlayerInput : MonoBehaviour
             Debug.Break();
         }
 
+#if UNITY_EDITOR
         if (Input.GetKey(KeyCode.Escape))
         {
             UnityEditor.EditorApplication.isPlaying = false;
         }
+#endif
     }
 
     void FixedUpdate()

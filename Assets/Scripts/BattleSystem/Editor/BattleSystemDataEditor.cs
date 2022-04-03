@@ -977,7 +977,7 @@ public class BattleSystemDataEditor : EditorWindow
             }
 
             BattleGUI.StartIndent();
-            for (int i = 0; i < PayloadFlags.Count; i++)
+            for (int i = 0; i < BattleData.PayloadFlags.Count; i++)
             {
                 GUILayout.BeginHorizontal();
                 PayloadFlags[i] = GUILayout.TextField(PayloadFlags[i], GUILayout.Width(203));
@@ -1177,20 +1177,20 @@ public class BattleSystemDataEditor : EditorWindow
 
                         skill.SkillData.SkillTimeline.Sort((a1, a2) => a1.Timestamp.CompareTo(a2.Timestamp));
 
-                        var value = BattleGUI.Copy(skill.SkillData);
-
                         if (skill.SkillData.SkillID != skill.SkillID)
                         {
                             if (!BattleData.Skills.ContainsKey(skill.SkillID))
                             {
                                 BattleData.Skills.Remove(skill.SkillData.SkillID);
+                                skill.SkillData.SkillID = skill.SkillID;
                             }
                             else
                             {
                                 skill.SkillID = skill.SkillData.SkillID;
                             }
                         }
-                        skill.SkillData.SkillID = skill.SkillID;
+
+                        var value = BattleGUI.Copy(skill.SkillData);
                         BattleData.Skills[skill.SkillData.SkillID] = value;
                     }
 
@@ -3307,8 +3307,16 @@ public class BattleSystemDataEditor : EditorWindow
             // Ignored attributes
             if (BattleGUI.EditFoldout(ref editorPayload.ShowIgnoredAttributes, "Attributes Ignored"))
             {
+                if (payload.CasterAttributesIgnored == null)
+                {
+                    payload.CasterAttributesIgnored = new List<string>();
+                }
                 BattleGUI.EditListString(ref editorPayload.NewAttribute, payload.CasterAttributesIgnored, BattleGUI.CopyList(BattleData.EntityAttributes),
                                          "Caster Attributes Ignored:", "(No Ignored Attributes)", "Add Ignored Attribute:");
+                if (payload.TargetAttributesIgnored == null)
+                {
+                    payload.TargetAttributesIgnored = new List<string>();
+                }
                 BattleGUI.EditListString(ref editorPayload.NewAttribute, payload.TargetAttributesIgnored, BattleGUI.CopyList(BattleData.EntityAttributes),
                                          "Target Attributes Ignored:", "(No Ignored Attributes)", "Add Ignored Attribute:");
             }
