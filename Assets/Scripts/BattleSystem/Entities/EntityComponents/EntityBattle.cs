@@ -172,7 +172,7 @@ public class EntityBattle
             }
             case eSkillState.SkillCharge:
             {
-                if (SkillCharge.MovementCancelsCharge)
+                if (SkillCharge != null && SkillCharge.MovementCancelsCharge)
                 {
                     ChargeCancelled = true;
                 }
