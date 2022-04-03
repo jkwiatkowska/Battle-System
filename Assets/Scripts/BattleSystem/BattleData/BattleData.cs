@@ -15,6 +15,7 @@ public class BattleData
     public Dictionary<string, Value> EntityResourceData = new Dictionary<string, Value>();                      // Values like hit points, mana, stamina, etc and their max values
                                                                                                                 // based on entity attributes.
     public List<string> EntityAttributeData = new List<string>();                                               // Stats mainly used to determine outgoing and incoming damage.
+    public MultiplierAttributeData MultiplierAttributeData = new MultiplierAttributeData();                     // SOme attributes can be treated as multipliers to damage and other things.
     public List<string> PayloadFlagData = new List<string>();                                                   // Flags to customise payload damage.
 
     public Dictionary<string, FactionData> FactionData = new Dictionary<string, FactionData>();                 // Define entity allegiance and relations.
@@ -32,6 +33,7 @@ public class BattleData
     public static Dictionary<string, Value> EntityResources => Instance.EntityResourceData;
 
     public static List<string> EntityAttributes => Instance.EntityAttributeData;
+    public static MultiplierAttributeData Multipliers => Instance.MultiplierAttributeData;
     public static List<string> PayloadFlags => Instance.PayloadFlagData;
 
     public static Dictionary<string, FactionData> Factions => Instance.FactionData;

@@ -1417,8 +1417,8 @@ public class Entity : MonoBehaviour
         }
     }
 
-    public float Attribute(string attribute = "", string skillID = "", string actionID = "", string statusID = "", 
-                           List<string> categories = null)
+    public float Attribute(string attribute, string skillID = "", string actionID = "", string statusID = "",
+                           List<string> categories = null, float defaultValue = 0.0f)
     {
         if (BaseAttributes.ContainsKey(attribute))
         {
@@ -1498,8 +1498,7 @@ public class Entity : MonoBehaviour
         }
         else
         {
-            Debug.LogError($"Entity {EntityID} doesn't have a [{attribute}] attribute.");
-            return 0.0f;
+            return defaultValue;
         }
     }
 

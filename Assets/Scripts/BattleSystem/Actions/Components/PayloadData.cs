@@ -14,6 +14,7 @@ public class PayloadData
     public bool MultiplyAggroByPayloadValue;            // If true, aggro will be multiplied by damage dealt.
 
     public Dictionary<string, float> CategoryMult;      // Effectiveness of the payload damage/recovery against given entity categories.
+    public List<string> CasterAttributesIgnored;        // Caster attributes such as damage boosting multipliers can be ignored. 
     public List<string> TargetAttributesIgnored;        // Target attributes such as defense can be ignored. 
     public bool IgnoreShield;                           // True damage.
 

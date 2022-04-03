@@ -11,12 +11,25 @@ public class BattleSystemDataEditor : EditorWindow
     bool ShowHelp;
     const string PathPlayerPrefs = "BattleDataPath";
     static string Path = "Data/BattleData";
-    const int Space = 150;
+    const int Space = BattleGUI.Space;
 
     #region Editor variables
     #region GameData
     bool ShowAttributes = false;
     List<string> EntityAttributes = new List<string>();
+    MultiplierAttributeData Multipliers = new MultiplierAttributeData();
+    bool ShowMultipliers = false;
+    bool ShowDamageDealtMultipliers = false;
+    bool ShowDamageReceivedMultipliers = false;
+    bool ShowCategoryDamageMultipliers = false;
+    bool ShowCategoryDamageReceivedMultipliers = false;
+    bool ShowInterruptResistMultipliers = false;
+    bool ShowMovementMultipliers = false;
+    bool ShowRotationMultipliers = false;
+    bool ShowJumpMultipliers = false;
+    string NewMultiplierCategory = "";
+    string NewMultiplierPayloadFlag = "";
+
     string NewAttribute = "";
 
     bool ShowResources = false;
@@ -502,6 +515,8 @@ public class BattleSystemDataEditor : EditorWindow
             EntityAttributes.Add(attribute);
         }
 
+        Multipliers = BattleGUI.Copy(BattleData.Multipliers);
+
         EntityResources = new List<EditorResource>();
         foreach (var resource in BattleData.EntityResources)
         {
@@ -632,6 +647,152 @@ public class BattleSystemDataEditor : EditorWindow
                 NewAttribute = "";
             }
             GUILayout.EndHorizontal();
+            BattleGUI.EndIndent();
+
+            EditMultipliers();
+        }
+    }
+
+    BattleGUI.eReturnResult EditMultiplier(MultiplierAttribute multiplier)
+    {
+        GUILayout.BeginHorizontal();
+        BattleGUI.SelectAttribute(ref multiplier.Attribute, "• Attribute:", 100);
+        var remove = BattleGUI.Remove();
+        GUILayout.EndHorizontal();
+
+        if (remove)
+        {
+            return BattleGUI.eReturnResult.Remove;
+        }
+
+        BattleGUI.StartIndent();
+        var hasChanceAttribute = !string.IsNullOrEmpty(multiplier.ChanceAttribute);
+        BattleGUI.EditBool(ref hasChanceAttribute, "Has Chance Attribute");
+        if (hasChanceAttribute)
+        {
+            BattleGUI.SelectAttribute(ref multiplier.ChanceAttribute, "Chance Attribute:", Space, makeHorizontal: true);
+        }
+        else
+        {
+            multiplier.ChanceAttribute = "";
+        }
+        BattleGUI.EndIndent();
+
+        return BattleGUI.eReturnResult.None;
+    }
+
+    BattleGUI.eReturnResult EditDamageMultiplier(DamageMultiplierAttribute multiplier)
+    {
+        var result = EditMultiplier(multiplier);
+
+        if (result != BattleGUI.eReturnResult.Remove)
+        {
+            BattleGUI.StartIndent();
+            if (multiplier.PayloadFlagsRequired == null)
+            {
+                multiplier.PayloadFlagsRequired = new List<string>();
+            }
+            BattleGUI.EditListString(ref NewMultiplierPayloadFlag, multiplier.PayloadFlagsRequired, BattleData.PayloadFlags, 
+                                     "Required Payload Flags:", "(No Payload Flags)", "Add Flag:");
+            BattleGUI.EditString(ref multiplier.SuccessFlag, "Success Flag", Space);
+            BattleGUI.EndIndent();
+        }
+        return result;
+    }
+
+    MultiplierAttribute NewMultiplier(string attribute)
+    {
+        return new MultiplierAttribute(attribute);
+    }
+
+    DamageMultiplierAttribute NewDamageMultiplier(string attribute)
+    {
+        return new DamageMultiplierAttribute(attribute);
+    }
+
+    void EditCategoryDamageMultiplierDict(Dictionary<string, List<DamageMultiplierAttribute>> dict, string label, string listLabel, ref bool show, ref string newElement)
+    {
+        if (BattleGUI.EditFoldout(ref show, label))
+        {
+            BattleGUI.StartIndent();
+            if (BattleData.EntityCategories.Count > 1)
+            {
+                foreach (var category in BattleData.PayloadCategories)
+                {
+                    if (!dict.ContainsKey(category))
+                    {
+                        dict[category] = new List<DamageMultiplierAttribute>();
+                    }
+
+                    EditCategoryDamageMultiplierList(dict[category], category + listLabel, ref newElement);
+                }
+            }
+            else
+            {
+                BattleGUI.Label("(No Categories)");
+            }
+            BattleGUI.EndIndent();
+        }
+    }
+
+    void EditCategoryMultiplierList(List<MultiplierAttribute> list, string label, ref string newElement)
+    {
+        var options = BattleData.EntityAttributes.Where((a) => !list.Exists((m) => m.Attribute.Equals(a))).ToList();
+        BattleGUI.EditList(ref newElement, list, options, EditMultiplier, NewMultiplier, label, "(No Attributes)", "Add Attribute:");
+    }
+
+    void EditCategoryDamageMultiplierList(List<DamageMultiplierAttribute> list, string label, ref string newElement)
+    {
+        var options = BattleData.EntityAttributes.Where((a) => !list.Exists((m) => m.Attribute.Equals(a))).ToList();
+        BattleGUI.EditList(ref newElement, list, options, EditDamageMultiplier, NewDamageMultiplier, label, "(No Attributes)", "Add Attribute:");
+    }
+
+    void EditMultipliers()
+    {
+        if (BattleGUI.EditFoldout(ref ShowMultipliers, "Multiplier Attributes"))
+        {
+            BattleGUI.StartIndent();
+            if (BattleGUI.SaveChanges())
+            {
+                BattleData.Instance.MultiplierAttributeData = BattleGUI.Copy(Multipliers);
+            }
+
+            if (BattleGUI.EditFoldout(ref ShowDamageDealtMultipliers, "Damage Dealt Multipliers"))
+            {
+                EditCategoryDamageMultiplierList(Multipliers.DamageDealtMultipliers, label: "", ref NewMultiplierCategory);
+            }
+
+            if (BattleGUI.EditFoldout(ref ShowDamageReceivedMultipliers, "Damage Received Multipliers"))
+            {
+                EditCategoryDamageMultiplierList(Multipliers.DamageReceivedMultipliers, label: "", ref NewMultiplierCategory);
+            }
+
+            EditCategoryDamageMultiplierDict(Multipliers.CategoryDamageDealtMultipliers, "Category Damage Dealt Multipliers",
+                                             " Multipliers:", ref ShowCategoryDamageMultipliers, ref NewMultiplierCategory);
+
+            EditCategoryDamageMultiplierDict(Multipliers.CategoryDamageReceivedMultipliers, "Category Damage Received Multipliers",
+                                             " Multipliers:", ref ShowCategoryDamageReceivedMultipliers, ref NewMultiplierCategory);
+
+
+            if (BattleGUI.EditFoldout(ref ShowInterruptResistMultipliers, "Interrupt Resistance Multipliers"))
+            {
+                EditCategoryMultiplierList(Multipliers.InterruptResistanceMultipliers, label: "", ref NewMultiplierCategory);
+            }
+
+            if (BattleGUI.EditFoldout(ref ShowMovementMultipliers, "Movement Speed Multipliers"))
+            {
+                EditCategoryMultiplierList(Multipliers.MovementSpeedMultipliers, label: "", ref NewMultiplierCategory);
+            }
+
+            if (BattleGUI.EditFoldout(ref ShowRotationMultipliers, "Rotation Speed Multipliers"))
+            {
+                EditCategoryMultiplierList(Multipliers.RotationSpeedMultipliers, label: "", ref NewMultiplierCategory);
+            }
+
+            if (BattleGUI.EditFoldout(ref ShowJumpMultipliers, "Jump Height Multipliers"))
+            {
+                EditCategoryMultiplierList(Multipliers.JumpHeightMultipliers, label: "", ref NewMultiplierCategory);
+            }
             BattleGUI.EndIndent();
         }
     }
@@ -3104,10 +3265,12 @@ public class BattleSystemDataEditor : EditorWindow
             }
 
             // Ignored attributes
-            if (BattleGUI.EditFoldout(ref editorPayload.ShowIgnoredAttributes, "Target Attributes Ignored"))
+            if (BattleGUI.EditFoldout(ref editorPayload.ShowIgnoredAttributes, "Attributes Ignored"))
             {
+                BattleGUI.EditListString(ref editorPayload.NewAttribute, payload.CasterAttributesIgnored, BattleGUI.CopyList(BattleData.EntityAttributes),
+                                         "Caster Attributes Ignored:", "(No Ignored Attributes)", "Add Ignored Attribute:");
                 BattleGUI.EditListString(ref editorPayload.NewAttribute, payload.TargetAttributesIgnored, BattleGUI.CopyList(BattleData.EntityAttributes),
-                           "", "(No Ignored Attributes)", "Add Ignored Attribute:");
+                                         "Target Attributes Ignored:", "(No Ignored Attributes)", "Add Ignored Attribute:");
             }
 
             // Flags

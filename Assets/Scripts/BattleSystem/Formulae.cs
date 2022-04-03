@@ -17,20 +17,20 @@ public static class Formulae
     {
         var payloadData = payload.PayloadData;
         var flags = payloadData.Flags;
+
+        var casterAttributes = payload.Action != null ? caster.EntityAttributes(payload.Action.SkillID, payload.Action.ActionID,
+                                payload.StatusID, payload.PayloadData.Categories, payload.PayloadData.CasterAttributesIgnored) :
+                                caster.EntityAttributes();
+
         var targetAttributes = payload.Action != null ? target.EntityAttributes(payload.Action.SkillID, payload.Action.ActionID, 
                                payload.StatusID, payload.PayloadData.Categories, payload.PayloadData.TargetAttributesIgnored) :
                                target.EntityAttributes();
 
-        var isCrit = flags.Contains("canCrit") && payload.CasterAttributes["critChance"] >= Random.value;
-        if (isCrit)
-        {
-            resultFlags.Add("critical");
-        }
-        var critMultiplier = isCrit ? (1.0f + payload.CasterAttributes["critDamage"]) : 1.0f;
-
         var isDamage = rawDamage > 0.0f;
         var defMultiplier = isDamage ? 1.0f - targetAttributes["def"] / (targetAttributes["def"] + 5 * caster.Level + 500.0f) : 1.0f;
-        var incomingDamage = rawDamage * critMultiplier * defMultiplier;
+        var incomingDamage = rawDamage * defMultiplier;
+
+        BattleData.Multipliers.ApplyDamageMultipliers(casterAttributes, targetAttributes, ref incomingDamage, payloadData, ref resultFlags);
 
         return incomingDamage;
     }
@@ -156,7 +156,14 @@ public static class Formulae
 
     public static float EntityInterruptResistance(Entity entity)
     {
-        return entity.EntityData.InterruptResistance;
+        var resistance = entity.EntityData.InterruptResistance;
+
+        foreach (var multiplier in BattleData.Multipliers.InterruptResistanceMultipliers)
+        {
+            multiplier.ApplyMultiplier(entity, ref resistance);
+        }
+
+        return resistance;
     }
 
     public static float EntityMovementSpeed(Entity entity, bool running = false)
@@ -167,12 +174,21 @@ public static class Formulae
             speed *= entity.EntityData.Movement.MovementSpeedRunMultiplier;
         }
 
+        foreach (var multiplier in BattleData.Multipliers.MovementSpeedMultipliers)
+        {
+            multiplier.ApplyMultiplier(entity, ref speed);
+        }
+
         return speed;
     }
 
     public static float EntityRotateSpeed(Entity entity)
     {
         var speed = entity.EntityData.Movement.RotateSpeed;
+        foreach (var multiplier in BattleData.Multipliers.RotationSpeedMultipliers)
+        {
+            multiplier.ApplyMultiplier(entity, ref speed);
+        }
 
         return speed;
     }
@@ -180,6 +196,11 @@ public static class Formulae
     public static float EntityJumpHeight(Entity entity)
     {
         var height = entity.EntityData.Movement.JumpHeight;
+
+        foreach (var multiplier in BattleData.Multipliers.InterruptResistanceMultipliers)
+        {
+            multiplier.ApplyMultiplier(entity, ref height);
+        }
 
         return height;
     }

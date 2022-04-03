@@ -754,8 +754,8 @@ public class MovementEntity : MonoBehaviour
         }
 
         // The launch movement mode takes control over velocity
-        if (CurrentMovement != null && CurrentMovement.MovementType == ActionMovement.eMovementType.LaunchToPosition || 
-            CurrentMovement.MovementType == ActionMovement.eMovementType.FreezePosition)
+        if (CurrentMovement != null && (CurrentMovement.MovementType == ActionMovement.eMovementType.LaunchToPosition || 
+            CurrentMovement.MovementType == ActionMovement.eMovementType.FreezePosition))
         {
             if (landed)
             {

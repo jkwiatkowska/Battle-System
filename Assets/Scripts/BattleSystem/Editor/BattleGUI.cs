@@ -14,6 +14,8 @@ public static class BattleGUI
         Copy
     }
 
+    public const int Space = 150;
+
     #region Buttons
     public static bool Add()
     {
@@ -566,7 +568,7 @@ public static class BattleGUI
             index = 0;
         }
         attribute = attributes[EditorGUILayout.Popup(index, BattleData.EntityAttributes.ToArray(),
-                    GUILayout.Width(90))];
+                    GUILayout.Width(Space))];
 
         if (makeHorizontal)
         {
