@@ -30,7 +30,7 @@ public abstract class ActionPayload : Action
 
     public int TargetLimit;                 // Targets can be limited for actions that affect multiple targets.
     public eTargetPriority TargetPriority;  // If there's a target limit, targets can be prioritised based on specified criteria.
-    public string Resource;                 // If targets are prioritiesd by how much of a resource they hold.
+    public string Resource;                 // If targets are prioritised by how much of a resource they hold.
 
     public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
     {

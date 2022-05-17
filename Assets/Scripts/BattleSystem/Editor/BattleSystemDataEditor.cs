@@ -1913,7 +1913,7 @@ public class BattleSystemDataEditor : EditorWindow
 
                 if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoRandom)
                 {
-                    BattleGUI.EditList(ref entity.NewSkill, entity.Data.Skills.RandomSkills, BattleData.Skills.Keys.ToList(),
+                    BattleGUI.EditList(ref entity.NewSkill, entity.Data.Skills.WeightedSkills, BattleData.Skills.Keys.ToList(),
                              EditRandomSkill, NewRandomSkill, "Enity Skills:", "(No Skills)", "Add Skill:");
                 }
                 else if (entity.Data.Skills.SkillMode == EntitySkillsData.eSkillMode.AutoSequence)
@@ -2157,7 +2157,7 @@ public class BattleSystemDataEditor : EditorWindow
         return new EntitySkillsData.SequenceElement(skillID);
     }
 
-    BattleGUI.eReturnResult EditRandomSkill(EntitySkillsData.RandomSkill skill)
+    BattleGUI.eReturnResult EditRandomSkill(EntitySkillsData.WeightedSkill skill)
     {
         EditorGUILayout.BeginHorizontal();
         BattleGUI.SelectSkill(ref skill.SkillID, "Skill ID:", 80);
@@ -2180,9 +2180,9 @@ public class BattleSystemDataEditor : EditorWindow
         return BattleGUI.eReturnResult.None;
     }
 
-    EntitySkillsData.RandomSkill NewRandomSkill(string skillID)
+    EntitySkillsData.WeightedSkill NewRandomSkill(string skillID)
     {
-        return new EntitySkillsData.RandomSkill(skillID);
+        return new EntitySkillsData.WeightedSkill(skillID);
     }
 
     BattleGUI.eReturnResult EditInputSkill(EntitySkillsData.InputSkill skill)
@@ -2696,7 +2696,7 @@ public class BattleSystemDataEditor : EditorWindow
         EditActionSummon(a, EntityData.eEntityType.Projectile);
 
         var newMode = a.ProjectileMovementMode;
-        BattleGUI.EditEnum(ref newMode, "Projectile Movement Mode:", 200);
+        BattleGUI.EditEnum(ref newMode, "Projectile Movement Mode:", Space + 70);
         if (a.ProjectileMovementMode != newMode)
         {
             if (newMode == ActionProjectile.eProjectileMovementMode.Homing)
@@ -2716,7 +2716,7 @@ public class BattleSystemDataEditor : EditorWindow
         if (a.ProjectileMovementMode == ActionProjectile.eProjectileMovementMode.Homing ||
             a.ProjectileMovementMode == ActionProjectile.eProjectileMovementMode.Arched)
         {
-            BattleGUI.EditEnum(ref a.Target, "Moving Toward:", 200);
+            BattleGUI.EditEnum(ref a.Target, "Moving Toward:", Space);
             if (a.Target == ActionProjectile.eTarget.StaticPosition)
             {
                 if (a.TargetPosition == null)
@@ -2731,21 +2731,21 @@ public class BattleSystemDataEditor : EditorWindow
 
         if (a.ProjectileMovementMode == ActionProjectile.eProjectileMovementMode.Arched)
         {
-            BattleGUI.EditFloatSlider(ref a.ArchAngle, "Arch Angle:", 1.0f, 85.0f, 200);
-            BattleGUI.EditFloat(ref a.Gravity, "Gravity (Affects Speed):", 200);
+            BattleGUI.EditFloatSlider(ref a.ArchAngle, "Arch Angle:", 1.0f, 85.0f, Space);
+            BattleGUI.EditFloat(ref a.Gravity, "Gravity (Affects Speed):", Space);
         }
 
         if (a.ProjectileMovementMode == ActionProjectile.eProjectileMovementMode.Orbit)
         {
-            BattleGUI.EditEnum(ref a.Anchor, "Orbit Anchor:", 200);
-            if (a.Anchor == ActionProjectile.eAnchor.CustomPosition)
+            BattleGUI.EditEnum(ref a.Target, "Orbit Anchor:", Space);
+            if (a.Target == ActionProjectile.eTarget.StaticPosition)
             {
-                if (a.AnchorPosition == null)
+                if (a.TargetPosition == null)
                 {
-                    a.AnchorPosition = new TransformData();
+                    a.TargetPosition = new TransformData();
                 }
                 BattleGUI.StartIndent();
-                EditPosition(a.AnchorPosition, "Position:");
+                EditPosition(a.TargetPosition, "Position:");
                 BattleGUI.EndIndent();
             }
         }
@@ -3314,11 +3314,11 @@ public class BattleSystemDataEditor : EditorWindow
             // Effectiveness
             if (BattleGUI.EditFoldout(ref editorPayload.ShowEffectiveness, "Effectiveness against Target Category"))
             {
-                if (payload.CategoryMult == null)
+                if (payload.EntityCategoryMult == null)
                 {
-                    payload.CategoryMult = new Dictionary<string, float>();
+                    payload.EntityCategoryMult = new Dictionary<string, float>();
                 }
-                BattleGUI.EditFloatDict(payload.CategoryMult, "", BattleData.EntityCategories,
+                BattleGUI.EditFloatDict(payload.EntityCategoryMult, "", BattleData.EntityCategories,
                               ref editorPayload.NewEntityCategory, ": ", Space, "Add Category:", Space);
             }
 

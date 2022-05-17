@@ -299,7 +299,7 @@ public class EntityBattle
                                 {
                                     if (sequenceSkill.RandomSkills != null && sequenceSkill.RandomSkills.Count > 0)
                                     {
-                                        var skill = EntitySkillsData.RandomSkill.GetSkill(this, sequenceSkill.RandomSkills);
+                                        var skill = EntitySkillsData.WeightedSkill.GetSkill(this, sequenceSkill.RandomSkills);
                                         SkillToUse = skill;
                                     }
                                 }
@@ -311,9 +311,9 @@ public class EntityBattle
                     }
                     case EntitySkillsData.eSkillMode.AutoRandom:
                     {
-                        if (Data.RandomSkills != null && Data.RandomSkills.Count > 0)
+                        if (Data.WeightedSkills != null && Data.WeightedSkills.Count > 0)
                         {
-                            var skill = EntitySkillsData.RandomSkill.GetSkill(this, Data.RandomSkills);
+                            var skill = EntitySkillsData.WeightedSkill.GetSkill(this, Data.WeightedSkills);
                             SkillToUse = skill;
                         }
                         break;

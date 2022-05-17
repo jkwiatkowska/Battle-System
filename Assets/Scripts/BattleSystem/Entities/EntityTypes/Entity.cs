@@ -703,7 +703,10 @@ public class Entity : MonoBehaviour
         }
         AttributeChanges[attributeChange.Attribute][attributeChange.Key] = attributeChange;
 
-        SetupResourcesMax();
+        if (attributeChange.PayloadFilter == Effect.ePayloadFilter.All)
+        {
+            SetupResourcesMax();
+        }
     }
 
     public void RemoveAttributeChange(string attribute, string key)
@@ -713,9 +716,13 @@ public class Entity : MonoBehaviour
             return;
         }
 
+        var updateMax = AttributeChanges[attribute][key].PayloadFilter == Effect.ePayloadFilter.All;
         AttributeChanges[attribute].Remove(key);
 
-        SetupResourcesMax();
+        if (updateMax)
+        {
+            SetupResourcesMax();
+        }
     }
     #endregion
 

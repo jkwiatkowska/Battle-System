@@ -183,7 +183,7 @@ public class EntitySkillsData
 
         public eElementType ElementType;
         public string SkillID;
-        public List<RandomSkill> RandomSkills;
+        public List<WeightedSkill> RandomSkills;
 
         public int UsesMin;         // The minimum number of times this skill is used before the sequence moves on.
         public int UsesMax;         // The maximum number of uses.
@@ -194,7 +194,7 @@ public class EntitySkillsData
             UsesMin = 1;
             UsesMax = 1;
             ExecuteChance = 1.0f;
-            RandomSkills = new List<RandomSkill>();
+            RandomSkills = new List<WeightedSkill>();
         }
 
         public SequenceElement(string skill) : this()
@@ -218,22 +218,22 @@ public class EntitySkillsData
             SkillID = skill;
         }
     }
-    public class RandomSkill
+    public class WeightedSkill
     {
         public string SkillID;
         public float Weight;
 
-        public RandomSkill()
+        public WeightedSkill()
         {
             Weight = 1.0f;
         }
 
-        public RandomSkill(string skill) : this()
+        public WeightedSkill(string skill) : this()
         {
             SkillID = skill;
         }
 
-        public static string GetSkill(EntityBattle entity, List<RandomSkill> skills)
+        public static string GetSkill(EntityBattle entity, List<WeightedSkill> skills)
         {
             if (skills == null || skills.Count < 1)
             {
@@ -270,7 +270,7 @@ public class EntitySkillsData
     }
 
     public List<SequenceElement> SequenceSkills;    // For sequence mode.
-    public List<RandomSkill> RandomSkills;          // For random mode.
+    public List<WeightedSkill> WeightedSkills;          // For random mode.
     public List<InputSkill> InputSkills;            // For input mode.
 
     public float SkillDelayMin;                     // Delay in seconds before an entity can use a skill after the last.
@@ -295,7 +295,7 @@ public class EntitySkillsData
     {
         SequenceSkills = new List<SequenceElement>();
         InputSkills = new List<InputSkill>();
-        RandomSkills = new List<RandomSkill>();
+        WeightedSkills = new List<WeightedSkill>();
 
         AutoSelectTargetOnSkillUse = true;
         RotateToTargetIfNotWithinAngle = true;

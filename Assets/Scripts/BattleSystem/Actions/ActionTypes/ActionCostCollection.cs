@@ -4,13 +4,6 @@ using UnityEngine;
 
 public class ActionCostCollection : Action
 {
-    public enum eCostValueType
-    {
-        FlatValue,                              // Value is not multiplied by anything
-        CurrentMult,                            // Value is multiplied by an entity's current resource value
-        MaxMult                                 // Value is multiplied by an entity's max resource value
-    }
-
     public string ResourceName;                 // Resource collected
     public Value Cost;
     public Value MaxCost;

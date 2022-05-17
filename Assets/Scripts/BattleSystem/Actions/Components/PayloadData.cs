@@ -13,7 +13,7 @@ public class PayloadData
     public AggroData.AggroChange Aggro;                 // Entities can select targets based on aggro. 
     public bool MultiplyAggroByPayloadValue;            // If true, aggro will be multiplied by damage dealt.
 
-    public Dictionary<string, float> CategoryMult;      // Effectiveness of the payload damage/recovery against given entity categories.
+    public Dictionary<string, float> EntityCategoryMult;// Effectiveness of the payload damage/recovery against given entity categories.
     public List<string> CasterAttributesIgnored;        // Caster attributes such as damage boosting multipliers can be ignored. 
     public List<string> TargetAttributesIgnored;        // Target attributes such as defense can be ignored. 
     public bool IgnoreShield;                           // True damage.
@@ -46,7 +46,7 @@ public class PayloadData
         PayloadValue = new Value();
         Flags = new List<string>();
         SuccessChance = 1.0f;
-        CategoryMult = new Dictionary<string, float>();
+        EntityCategoryMult = new Dictionary<string, float>();
         CasterAttributesIgnored = new List<string>();
         TargetAttributesIgnored = new List<string>();
 

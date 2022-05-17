@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -76,9 +75,9 @@ public class Payload
         // Category multiplier
         var targetData = target.EntityData;
         var categoryMultiplier = 1.0f;
-        if (PayloadData.CategoryMult != null && targetData.Categories != null)
+        if (PayloadData.EntityCategoryMult != null && targetData.Categories != null)
         {
-            foreach (var cat in PayloadData.CategoryMult)
+            foreach (var cat in PayloadData.EntityCategoryMult)
             {
                 if (targetData.Categories.Contains(cat.Key))
                 {

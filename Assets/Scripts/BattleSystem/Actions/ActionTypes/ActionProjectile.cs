@@ -73,27 +73,13 @@ public class ActionProjectile : ActionSummon
         Target,         // The projectile will move toward target.
     }
 
-    public eTarget Target;                              // Target position for Homing and Arched modes.
+    public eTarget Target;                              // Target position for Homing, Arched and orbit modes.
     public TransformData TargetPosition;                // If using custom position for target.
     #endregion
 
     #region Arched Mode
     public float ArchAngle;                             // Angle along the X axis at which the projectile is shot. Must be bigger than 0 and smaller than 90.
     public float Gravity;                               // Zero for other modes.
-    #endregion
-
-    #region Orbit Mode
-    public enum eAnchor // A projectile can moves relative to its anchor position.
-    {
-        None,
-        SpawnPosition,
-        CustomPosition,
-        Caster,
-        Target
-    }
-
-    public eAnchor Anchor;                              // Anchor position affects horizontal movement of the projectile.
-    public TransformData AnchorPosition;                // If using custom position for anchor
     #endregion
 
     public ActionProjectile()
@@ -141,8 +127,5 @@ public class ActionProjectile : ActionSummon
 
         ArchAngle = 40.0f;
         Gravity = 0.0f;
-
-        Anchor = eAnchor.Caster;
-        AnchorPosition = new TransformData();
     }
 }
