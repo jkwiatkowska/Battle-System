@@ -15,29 +15,24 @@ public class AggroData
 
         public Value Change;
         public eAggroChangeMultiplier ChangeMultiplier;
-        public string MultiplierAttribute;
 
-        public float GetAggroChange(Entity caster, string enmitySourceUID, Entity enmityHolder, float multiplier = 1.0f)
+        public float GetAggroChange(ValueInfo valueInfo, float multiplier = 1.0f)
         {
-            if (Change == null || Change.Count < 1)
+            if (Change == null || Change.Components.Count < 1 || valueInfo == null || valueInfo.Target == null || 
+                valueInfo.Target.Entity == null || valueInfo.Caster == null || valueInfo.Caster.Entity == null)
             {
                 return 0.0f;
             }
 
-            var change = Change.GetValue(caster, caster.EntityAttributes());
+            var change = Change.CalculateValue(valueInfo);
 
             if (ChangeMultiplier == eAggroChangeMultiplier.CurrentAggro)
             {
-                change *= enmityHolder.EntityBattle.GetAggro(enmitySourceUID);
+                change *= valueInfo.Target.Entity.EntityBattle.GetAggro(valueInfo.Caster.UID);
             }
             else if (ChangeMultiplier == eAggroChangeMultiplier.MaxAggro)
             {
                 change *= BattleData.Aggro.MaxAggro;
-            }
-
-            if (!string.IsNullOrEmpty(MultiplierAttribute) && caster.BaseAttributes.ContainsKey(MultiplierAttribute))
-            {
-                change *= caster.Attribute(MultiplierAttribute, "", "", "", null);
             }
 
             return change * multiplier;
@@ -45,7 +40,7 @@ public class AggroData
 
         public AggroChange()
         {
-            Change = new Value();
+            Change = new Value(false);
         }
     }
 

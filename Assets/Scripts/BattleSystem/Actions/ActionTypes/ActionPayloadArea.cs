@@ -77,7 +77,7 @@ public class ActionPayloadArea : ActionPayload
             {
                 case Area.eShape.Cylinder:
                 {
-                    var minDistance = area.InnerDimensions.x * area.InnerDimensions.x;
+                    var minDistance = area.InnerDimensions.x * area.InnerDimensions.x - Constants.Epsilon;
                     var maxDistance = area.Dimensions.x * area.Dimensions.x;
 
                     var maxAngle = area.Dimensions.y * 0.5f;
@@ -86,22 +86,22 @@ public class ActionPayloadArea : ActionPayload
                     for (int i = potentialTargets.Count - 1; i >= 0; i--)
                     {
                         var t = potentialTargets[i];
-                        var tPos = t.transform.position;
+                        var tPos = t.Position;
+
+                        // Check if the target is inside circle
+                        var distance = Mathf.Max(0.0f, VectorUtility.Distance2D(areaPos2D, t));
+                        if (distance < minDistance || distance > maxDistance)
+                        {
+                            continue;
+                        }
 
                         // Check if the target is at the correct height
-                        var tBottom = tPos.y + 0.001f;
+                        var tBottom = tPos.y + Constants.Epsilon;
                         var tTop = tPos.y + t.EntityData.Height;
                         var areaBottom = areaPos.y;
                         var areaTop = areaPos.y + area.Dimensions.z;
 
                         if (tBottom < areaBottom || tTop > areaTop)
-                        {
-                            continue;
-                        }
-
-                        // Check if the target is inside circle
-                        var distance = VectorUtility.Distance2D(areaPos2D, t);
-                        if (distance < minDistance || distance > maxDistance)
                         {
                             continue;
                         }
@@ -128,7 +128,7 @@ public class ActionPayloadArea : ActionPayload
                 }
                 case Area.eShape.Sphere:
                 {
-                    var minDistance = area.InnerDimensions.x * area.InnerDimensions.x;
+                    var minDistance = area.InnerDimensions.x * area.InnerDimensions.x - Constants.Epsilon;
                     var maxDistance = area.Dimensions.x * area.Dimensions.x;
 
                     var maxAngle = area.Dimensions.y * 0.5f;
@@ -137,10 +137,10 @@ public class ActionPayloadArea : ActionPayload
                     for (int i = potentialTargets.Count - 1; i >= 0; i--)
                     {
                         var t = potentialTargets[i];
-                        var tPos = t.transform.position;
+                        var tPos = t.Position;
 
                         // Check if the target is inside sphere
-                        var distance = VectorUtility.Distance3D(areaPos, t);
+                        var distance = Mathf.Max(0.0f, VectorUtility.Distance3D(areaPos, t));
                         if (distance < minDistance || distance > maxDistance)
                         {
                             continue;
@@ -171,11 +171,11 @@ public class ActionPayloadArea : ActionPayload
                     for (int i = potentialTargets.Count - 1; i >= 0; i--)
                     {
                         var t = potentialTargets[i];
-                        var tPos2D = VectorUtility.RotateAroundPosition(VectorUtility.Get2DVector(t.transform.position), 
+                        var tPos2D = VectorUtility.RotateAroundPosition(VectorUtility.Get2DVector(t.Position), 
                                      VectorUtility.Angle3D(areaForward), areaPos);
 
                         // Check if the target is at the correct height
-                        var tBottom = t.transform.position.y;
+                        var tBottom = t.Position.y;
                         var tTop = tBottom + t.EntityData.Height;
                         var areaBottom = areaPos.y;
                         var areaTop = areaPos.y + area.Dimensions.y;

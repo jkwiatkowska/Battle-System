@@ -44,7 +44,7 @@ public class TargetingSystemPlayer : TargetingSystem
         }
         else
         {
-            Debug.LogError($"Entity {entity.EntityUID} is missing EntityCanvas.");
+            Debug.LogError($"Entity {entity.UID} is missing EntityCanvas.");
         }
     }
 

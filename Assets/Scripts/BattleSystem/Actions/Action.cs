@@ -14,6 +14,8 @@ public abstract class Action
         Message,                    // Displays a message on screen. Can be used to show warnings, explain mechanics, etc.
         PayloadArea,                // Applies a defined payload to all entities in a given area.
         PayloadDirect,              // Applies a payload to specified entities. 
+        SaveTransformInfo,          // Saves the specified position and rotation in a dictionary.
+        SaveValue,                  // Save a custom numerical value to use later.
         SetAnimation,               // Can be used to set animation triggers in the entity. 
         SpawnProjectile,            // Spawns an entity that moves in a specific way and can execute skills on contact or timeout. 
         SpawnEntity,                // Spawns an entity that can execute skills. Can be used to implement area of effect skills.
@@ -32,7 +34,7 @@ public abstract class Action
     public eActionType ActionType;
     public float Timestamp;
 
-    public List<ActionCondition> ActionConditions;
+    public ActionCondition ActionCondition;
 
     public abstract void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults);
 
@@ -43,24 +45,18 @@ public abstract class Action
 
     public virtual bool ConditionsMet(Entity entity, Entity target, Dictionary<string, ActionResult> actionResults)
     {
-        if (ActionConditions == null)
+        if (ActionCondition == null)
         {
             return true;
         }
 
-        foreach (var condition in ActionConditions)
-        {
-            if (!condition.ConditionMet(entity, target, ActionID, actionResults))
-            {
-                return false;
-            }
-        }
-        return true;
+        var valueInfo = new ValueInfo(entity.EntityInfo, target.EntityInfo, actionResults);
+        return ActionCondition.ConditionsMet(ActionID, valueInfo);
     }
 
     public static Action MakeAction(eActionType type, string skillID = "")
     {
-        Action action = null;
+        Action action;
 
         switch (type)
         {
@@ -77,6 +73,11 @@ public abstract class Action
             case eActionType.Destroy:
             {
                 action = new ActionDestroy();
+                break;
+            }
+            case eActionType.DoNothing:
+            {
+                action = new ActionDoNothing();
                 break;
             }
             case eActionType.LoopBack:
@@ -97,6 +98,16 @@ public abstract class Action
             case eActionType.PayloadDirect:
             {
                 action = new ActionPayloadDirect();
+                break;
+            }
+            case eActionType.SaveTransformInfo:
+            {
+                action = new ActionSaveTransform();
+                break;
+            }
+            case eActionType.SaveValue:
+            {
+                action = new ActionSaveValue();
                 break;
             }
             case eActionType.SpawnProjectile:

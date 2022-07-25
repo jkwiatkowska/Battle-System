@@ -9,6 +9,7 @@ public class TransformData
         WorldPosition,          // A position in the world.
         EntityPosition,         // World position of an entity.
         EntityOrigin,           // Origin of an entity.
+        SavedPosition,         // A previously saved position
         //PositionFromInput     
     }
 
@@ -18,6 +19,8 @@ public class TransformData
     public DirectionData Direction;                     // Direction along which the offset is applied.
     public Vector3 PositionOffset;                      // Position offset from position origin. Relative to forward direction.
     public Vector3 RandomPositionOffset;                // Range of a random offset from the summon position, for each x and y axis.
+
+    public string SavedPositionID;                      // ID of the saved transform.
 
     public TransformData()
     {
@@ -52,7 +55,7 @@ public class TransformData
                     return false;
                 }
 
-                position = entity.transform.position;
+                position = entity.Position;
                 break;
             }
             case ePositionOrigin.EntityOrigin:
@@ -64,6 +67,14 @@ public class TransformData
                 }
 
                 position = entity.Origin;
+                break;
+            }
+            case ePositionOrigin.SavedPosition:
+            {
+                if (!caster.GetSavedPosition(SavedPositionID, out position) && position != null)
+                {
+                    return false;
+                }
                 break;
             }
             default:
@@ -102,6 +113,7 @@ public class DirectionData
     {
         EntityForward,          // Facing direction of the entity.
         EntityToEntity,         // Direction from one entity to another.
+        SavedForward,           // Previously saved forward vector.
         WorldForward,           // North direction in the world.
     }
 
@@ -112,6 +124,8 @@ public class DirectionData
 
     public float DirectionOffset;                       // The forward vector can be rotated around its Y axis.
     public float RandomDirectionOffset;                 // Randomness can be applied to this as well. 
+
+    public string SavedForwardID;                       // ID of the saved transform.
 
     public DirectionData()
     {
@@ -149,7 +163,15 @@ public class DirectionData
                 }
                 else
                 {
-                    forward = (to.transform.position - from.transform.position).normalized;
+                    forward = (to.Position - from.Position).normalized;
+                }
+                break;
+            }
+            case eDirectionSource.SavedForward:
+            {
+                if (!caster.GetSavedForward(SavedForwardID, out forward) && forward != null)
+                {
+                    return false;
                 }
                 break;
             }

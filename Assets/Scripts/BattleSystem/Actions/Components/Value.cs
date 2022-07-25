@@ -3,378 +3,512 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+#region Info
+// Information about an entity, used when applying payloads and calculating values. 
+public class EntityInfo
+{
+    public string UID;
+    public Entity Entity;
+    public int Level;
+    public Dictionary<string, float> Attributes;
+    public Dictionary<string, float> AttributeOverride;
+
+    public EntityInfo(Entity entity, Dictionary<string, float> entityAttributes)
+    {
+        if (entity == null)
+        {
+            Debug.Log($"Trying to create Entity Info for a null entity.");
+        }
+
+        UID = entity.UID;
+        Entity = entity;
+        Level = entity.Level;
+        Attributes = entityAttributes;
+        AttributeOverride = null;
+    }
+
+    public EntityInfo(Entity entity) : this(entity, entityAttributes: entity.EntityAttributes())
+    {
+
+    }
+
+    public EntityInfo(Entity entity, PayloadData payloadData) : this(entity, entityAttributes: entity.EntityAttributes(payloadData))
+    {
+
+    }
+
+    public float Attribute(string attribute)
+    {
+        if (AttributeOverride != null && AttributeOverride.ContainsKey(attribute))
+        {
+            return AttributeOverride[attribute];
+        }
+        else if (Attributes != null && Attributes.ContainsKey(attribute))
+        {
+            return Attributes[attribute];
+        }
+        else
+        {
+            return 0.0f;
+        }
+    }
+}
+
+// Information passed to a value when calculating it
+public class ValueInfo
+{
+    public EntityInfo Caster;
+    public EntityInfo Target;
+
+    public Dictionary<string, ActionResult> ActionResults;
+    public string ActionID;
+
+    public ValueInfo(EntityInfo casterInfo, EntityInfo targetInfo, Dictionary<string, ActionResult> actionResults, string actionID = null)
+    {
+        Caster = casterInfo;
+        Target = targetInfo;
+        ActionResults = actionResults;
+        ActionID = actionID;
+    }
+
+    public ValueInfo(Payload payloadInfo)
+    {
+        Caster = payloadInfo.Caster;
+        Target = payloadInfo.Target;
+        ActionResults = payloadInfo.ActionResults;
+        ActionID = payloadInfo.Action?.ActionID;
+    }
+
+    public EntityInfo GetEntityInfo(ValueComponent.eEntity entityType)
+    {
+        switch(entityType)
+        {
+            case ValueComponent.eEntity.Caster:
+            {
+                return Caster;
+            }
+            case ValueComponent.eEntity.Target:
+            {
+                return Target;
+            }
+            default:
+            {
+                Debug.LogError($"The value info class does not contain entity info for {entityType}");
+                return null;
+            }
+        }
+    }
+}
+#endregion
+
+#region Component
+// A value is a sum of its components.
 public class ValueComponent
 {
     public enum eValueComponentType
     {
         FlatValue,
-        CasterLevel,
-        CasterAttributeBase,
-        CasterAttributeCurrent,
-        CasterResourceMax,
-        CasterResourceCurrent,
-        CasterResourceRatio,
-        TargetLevel,
-        TargetAttributeBase,
-        TargetAttributeCurrent,
-        TargetResourceMax,
-        TargetResourceCurrent,
-        TargetResourceRatio,
+        EntityLevel,
+        EntityAttributeBase,
+        EntityAttributeCurrent,
+        EntityResourceMax,
+        EntityResourceCurrent,
+        EntityResourceRatio,
+        EntityStatusEffectStacksHighest,
+        EntityStatusEffectStacksTotal,
+        DistanceFromTarget,
+        RandomValue,
+        SavedValue,
         ActionResultValue,
     }
+
+    public enum eEntity
+    {
+        Caster,
+        Target,
+    }
+
     public eValueComponentType ComponentType;
+    public eEntity Entity;
 
     public float Potency;                           // Multiplier
-    public string Attribute;                        // The value can scale off different attributes, resources or action results (for example damage dealt or cost collected).
+    public string StringValue;                      // The value can scale off different attributes, resources or action results (for example damage dealt or cost collected).
+    public string StringValue2;                     // In case more string values are needed, for example to specify the kind of action result.
 
     public ValueComponent()
     {
         Potency = 1.0f;
+        StringValue = "";
+        StringValue2 = "";
     }
 
-    public ValueComponent(eValueComponentType type, float potency, string attribute = "")
+    public ValueComponent(eValueComponentType type, float potency, string stringValue = "")
     {
         ComponentType = type;
         Potency = potency;
-        Attribute = attribute;
+        StringValue = stringValue;
+        StringValue2 = "";
     }
 
-    public ValueComponent Copy => new ValueComponent(ComponentType, Potency, Attribute);
+    public ValueComponent Copy => new ValueComponent(ComponentType, Potency, StringValue);
 
-    public float GetValueFromAttribute(Entity entity, Dictionary<string, float> entityAttributes)
+    public float GetValue(ValueInfo valueInfo)
     {
-        switch (ComponentType)
+        // Simple flat value
+        if (ComponentType == eValueComponentType.FlatValue)
         {
-            case eValueComponentType.CasterAttributeCurrent:
+            return Potency;
+        }
+
+        // Other component types
+        if (valueInfo == null)
+        {
+            Debug.LogError($"Value component is not a flat value, but value info was not provided");
+            return 0.0f;
+        }
+
+        // Result of an action
+        if (ComponentType == eValueComponentType.ActionResultValue)
+        {
+            var actionID = StringValue;
+            if (string.IsNullOrEmpty(actionID))
             {
-                if (entityAttributes == null || !entityAttributes.ContainsKey(Attribute))
-                {
-                    Debug.LogError($"Invalid attribute [{Attribute}].");
-                    return 0.0f;
-                }
-                return Potency * entityAttributes[Attribute];
+                actionID = valueInfo.ActionID;
             }
-            case eValueComponentType.CasterAttributeBase:
+            if (string.IsNullOrEmpty(actionID))
             {
-                if (entity == null || !entity.BaseAttributes.ContainsKey(Attribute))
-                {
-                    Debug.LogError($"Invalid attribute [{Attribute}].");
-                    return 0.0f;
-                }
-                return Potency * entity.BaseAttribute(Attribute);
-            }
-            case eValueComponentType.FlatValue:
-            {
-                return Potency;
-            }
-            default:
-            {
-                Debug.LogError($"This GetValue function doesn't support the {ComponentType} component type.");
                 return 0.0f;
             }
-        }
-    }
 
-    public float GetValue(Entity caster, Entity target, Dictionary<string, float> casterAttributes, 
-                          Dictionary<string, float> targetAttributes, Dictionary<string, ActionResult> actionResults = null)
-    {
-        switch (ComponentType)
-        {
-            case eValueComponentType.FlatValue:
+            if (valueInfo.ActionResults != null && valueInfo.ActionResults.ContainsKey(actionID) && valueInfo.ActionResults[actionID].Values.ContainsKey(StringValue2))
             {
-                return Potency;
-            }
-            case eValueComponentType.CasterLevel:
-            {
-                if (caster == null)
-                {
-                    return 0.0f;
-                }
-                return Potency * caster.Level;
-            }
-            case eValueComponentType.CasterAttributeCurrent:
-            {
-                if (casterAttributes == null || !casterAttributes.ContainsKey(Attribute))
-                {
-                    return 0.0f;
-                }
-                return Potency * casterAttributes[Attribute];
-            }
-            case eValueComponentType.CasterAttributeBase:
-            {
-                if (caster == null || !caster.BaseAttributes.ContainsKey(Attribute))
-                {
-                    return 0.0f;
-                }
-                return Potency * caster.BaseAttribute(Attribute);
-            }
-            case eValueComponentType.CasterResourceMax:
-            {
-                if (caster == null || !caster.ResourcesMax.ContainsKey(Attribute))
-                {
-                    return 0.0f;
-                }
-                return Potency * caster.ResourcesMax[Attribute];
-            }
-            case eValueComponentType.CasterResourceCurrent:
-            {
-                if (caster == null ||!caster.ResourcesCurrent.ContainsKey(Attribute))
-                {
-                    return 0.0f;
-                }
-                return Potency * caster.ResourcesCurrent[Attribute];
-            }
-            case eValueComponentType.CasterResourceRatio:
-            {
-                if (caster == null || !caster.ResourcesCurrent.ContainsKey(Attribute))
-                {
-                    return 0.0f;
-                }
-                return Potency * caster.ResourceRatio(Attribute);
-            }
-            case eValueComponentType.TargetLevel:
-            {
-                if (target == null)
-                {
-                    return 0.0f;
-                }
-                return Potency * target.Level;
-            }
-            case eValueComponentType.TargetAttributeCurrent:
-            {
-                if (targetAttributes == null || !targetAttributes.ContainsKey(Attribute))
-                {
-                    return 0.0f;
-                }
-                return Potency * targetAttributes[Attribute];
-            }
-            case eValueComponentType.TargetAttributeBase:
-            {
-                if (target == null || !target.BaseAttributes.ContainsKey(Attribute))
-                {
-                    return 0.0f;
-                }
-                return Potency * target.BaseAttribute(Attribute);
-            }
-            case eValueComponentType.TargetResourceMax:
-            {
-                if (target == null || !target.ResourcesMax.ContainsKey(Attribute))
-                {
-                    return 0.0f;
-                }
-                return Potency * target.ResourcesMax[Attribute];
-            }
-            case eValueComponentType.TargetResourceCurrent:
-            {
-                if (target == null || !target.ResourcesCurrent.ContainsKey(Attribute))
-                {
-                    return 0.0f;
-                }
-                return Potency * caster.ResourcesCurrent[Attribute];
-            }
-            case eValueComponentType.TargetResourceRatio:
-            {
-                if (caster == null || !target.ResourcesCurrent.ContainsKey(Attribute))
-                {
-                    return 0.0f;
-                }
-                return Potency * target.ResourceRatio(Attribute);
-            }
-            case eValueComponentType.ActionResultValue:
-            {
-                if (actionResults != null && actionResults.ContainsKey(Attribute))
-                {
-                    return Potency * actionResults[Attribute].Value;
-                }
-                else
-                {
-                    Debug.LogError($"Action result for action {Attribute} could not be found.");
-                    return 0.0f;
-                }
-            }
-            default:
-            {
-                Debug.LogError($"Unimplemented value component type: {ComponentType}");
-                return 0.0f;
-            }
-        }
-    }
-
-    public enum eValueType
-    {
-        SkillAction,
-        Resource,
-        CasterOnly,
-        NonAction,
-        TargetingPriority,
-        Aggro,
-    }
-
-    public static Dictionary<eValueType, List<eValueComponentType>> AvailableComponentTypes = new Dictionary<eValueType, List<eValueComponentType>>()
-    {
-        [eValueType.SkillAction] = new List<eValueComponentType>()
-        {
-            eValueComponentType.FlatValue,
-            eValueComponentType.CasterLevel,
-            eValueComponentType.CasterAttributeBase,
-            eValueComponentType.CasterAttributeCurrent,
-            eValueComponentType.CasterResourceMax,
-            eValueComponentType.CasterResourceCurrent,
-            eValueComponentType.CasterResourceRatio,
-            eValueComponentType.TargetLevel,
-            eValueComponentType.TargetResourceMax,
-            eValueComponentType.TargetResourceCurrent,
-            eValueComponentType.TargetResourceRatio,
-            eValueComponentType.ActionResultValue
-        },
-        [eValueType.Resource] = new List<eValueComponentType>()
-        {
-            eValueComponentType.FlatValue,
-            eValueComponentType.CasterLevel,
-            eValueComponentType.CasterAttributeBase,
-            eValueComponentType.CasterAttributeCurrent,
-        },
-        [eValueType.CasterOnly] = new List<eValueComponentType>()
-        {
-            eValueComponentType.FlatValue,
-            eValueComponentType.CasterLevel,
-            eValueComponentType.CasterAttributeBase,
-            eValueComponentType.CasterAttributeCurrent,
-            eValueComponentType.CasterResourceMax,
-            eValueComponentType.CasterResourceCurrent,
-            eValueComponentType.CasterResourceRatio
-        },
-        [eValueType.NonAction] = new List<eValueComponentType>()
-        {
-            eValueComponentType.FlatValue,
-            eValueComponentType.CasterLevel,
-            eValueComponentType.CasterAttributeBase,
-            eValueComponentType.CasterAttributeCurrent,
-            eValueComponentType.CasterResourceMax,
-            eValueComponentType.CasterResourceCurrent,
-            eValueComponentType.CasterResourceRatio,
-            eValueComponentType.TargetLevel,
-            eValueComponentType.TargetResourceMax,
-            eValueComponentType.TargetResourceCurrent,
-            eValueComponentType.TargetResourceRatio,
-        },
-        [eValueType.TargetingPriority] = new List<eValueComponentType>()
-        {
-            eValueComponentType.TargetResourceMax,
-            eValueComponentType.TargetResourceCurrent,
-            eValueComponentType.TargetResourceRatio,
-            eValueComponentType.TargetAttributeCurrent,
-            eValueComponentType.TargetAttributeBase,
-            eValueComponentType.TargetLevel,
-        },
-        [eValueType.Aggro] = new List<eValueComponentType>()
-        {
-            eValueComponentType.FlatValue,
-            eValueComponentType.CasterAttributeCurrent,
-            eValueComponentType.CasterAttributeBase,
-            eValueComponentType.CasterResourceMax,
-            eValueComponentType.CasterResourceCurrent,
-            eValueComponentType.CasterResourceRatio,
-            eValueComponentType.CasterLevel,
-            eValueComponentType.ActionResultValue,
-        }
-    };
-}
-
-public class Value : List<ValueComponent>
-{
-    public Value Copy()
-    {
-        var value = new Value();
-        foreach (var component in this)
-        {
-            value.Add(component.Copy);
-        }
-
-        return value;
-    }
-
-    public float GetValueFromAttributes(Entity entity, Dictionary<string, float> entityAttributes)
-    {
-        var totalValue = 0.0f;
-
-        foreach (var value in this)
-        {
-            totalValue += value.GetValueFromAttribute(entity, entityAttributes);
-        }
-
-        return totalValue;
-    }
-
-    public float GetValue(Entity caster = null, Dictionary<string, float> casterAttributes = null, 
-                          Entity target = null, Dictionary<string, float> targetAttributes = null,
-                          Dictionary<string, ActionResult> actionResults = null, Value maxValue = null)
-    {
-        return OutgoingValues(caster, casterAttributes, actionResults).IncomingValue(target, targetAttributes, maxValue);
-    }
-
-    public Value OutgoingValues(Entity caster, Dictionary<string, float> casterAttributes, Dictionary<string, ActionResult> actionResults = null)
-    {
-        var value = new Value();
-        var totalValue = 0.0f;
-
-        foreach (var component in this)
-        {
-            if (component.ComponentType == ValueComponent.eValueComponentType.TargetResourceCurrent ||
-                component.ComponentType == ValueComponent.eValueComponentType.TargetResourceMax)
-            {
-                value.Add(component);
+                return Potency * valueInfo.ActionResults[actionID].Values[StringValue2];
             }
             else
             {
-                totalValue += component.GetValue(caster, target: null, casterAttributes, targetAttributes: null, actionResults);
+                return 0.0f;
+            }
+        }
+
+        // Entity related values
+        if (ComponentType == eValueComponentType.EntityAttributeBase                || ComponentType == eValueComponentType.EntityAttributeCurrent          ||
+            ComponentType == eValueComponentType.EntityLevel                        || ComponentType == eValueComponentType.EntityResourceCurrent           ||
+            ComponentType == eValueComponentType.EntityResourceMax                  || ComponentType == eValueComponentType.EntityResourceRatio             ||
+            ComponentType == eValueComponentType.EntityStatusEffectStacksHighest    || ComponentType == eValueComponentType.EntityStatusEffectStacksTotal)
+        {
+            var entityInfo = valueInfo.GetEntityInfo(Entity);
+
+            if (entityInfo == null)
+            {
+                Debug.LogError($"Value component is an entity value, but corresponding entity info was not provided");
+                return 0.0f;
+            }
+
+            switch(ComponentType)
+            {
+                case eValueComponentType.EntityLevel:
+                {
+                    return Potency * entityInfo.Level;
+                }
+                case eValueComponentType.EntityAttributeCurrent:
+                {
+                    if (entityInfo.Attributes == null || !entityInfo.Attributes.ContainsKey(StringValue))
+                    {
+                        return 0.0f;
+                    }
+                    return Potency * entityInfo.Attributes[StringValue];
+                }
+                case eValueComponentType.EntityAttributeBase:
+                {
+                    if (entityInfo.Entity == null || !entityInfo.Entity.BaseAttributes.ContainsKey(StringValue))
+                    {
+                        return 0.0f;
+                    }
+                    return Potency * entityInfo.Entity.BaseAttribute(StringValue);
+                }
+                case eValueComponentType.EntityResourceMax:
+                {
+                    if (entityInfo.Entity == null || !entityInfo.Entity.ResourcesMax.ContainsKey(StringValue))
+                    {
+                        return 0.0f;
+                    }
+                    return Potency * entityInfo.Entity.ResourcesMax[StringValue];
+                }
+                case eValueComponentType.EntityResourceCurrent:
+                {
+                    if (entityInfo.Entity == null || !entityInfo.Entity.ResourcesCurrent.ContainsKey(StringValue))
+                    {
+                        return 0.0f;
+                    }
+                    return Potency * entityInfo.Entity.ResourcesCurrent[StringValue];
+                }
+                case eValueComponentType.EntityResourceRatio:
+                {
+                    if (entityInfo.Entity == null || !entityInfo.Entity.ResourcesCurrent.ContainsKey(StringValue))
+                    {
+                        return 0.0f;
+                    }
+                    return Potency * entityInfo.Entity.ResourceRatio(StringValue);
+                }
+                case eValueComponentType.EntityStatusEffectStacksHighest:
+                {
+                    if (entityInfo.Entity == null)
+                    {
+                        return 0.0f;
+                    }
+                    return Potency * entityInfo.Entity.GetHighestStatusEffectStacks(StringValue);
+                }
+                case eValueComponentType.EntityStatusEffectStacksTotal:
+                {
+                    if (entityInfo.Entity == null)
+                    {
+                        return 0.0f;
+                    }
+                    return Potency * entityInfo.Entity.GetTotalStatusEffectStacks(StringValue);
+                }
+            }
+        }
+
+        //Distance
+        if (ComponentType == eValueComponentType.DistanceFromTarget)
+        {
+            if (valueInfo.Caster?.Entity == null || valueInfo.Target?.Entity == null)
+            {
+                Debug.LogError($"Trying to check the distance between caster and target, but one of them is null");
+                return 0.0f;
+            }
+            return Potency * Vector3.Distance(valueInfo.Caster.Entity.Origin, valueInfo.Target.Entity.Origin);
+        }
+
+        //Saved Values
+        if (ComponentType == eValueComponentType.SavedValue)
+        {
+            if (valueInfo.Caster?.Entity != null)
+            {
+                return valueInfo.Caster.Entity.GetSavedValue(StringValue, 0.0f);
+            }
+            else
+            {
+                return 0.0f;
+            }
+        }
+
+        // Random
+        if (ComponentType == eValueComponentType.RandomValue)
+        {
+            return UnityEngine.Random.Range(0.0f, Potency);
+        }
+
+        // Invalid/unimplemented component. A new case needs to be added if the code reaches this point. 
+        Debug.LogError($"Unimplemented value component type: {ComponentType}");
+        return 0.0f;
+    }
+
+    #region Context
+    public enum eValueContext
+    {
+        SkillAction,        // Value used in a skill action.
+        ResourceSetup,      // Value used when calculating entity resources
+        Entity,             // Values that require information about an entity.
+        NonAction,          // Individual payloads and other values not directly tied to actions and skills.
+        TargetingPriority,  // Some values can be used to determine target priority.
+    }
+
+    public static Dictionary<eValueContext, List<eValueComponentType>> AvailableComponentTypes = new Dictionary<eValueContext, List<eValueComponentType>>()
+    {
+        [eValueContext.SkillAction] = new List<eValueComponentType>()
+        {
+            eValueComponentType.FlatValue,
+            eValueComponentType.EntityLevel,
+            eValueComponentType.EntityAttributeBase,
+            eValueComponentType.EntityAttributeCurrent,
+            eValueComponentType.EntityResourceMax,
+            eValueComponentType.EntityResourceCurrent,
+            eValueComponentType.EntityResourceRatio,
+            eValueComponentType.EntityStatusEffectStacksHighest,
+            eValueComponentType.EntityStatusEffectStacksTotal,
+            eValueComponentType.DistanceFromTarget,
+            eValueComponentType.SavedValue,
+            eValueComponentType.RandomValue,
+            eValueComponentType.ActionResultValue
+        },
+        [eValueContext.ResourceSetup] = new List<eValueComponentType>()
+        {
+            eValueComponentType.FlatValue,
+            eValueComponentType.EntityLevel,
+            eValueComponentType.EntityAttributeBase,
+            eValueComponentType.EntityAttributeCurrent,
+            eValueComponentType.RandomValue,
+        },
+        [eValueContext.Entity] = new List<eValueComponentType>()
+        {
+            eValueComponentType.EntityLevel,
+            eValueComponentType.EntityAttributeBase,
+            eValueComponentType.EntityAttributeCurrent,
+            eValueComponentType.EntityResourceMax,
+            eValueComponentType.EntityResourceCurrent,
+            eValueComponentType.EntityResourceRatio,
+            eValueComponentType.EntityStatusEffectStacksHighest,
+            eValueComponentType.EntityStatusEffectStacksTotal,
+        },
+        [eValueContext.NonAction] = new List<eValueComponentType>()
+        {
+            eValueComponentType.FlatValue,
+            eValueComponentType.EntityLevel,
+            eValueComponentType.EntityAttributeBase,
+            eValueComponentType.EntityAttributeCurrent,
+            eValueComponentType.EntityResourceMax,
+            eValueComponentType.EntityResourceCurrent,
+            eValueComponentType.EntityResourceRatio,
+            eValueComponentType.EntityStatusEffectStacksHighest,
+            eValueComponentType.EntityStatusEffectStacksTotal,
+            eValueComponentType.DistanceFromTarget,
+            eValueComponentType.SavedValue,
+            eValueComponentType.RandomValue,
+        }
+    };
+    #endregion
+}
+#endregion
+
+public class Value
+{
+    // When a value is calculated, its components are all added together.
+    // After that additional values can be calculated and applied in chosen operations. Nesting is possible.
+    public class ValueOperation
+    {
+        public enum eOperation
+        {
+            Add,
+            Subtract,
+            Multiply,
+            Divide, 
+            LimitUpper, // Value will be set to this operation value if it exceeds it.
+            LimitLower  // Value will be set to this operation value if it's lower than it.
+        }
+
+        public eOperation Operation;
+        public Value Value;
+
+        public ValueOperation()
+        {
+            Value = new Value(false);
+        }
+
+        public ValueOperation(eOperation operation, Value value)
+        {
+            Operation = operation;
+            Value = value;
+        }
+    }
+
+    public List<ValueComponent> Components;
+    public List<ValueOperation> Operations;
+
+    public Value()
+    {
+        Components = new List<ValueComponent>();
+        Operations = new List<ValueOperation>();
+    }
+
+    public Value(bool addComponent)
+    {
+        Components = new List<ValueComponent>();
+        Operations = new List<ValueOperation>();
+        if (addComponent)
+        {
+            Components.Add(new ValueComponent());
+        }
+    }
+
+    public Value OutgoingValue(ValueInfo valueInfo)
+    {
+        var value = new Value(false);
+        var totalValue = 0.0f;
+
+        foreach (var component in Components)
+        {
+            if (component.Entity == ValueComponent.eEntity.Target &&
+                (component.ComponentType == ValueComponent.eValueComponentType.EntityResourceCurrent ||
+                 component.ComponentType == ValueComponent.eValueComponentType.EntityResourceMax))
+            {
+                value.Components.Add(component);
+            }
+            else
+            {
+                totalValue += component.GetValue(valueInfo);
             }
         }
 
         if (totalValue > Constants.Epsilon || totalValue < -Constants.Epsilon)
         {
-            value.Add(new ValueComponent(ValueComponent.eValueComponentType.FlatValue, totalValue));
+            value.Components.Add(new ValueComponent(ValueComponent.eValueComponentType.FlatValue, totalValue));
+        }
+
+        foreach (var operation in Operations)
+        {
+            value.Operations.Add(new ValueOperation(operation.Operation, operation.Value.OutgoingValue(valueInfo)));
         }
 
         return value;
     }
 
-    public float IncomingValue(Entity target, Dictionary<string, float> targetAttributes, Value maxValue = null)
+    public float CalculateValue(ValueInfo valueInfo)
     {
         var totalValue = 0.0f;
 
-        foreach (var component in this)
+        // Caclulate all components
+        foreach (var component in Components)
         {
-            if (component.ComponentType == ValueComponent.eValueComponentType.TargetResourceCurrent ||
-                component.ComponentType == ValueComponent.eValueComponentType.TargetResourceMax ||
-                component.ComponentType == ValueComponent.eValueComponentType.TargetResourceRatio ||
-                component.ComponentType == ValueComponent.eValueComponentType.FlatValue)
-            {
-                totalValue += component.GetValue(caster: null, target, casterAttributes: null, targetAttributes, actionResults: null);
-            }
-            else if (component.ComponentType == ValueComponent.eValueComponentType.CasterResourceCurrent ||
-                     component.ComponentType == ValueComponent.eValueComponentType.CasterResourceMax ||
-                     component.ComponentType == ValueComponent.eValueComponentType.CasterResourceRatio)
-            {
-                totalValue += component.GetValue(caster: target, target: null, casterAttributes: null, targetAttributes, actionResults: null);
-            }
-            else
-            {
-                Debug.LogError($"Incoming value can only be calculated on a value obtained through the OutgoingValue function.");
-            }
+            totalValue += component.GetValue(valueInfo);
         }
 
-        if (maxValue != null && maxValue.Count > 0)
+        // Apply any operations
+        foreach (var operation in Operations)
         {
-            var max = maxValue.IncomingValue(target, targetAttributes);
+            var operationValue = operation.Value.CalculateValue(valueInfo);
 
-            if (totalValue > 0.0f && totalValue > max)
+            switch (operation.Operation)
             {
-                totalValue = max;
-            }
-            else if (totalValue < 0.0f && totalValue < max)
-            {
-                totalValue = -max;
+                case ValueOperation.eOperation.Add:
+                {
+                    totalValue += operationValue;
+                    break;
+                }
+                case ValueOperation.eOperation.Subtract:
+                {
+                    totalValue -= operationValue;
+                    break;
+                }
+                case ValueOperation.eOperation.Multiply:
+                {
+                    totalValue *= operationValue;
+                    break;
+                }
+                case ValueOperation.eOperation.Divide:
+                {
+                    if (operationValue != 0.0f)
+                    {
+                        totalValue /= operationValue;
+                    }
+                    break;
+                }
+                case ValueOperation.eOperation.LimitUpper:
+                {
+                    if (operationValue < totalValue)
+                    {
+                        totalValue = operationValue;
+                    }
+                    break;
+                }
+                case ValueOperation.eOperation.LimitLower:
+                {
+                    if (operationValue > totalValue)
+                    {
+                        totalValue = operationValue;
+                    }
+                    break;
+                }
             }
         }
 

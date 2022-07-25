@@ -96,10 +96,13 @@ public class BattleData
     public static void BackupData(string path)
     {
         // Read from a file.
-        var json = Resources.Load<TextAsset>(path).text;
+        var json = Resources.Load<TextAsset>(path)?.text;
 
         // Save to a file.
-        System.IO.File.WriteAllText(Application.dataPath + "/Resources/" + BackupPath + ".json", json);
+        if (json != null)
+        {
+            System.IO.File.WriteAllText(Application.dataPath + "/Resources/" + BackupPath + ".json", json);
+        }
     }
 
     public static void UpdateSkillID(string oldID, string newID)

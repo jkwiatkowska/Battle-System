@@ -32,16 +32,18 @@ public abstract class ActionPayload : Action
     public eTargetPriority TargetPriority;  // If there's a target limit, targets can be prioritised based on specified criteria.
     public string Resource;                 // If targets are prioritised by how much of a resource they hold.
 
-    public override void Execute(Entity entity, Entity target, ref Dictionary<string, ActionResult> actionResults)
+    public Value SuccessChance;             // Chance of the payload being applied succesfully.
+
+    public override void Execute(Entity caster, Entity target, ref Dictionary<string, ActionResult> actionResults)
     {
         actionResults[ActionID] = new ActionResult();
 
-        if (!ConditionsMet(entity, target, actionResults))
+        if (!ConditionsMet(caster, target, actionResults))
         {
             return;
         }
 
-        var targets = GetTargetsForAction(entity, target);
+        var targets = GetTargetsForAction(caster, target);
 
         if (targets.Count == 0)
         {
@@ -62,15 +64,15 @@ public abstract class ActionPayload : Action
                 }
                 case eTargetPriority.Nearest:
                 {
-                    targets.Sort((t1, t2) => (entity.transform.position - t1.transform.position).sqrMagnitude.
-                                CompareTo((entity.transform.position - t2.transform.position).sqrMagnitude));
+                    targets.Sort((t1, t2) => (caster.Position - t1.Position).sqrMagnitude.
+                                CompareTo((caster.Position - t2.Position).sqrMagnitude));
                     targets = targets.GetRange(0, TargetLimit);
                     break;
                 }
                 case eTargetPriority.Furthest:
                 {
-                    targets.Sort((t2, t1) => (entity.transform.position - t2.transform.position).sqrMagnitude.
-                                CompareTo((entity.transform.position - t1.transform.position).sqrMagnitude));
+                    targets.Sort((t2, t1) => (caster.Position - t2.Position).sqrMagnitude.
+                                CompareTo((caster.Position - t1.Position).sqrMagnitude));
                     targets = targets.GetRange(0, TargetLimit);
                     break;
                 }
@@ -122,53 +124,48 @@ public abstract class ActionPayload : Action
         {
             foreach (var t in targets)
             {
-                // Target is in an incorrect state.
+                // Ensure target is in a correct state
                 if (t == null || (TargetState == eTargetState.Alive && !t.Alive) || (TargetState == eTargetState.Dead && t.Alive))
                 {
                     continue;
                 }
 
-                var payloadToApply = payloadData;
+                // Set up payload
+                var payload = new Payload(caster, payloadData, action: this, actionResults: actionResults, statusID: null);
 
-                // A payload can be applied if it has no conditions or conditions are met.
-                var canApplyPayload = payloadToApply.PayloadCondition == null || !payloadToApply.PayloadCondition.CheckCondition(entity, t);
-
-                // If conditions aren't met, but an alternate payload exist, check the alternate payload's conditions.
-                // Keep going until a payload that can be applied is found or all options are exhausted.
-                while (!canApplyPayload)
+                // Chance
+                if (SuccessChance != null)
                 {
-                    payloadToApply = payloadToApply.AlternatePayload;
-                    if (payloadToApply == null)
+                    var chance = Formulae.PayloadSuccessChance(this, payload);
+                    if (Random.value > chance)
                     {
+                        caster.OnHitMissed(target, payload);
                         continue;
                     }
-
-                    canApplyPayload = payloadToApply.PayloadCondition == null || payloadToApply.PayloadCondition.CheckCondition(entity, t);
                 }
 
-                var payload = new Payload(entity, payloadToApply, action: this, statusID: null, actionResults);
-                var result = new PayloadResult(payloadData, entity, t, SkillID, ActionID);
-
-                var immunity = t.HasImmunityAgainstAction(this);
-                if (immunity != null)
+                // Apply payload
+                if (payload.ApplyPayload(t, out var results))
                 {
-                    // On hit resisted
-                    t.OnImmune(entity, result);
-                    continue;
+                    actionResults[ActionID].Count += 1;
                 }
 
-                // Apply payload and update result if succesfull. 
-                if (!payload.ApplyPayload(entity, t, result))
+                foreach (var result in results)
                 {
-                    continue;
+                    foreach (var cat in result.Payload.PayloadData.Categories)
+                    {
+                        if (!actionResults[ActionID].Values.ContainsKey(cat))
+                        {
+                            actionResults[ActionID].Values[cat] = 0.0f;
+                        }
+                        actionResults[ActionID].Values[cat] += result.ResultValue;
+                    }
                 }
-                actionResults[ActionID].Value += result.Change;
-                actionResults[ActionID].Count += 1;
             }
         }
 
         actionResults[ActionID].Success = true;
-        entity.OnActionUsed(this, actionResults[ActionID]);
+        caster.OnActionUsed(this, actionResults[ActionID], actionResults);
     }
 
     public abstract List<Entity> GetTargetsForAction(Entity entity, Entity target);

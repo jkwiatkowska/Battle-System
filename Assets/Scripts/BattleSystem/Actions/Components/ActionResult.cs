@@ -6,13 +6,16 @@ using UnityEngine;
 public class ActionResult
 {
     public bool Success;
-    public float Value;
+    public Dictionary<string, float> Values; // Recorded action result values, such as damage or recovery applied.
+                                             // For payload results, the keys correspond to payload categories.
+                                             // For cost collection results, the key is "cost". 
+                                             // For other actiont types, the key is blank.
     public int Count;
 
     public ActionResult()
     {
         Success = false;
-        Value = 0.0f;
+        Values = new Dictionary<string, float>();
         Count = 0;
     }
 }

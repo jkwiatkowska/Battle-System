@@ -26,27 +26,28 @@ public class TargetingSystem : MonoBehaviour
 
     void Update()
     {
-        if (DetectedEntities.Count < 0.0f && Entity.EntityData.Skills.EngageOnSight)
+        if (DetectedEntities.Count < 0 && Entity.EntityData.Skills.EngageOnSight)
         {
             UpdateEntityLists();
         }
-
-        var disengageDist = Targeting.DisengageDistance;
-
-        for (int i = 0; i < DetectedEntities.Count; i++)
+        else if (DetectedEntities.Count > 0)
         {
-            var entity = DetectedEntities[i];
+            var disengageDist = Targeting.DisengageDistance * Targeting.DisengageDistance;
 
-            if (entity == null || (Entity.transform.position - entity.transform.position).sqrMagnitude > disengageDist)
+            for (int i = 0; i < DetectedEntities.Count; i++)
             {
-                DetectedEntities.Remove(entity);
-                if (entity != null)
-                {
-                    Entity.EntityBattle.Disengage(entity.EntityUID);
-                    entity.EntityBattle.Disengage(Entity.EntityUID);
-                }
+                var entity = DetectedEntities[i];
 
-                i--;
+                if (entity == null || (Entity.Position - entity.Position).sqrMagnitude > disengageDist)
+                {
+                    DetectedEntities.Remove(entity);
+                    if (entity != null)
+                    {
+                        Entity.EntityBattle.Disengage(entity.UID);
+                    }
+
+                    i--;
+                }
             }
         }
     }
@@ -215,7 +216,7 @@ public class TargetingSystem : MonoBehaviour
                         }
                     }
                 }
-                else if (Entity.EntityBattle.EngagedEntities.ContainsKey(target.EntityUID))
+                else if (Entity.EntityBattle.EngagedEntities.ContainsKey(target.UID))
                 {
                     TryEngageTarget(target);
                 }
@@ -278,10 +279,10 @@ public class TargetingSystem : MonoBehaviour
 
         foreach (var target in EnemyEntities)
         {
-            scores.Add(target.EntityUID, GetTargetScore(target, targeting.EnemyTargetPriority));
+            scores.Add(target.UID, GetTargetScore(target, targeting.EnemyTargetPriority));
         }
 
-        EnemyEntities.Sort((e1, e2) => scores[e2.EntityUID].CompareTo(scores[e1.EntityUID]));
+        EnemyEntities.Sort((e1, e2) => scores[e2.UID].CompareTo(scores[e1.UID]));
     }
 
     protected virtual void ProcessFriendlyEntityList(EntityTargetingData targeting)
@@ -290,10 +291,10 @@ public class TargetingSystem : MonoBehaviour
 
         foreach (var target in FriendlyEntities)
         {
-            scores.Add(target.EntityUID, GetTargetScore(target, targeting.FriendlyTargetPriority));
+            scores.Add(target.UID, GetTargetScore(target, targeting.FriendlyTargetPriority));
         }
 
-        FriendlyEntities.Sort((e1, e2) => scores[e2.EntityUID].CompareTo(scores[e1.EntityUID]));
+        FriendlyEntities.Sort((e1, e2) => scores[e2.UID].CompareTo(scores[e1.UID]));
     }
 
     float GetTargetScore(Entity target, EntityTargetingData.TargetingPriority targeting)
@@ -344,17 +345,19 @@ public class TargetingSystem : MonoBehaviour
             }
             case EntityTargetingData.TargetingPriority.eTargetPriority.ValueLowest:
             {
-                var value = targeting.Value.GetValue(Entity, target, casterAttributes: null, target.EntityAttributes());
+                var valueInfo = new ValueInfo(Entity.EntityInfo, targetInfo: target.EntityInfo, actionResults: null);
+                var value = targeting.Value.GetValue(valueInfo);
                 return score - value;
             }
             case EntityTargetingData.TargetingPriority.eTargetPriority.ValueHighest:
             {
-                var value = targeting.Value.GetValue(Entity, target, casterAttributes: null, target.EntityAttributes());
+                var valueInfo = new ValueInfo(Entity.EntityInfo, targetInfo: target.EntityInfo, actionResults: null);
+                var value = targeting.Value.GetValue(valueInfo);
                 return score + value;
             }
             case EntityTargetingData.TargetingPriority.eTargetPriority.Aggro:
             {
-                return score + Entity.EntityBattle.GetAggro(target.EntityUID) / BattleData.Aggro.MaxAggro;
+                return score + Entity.EntityBattle.GetAggro(target.UID) / BattleData.Aggro.MaxAggro;
             }
         }
 

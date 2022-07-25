@@ -9,27 +9,24 @@ public class ResourceDisplayBar : ResourceDisplay
     [SerializeField] private Image SlowBar;
     [SerializeField] private float UpdateSpeed;
 
-    float currentFill = 0;
-    float fillGoal = 0;
+    float FillGoal = 0;
 
     public void SetFill(float fillRatio, bool instant = false)
     {
-        fillGoal = fillRatio;
+        FillGoal = fillRatio;
         FastBar.fillAmount = fillRatio;
         if (instant)
         {
             SlowBar.fillAmount = fillRatio;
-            currentFill = SlowBar.fillAmount;
         }
     }
 
     private void Update()
     {
-        if (currentFill != fillGoal)
+        if (SlowBar.fillAmount != FillGoal)
         {
-            SlowBar.fillAmount = Mathf.Lerp(currentFill, fillGoal, UpdateSpeed);
+            SlowBar.fillAmount = Mathf.Lerp(SlowBar.fillAmount, FillGoal, UpdateSpeed);
         }
-        currentFill = SlowBar.fillAmount;
     }
 
     public override void SetValues(float current, float max)

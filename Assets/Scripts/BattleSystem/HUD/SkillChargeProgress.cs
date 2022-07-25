@@ -17,9 +17,9 @@ public class SkillChargeProgress : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    public void StartCharge(float requiredChargeTime, float fullChargeTime, string skillID, float chargeStartTime = 0.0f)
+    public void StartCharge(float requiredChargeTime, float fullChargeTime, string skillID, float chargeStartTime)
     {
-        ChargeStartTime = Mathf.Max(BattleSystem.Time, chargeStartTime);
+        ChargeStartTime = chargeStartTime;
         FullChargeTime = fullChargeTime;
 
         if (RequiredChargeBar != null)
@@ -31,6 +31,8 @@ public class SkillChargeProgress : MonoBehaviour
         {
             SkillNameText.text = NamesAndText.SkillName(skillID);
         }
+
+        Update();
     }
     
     void Update()

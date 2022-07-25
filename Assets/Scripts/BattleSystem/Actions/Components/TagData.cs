@@ -36,8 +36,8 @@ public class TagData
                         for (int i = 1; i < tagCount; i++)
                         {
                             var taggedEntity2 = taggedEntities[i];
-                            if ((caster.transform.position - taggedEntity2.transform.position).sqrMagnitude <
-                                (caster.transform.position - taggedEntity.transform.position).sqrMagnitude)
+                            if ((caster.Position - taggedEntity2.Position).sqrMagnitude <
+                                (caster.Position - taggedEntity.Position).sqrMagnitude)
                             {
                                 taggedEntity = taggedEntity2;
                             }
@@ -49,8 +49,8 @@ public class TagData
                         for (int i = 1; i < tagCount; i++)
                         {
                             var taggedEntity2 = taggedEntities[i];
-                            if ((caster.transform.position - taggedEntity2.transform.position).sqrMagnitude >
-                                (caster.transform.position - taggedEntity.transform.position).sqrMagnitude)
+                            if ((caster.Position - taggedEntity2.Position).sqrMagnitude >
+                                (caster.Position - taggedEntity.Position).sqrMagnitude)
                             {
                                 taggedEntity = taggedEntity2;
                             }

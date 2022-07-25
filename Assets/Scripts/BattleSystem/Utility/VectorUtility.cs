@@ -59,7 +59,7 @@ public static class VectorUtility
         }
 
         var radii = entity1.EntityData.Radius + entity2.EntityData.Radius;
-        var distance = Vector3.SqrMagnitude(entity1.transform.position - entity2.transform.position) - radii * radii;
+        var distance = Vector3.SqrMagnitude(entity1.Position - entity2.Position) - radii * radii;
 
         return distance;
     }
@@ -67,7 +67,7 @@ public static class VectorUtility
     public static float Distance2D(Vector2 pos, Entity entity)
     {
         var radius = entity.EntityData.Radius;
-        var entityPos = Get2DVector(entity.transform.position);
+        var entityPos = Get2DVector(entity.Origin);
         var distance = Vector2.SqrMagnitude(pos - entityPos) - radius * radius;
 
         return distance;
@@ -76,7 +76,7 @@ public static class VectorUtility
     public static float Distance3D(Vector3 pos, Entity entity)
     {
         var radius = entity.EntityData.Radius;
-        var entityPos = entity.transform.position;
+        var entityPos = entity.Position;
         var distance = Vector3.SqrMagnitude(pos - entityPos) - radius * radius;
 
         return distance;

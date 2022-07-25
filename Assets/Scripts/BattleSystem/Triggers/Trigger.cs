@@ -8,7 +8,7 @@ public class Trigger
     public float LastUsedTime;
     public float ExpireTime;        // If a trigger is only added temporarily, it will only work until this time. 
     public int UsesLeft;
-    public string TriggerKey;       // For triggers from statuses.
+    public string TriggerKey;       // For triggers from status effects.
 
     public Trigger(TriggerData triggerData, float expireTime = 0.0f)
     {
@@ -18,9 +18,10 @@ public class Trigger
         ExpireTime = expireTime;
     }
 
-    public Coroutine TryExecute(Entity entity, out bool usesLeft, Entity triggerSource = null, PayloadResult payloadResult = null, 
-                                Action action = null, ActionResult actionResult = null, string statusName = "", 
-                                TriggerData.eEntityAffected entityAffected = TriggerData.eEntityAffected.Self, string customIdentifier = "")
+    public bool TryExecute(Entity entity, out bool usesLeft, Entity triggerSource = null, Payload payload = null, 
+                           PayloadComponentResult payloadResult = null, Action action = null, ActionResult actionResult = null, 
+                           Dictionary<string, ActionResult> actionResults = null, string statusName = "", 
+                           TriggerData.eEntityAffected entityAffected = TriggerData.eEntityAffected.Self, string customIdentifier = "")
     {
         usesLeft = true;
         if (triggerSource == null)
@@ -30,20 +31,42 @@ public class Trigger
 
         if (TriggerData.Trigger == TriggerData.eTrigger.Custom && TriggerData.CustomIdentifier != customIdentifier)
         {
-            return null;
+            return false;
         }
 
-        if (!ConditionsMet(entity, triggerSource, payloadResult, action, actionResult, statusName, entityAffected))
+        if (!ConditionsMet(entity, triggerSource, payload, payloadResult, action, actionResult, actionResults, statusName, entityAffected))
         {
-            return null;
+            return false;
         }
 
-        return Execute(entity, triggerSource, out usesLeft);
+        var valueInfo = payload != null ? new ValueInfo(payload) : new ValueInfo(entity?.EntityInfo, triggerSource?.EntityInfo, actionResults, action?.ActionID);
+        if (TriggerData.ValuesToSave != null && TriggerData.ValuesToSave.Count > 0)
+        {
+            foreach (var value in TriggerData.ValuesToSave)
+            {
+                value.Save(valueInfo);
+            }
+        }
+
+        Execute(entity, triggerSource, valueInfo, out usesLeft);
+
+        return true;
     }
 
-    public Coroutine Execute(Entity entity, Entity target, out bool usesLeft)
+    public void Execute(Entity entity, Entity triggerSource, ValueInfo valueInfo, out bool usesLeft)
     {
         usesLeft = true;
+
+        if (TriggerData.TriggerChance != null)
+        {
+            var chance = TriggerData.TriggerChance.CalculateValue(valueInfo);
+            Debug.Log($"Chance: {chance}");
+            if (Random.value > chance)
+            {
+                return;
+            }
+            Debug.Log("Success");
+        }
 
         LastUsedTime = BattleSystem.Time;
 
@@ -53,11 +76,14 @@ public class Trigger
             usesLeft = UsesLeft > 0;
         }
 
-        return entity.StartCoroutine(TriggerData.Actions.ExecuteActions(entity, target));
+        foreach (var reaction in TriggerData.TriggerReactions)
+        {
+            reaction.React(entity, triggerSource);
+        }
     }
 
-    public bool ConditionsMet(Entity entity, Entity triggerSource, PayloadResult payloadResult, Action action, 
-                              ActionResult actionResult, string statusName, TriggerData.eEntityAffected entityAffected)
+    public bool ConditionsMet(Entity entity, Entity triggerSource, Payload payloadInfo, PayloadComponentResult payloadResult, Action action, 
+                              ActionResult actionResult, Dictionary<string, ActionResult> actionResults, string statusName, TriggerData.eEntityAffected entityAffected)
     {
         if (entityAffected != TriggerData.EntityAffected)
         {
@@ -74,14 +100,9 @@ public class Trigger
             return false;
         }
 
-        if (Random.value > TriggerData.TriggerChance)
-        {
-            return false;
-        }
-
         foreach (var condition in TriggerData.Conditions)
         {
-            if (!condition.ConditionMet(entity, triggerSource, payloadResult, action, actionResult, statusName))
+            if (!condition.ConditionMet(entity, triggerSource, payloadInfo, payloadResult, action, actionResult, actionResults, statusName))
             {
                 return false;
             }

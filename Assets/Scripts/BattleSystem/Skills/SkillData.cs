@@ -6,7 +6,11 @@ public class SkillData
 {
     public string SkillID;                                  // Used to obtain data about a skill.
 
+    public bool IsActive;                                   // Active skills may have requirements such as specific target and range. Only one active skill can be executed at a time.
+                                                            // Passive skills can be triggered independendly and cannot be interrupted. 
     public bool Interruptible;                              // If true, a skill can be interrupted by other entities. 
+
+    public int SkillPriority;                               //Skills with higher priority cannot be cancelled by skills with lower priority.
 
     public SkillChargeData SkillChargeData;                 // A charge time before skill execution can be added. Additional actions can be executed at that point.
     public ActionTimeline SkillTimeline;                    // Actions executed during skill cast.
@@ -31,13 +35,16 @@ public class SkillData
 
     public enum eCasterState
     {
+        Any,
         Grounded,
         Jumping,
-        Any
     }
 
     public eCasterState CasterState;            // Skill can only be executed in the state specified and is cancelled when state changes.
     public bool MovementCancelsSkill;           // Skill is cancelled if the entity moves while casting.
+
+    public List<(string ID, int Stacks)> StatusEffectsRequired; // Skills can have status effect requirements, making them only usable when the entity has the given status effects. 
+    public List<string> StatusEffectGroupsRequired;             // Alternatively, the requirement can be more vague - any status effect in the group stated will make the skill usable. 
 
     public SkillData():this("")
     {
@@ -47,12 +54,15 @@ public class SkillData
     public SkillData(string skillID)
     {
         SkillID = skillID;
+        IsActive = true;
         Interruptible = false;
         SkillChargeData = null;
         SkillTimeline = new ActionTimeline();
         NeedsTarget = false;
         PreferredTarget = eTargetPreferrence.Enemy;
         Range = 20.0f;
+        StatusEffectsRequired = new List<(string ID, int Stacks)>();
+        StatusEffectGroupsRequired = new List<string>();
     }
 
     public float Cooldown

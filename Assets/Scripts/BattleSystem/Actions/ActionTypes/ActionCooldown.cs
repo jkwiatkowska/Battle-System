@@ -71,6 +71,7 @@ public class ActionCooldown : Action
         }
 
         actionResults[ActionID].Success = true;
+        entity.OnActionUsed(this, actionResults[ActionID], actionResults);
     }
 
     public override void SetTypeDefaults()

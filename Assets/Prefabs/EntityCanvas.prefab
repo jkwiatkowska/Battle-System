@@ -266,8 +266,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   EntityNameText: []
   EntityLevelText: []
-  DepletableDisplays:
-  - {fileID: 8654776745752794701}
+  SkillChargeDisplay: []
+  ResourceDisplays: []
 --- !u!1 &5968998175909932700
 GameObject:
   m_ObjectHideFlags: 0
@@ -513,7 +513,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f24643a0862660948b80c0227c709bfd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DepletableName: hp
+  ResourceName: 
   FastBar: {fileID: 3612604067138093574}
   SlowBar: {fileID: 713559644636021862}
-  UpdateSpeed: 0.01
+  UpdateSpeed: 0.05

@@ -32,7 +32,7 @@ public class EntitySummon : Entity
             if (SummonAction.SharedAttributes.ContainsKey(attribute))
             {
                 BaseAttributes[attribute] = SummonAction.SharedAttributes[attribute] *
-                                            Summoner.Attribute(attribute, action.SkillID, action.ActionID, statusID: null, EntityData.Categories);
+                                            Summoner.Attribute(attribute, payload: null, action, statusID: null);
             }
         }
 
@@ -58,7 +58,7 @@ public class EntitySummon : Entity
 
     public void CheckRange()
     {
-        var dir = Summoner.transform.position - transform.position;
+        var dir = Summoner.Position - Position;
         var dist = dir.sqrMagnitude;
         if (SummonAction.MaxDistanceFromSummoner > Constants.Epsilon && 
             dist > SummonAction.MaxDistanceFromSummoner * SummonAction.MaxDistanceFromSummoner)
@@ -92,8 +92,8 @@ public class EntitySummon : Entity
             }
             case ActionSummon.eOutOfRangeReaction.TeleportInRange:
             {
-                var summonerPos = Summoner.transform.position;
-                var dir = transform.position - summonerPos;
+                var summonerPos = Summoner.Position;
+                var dir = Position - summonerPos;
                 var newPos = summonerPos + SummonAction.PreferredDistanceFromSummoner * dir.normalized;
                 newPos.y = summonerPos.y;
 
@@ -110,11 +110,12 @@ public class EntitySummon : Entity
     }
 
     #region Triggers
-    protected override void OnTrigger(TriggerData.eTrigger trigger, Entity triggerSource = null, PayloadResult payloadResult = null, 
-                                      ActionResult actionResult = null, Action action = null, string statusID = "", 
+    protected override void OnTrigger(TriggerData.eTrigger trigger, Entity triggerSource = null, Payload payload = null,
+                                      PayloadComponentResult payloadResult = null, ActionResult actionResult = null, Action action = null,
+                                      Dictionary<string, ActionResult> actionResults = null, string statusID = "",
                                       TriggerData.eEntityAffected entityAffected = TriggerData.eEntityAffected.Self, string customIdentifier = "")
     {
-        base.OnTrigger(trigger, triggerSource, payloadResult, actionResult, action, statusID, entityAffected, customIdentifier);
+        base.OnTrigger(trigger, triggerSource, payload, payloadResult, actionResult, action, actionResults, statusID, entityAffected, customIdentifier);
 
         if (entityAffected == TriggerData.eEntityAffected.Summoner)
         {
@@ -126,16 +127,16 @@ public class EntitySummon : Entity
             {
                 if (triggerSource != null)
                 {
-                    EntityBattle.Disengage(triggerSource.EntityUID);
+                    EntityBattle.Disengage(triggerSource.UID);
                 }
             }
         }
     }
 
-    public override void OnPayloadApplied(PayloadResult payloadResult)
+    public override void OnPayloadComponentApplied(PayloadComponentResult payloadResult)
     {
-        base.OnPayloadApplied(payloadResult);
-        Summoner.OnPayloadApplied(payloadResult);
+        base.OnPayloadComponentApplied(payloadResult);
+        Summoner.OnPayloadComponentApplied(payloadResult);
     }
 
     public override void OnStatusApplied(Entity target, string statusName)
@@ -150,13 +151,13 @@ public class EntitySummon : Entity
         Summoner.OnStatusClearedOutgoing(target, statusName);
     }
 
-    public override void OnKill(PayloadResult payloadResult = null, string statusID = "")
+    public override void OnKill(PayloadComponentResult payloadResult = null, string statusID = "")
     {
         base.OnKill(payloadResult, statusID);
         Summoner.OnKill(payloadResult, statusID);
     }
 
-    public override void OnDeath(Entity source = null, PayloadResult payloadResult = null)
+    public override void OnDeath(Entity source = null, PayloadComponentResult payloadResult = null)
     {
         base.OnDeath(source, payloadResult);
         if (Summoner != null)

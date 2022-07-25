@@ -34,6 +34,10 @@ public class ActionPayloadDirect : ActionPayload
                 // Return empty list if target was lost.
                 if (target == null)
                 {
+                    if (Target != eTarget.EnemyEntities)
+                    {
+                        targets.Add(entity);
+                    }
                     return targets;
                 }
 

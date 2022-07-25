@@ -6,33 +6,29 @@ public class ActionCondition
 {
     public enum eActionCondition
     {
-        ActionSuccess,              // Only execute if the condition action was executed succesfully.
-        ActionFail,                 // Only execute if the condition action failed to execute.
-        ValueBelow,                 // Checks if a certain value is low enough.
-        ValueAbove,                 // Checks if a value is high enough
-        HasStatus,                  // Checks if the caster has the specified status.
-    }
-
-    // Used by OnMinValue condition
-    public enum eConditionValueType
-    {
-        ActionResult,
-        ChargeRatio,
-        DistanceFromTarget,
-        ResourceRatio,
-        ResourceCurrent,
-        RandomValue,
+        ActionSuccess,                              // Only execute if the condition action was executed succesfully.
+        ValueCompare,                               // Compares two values.
+        CasterHasStatusEffect,
+        TargetHasStatusEffect,
     }
 
     public eActionCondition Condition;
-    public eConditionValueType ConditionValueType;
-    public float ConditionValueBoundary;            // Minimum or maximum value to compare against
-    public string ConditionTarget;                  // Name of resource if using resource ratio, action if ActionSuccess/Fail or status ID
-    public int MinStatusStacks;                     // For the HasStatus condition.
+    public bool RequiredResult;
+
+    public string StringValue;                      // For the action success condition.
+    public Value Value;                             // For value comparison.
+    public Value ComparisonValue;
+    public int MinStacks;
+    public int MaxStacks;
+
+    public ActionCondition AndCondition;            // If multiple conditions are required.
+    public ActionCondition OrCondition;             // Alternate condition.
 
     public ActionCondition()
     {
-        MinStatusStacks = 1;
+        RequiredResult = true;
+        Value = new Value();
+        ComparisonValue = new Value();
     }
 
     public ActionCondition(eActionCondition condition):this()
@@ -40,45 +36,86 @@ public class ActionCondition
         Condition = condition;
     }
 
-    public virtual bool ConditionMet(Entity entity, Entity target, string actionID, Dictionary<string, ActionResult> actionResults)
+    public virtual bool ConditionsMet(string actionID, ValueInfo valueInfo)
     {
+        var success = ConditionMet(actionID, valueInfo);
+
+        if (success && AndCondition != null)
+        {
+            success = AndCondition.ConditionsMet(actionID, valueInfo);
+        }
+
+        if (!success && OrCondition != null)
+        {
+            success = OrCondition.ConditionsMet(actionID, valueInfo);
+        }
+
+        return success;
+    }
+
+    public virtual bool ConditionMet(string actionID, ValueInfo valueInfo)
+    {
+        if (valueInfo == null)
+        {
+            Debug.LogError($"Value info is null.");
+            return false;
+        }
+
+        var result = false;
         switch (Condition)
         {
             case eActionCondition.ActionSuccess:
             {
-                if (actionResults != null && actionResults.ContainsKey(ConditionTarget))
+                if (valueInfo?.ActionResults != null && valueInfo.ActionResults.ContainsKey(StringValue))
                 {
-                    return actionResults[ConditionTarget].Success;
+                    result = valueInfo.ActionResults[StringValue].Success;
+                    break;
                 }
                 else
                 {
-                    Debug.LogError($"Condition action {ConditionTarget} for action {actionID} has not been executed.");
+                    Debug.LogError($"Condition action {StringValue} for action {actionID} has not been executed.");
                     return false;
                 }
             }
-            case eActionCondition.ActionFail:
+            case eActionCondition.ValueCompare:
             {
-                if (actionResults != null && actionResults.ContainsKey(ConditionTarget))
+                if (Value == null || ComparisonValue == null)
                 {
-                    return !actionResults[ConditionTarget].Success;
+                    Debug.LogError($"Attempted comparing two values, but one of them is null.");
+                    return false;
+                }
+                var v1 = Value.CalculateValue(valueInfo);
+                var v2 = Value.CalculateValue(valueInfo);
+                result = v1 + Constants.Epsilon > v2;
+                break;
+            }
+            case eActionCondition.CasterHasStatusEffect:
+            {
+                if (valueInfo?.Caster?.Entity != null)
+                {
+                    var stacks = valueInfo.Caster.Entity.GetHighestStatusEffectStacks(StringValue);
+                    result = stacks >= MinStacks && stacks <= MaxStacks;
                 }
                 else
                 {
-                    Debug.LogError($"Condition action {ConditionTarget} for action {actionID} has not been executed.");
-                    return false;
+                    Debug.LogError($"Caster is null.");
                 }
+
+                break;
             }
-            case eActionCondition.ValueAbove:
+            case eActionCondition.TargetHasStatusEffect:
             {
-                return ConditionValueBoundary <= ConditionValue(entity, target, actionID, actionResults);
-            }
-            case eActionCondition.ValueBelow:
-            {
-                return ConditionValueBoundary >= ConditionValue(entity, target, actionID, actionResults);
-            }
-            case eActionCondition.HasStatus:
-            {
-                return entity.GetStatusEffectStacks(ConditionTarget) > MinStatusStacks;
+                if (valueInfo?.Target?.Entity != null)
+                {
+                    var stacks = valueInfo.Target.Entity.GetHighestStatusEffectStacks(StringValue);
+                    result = stacks >= MinStacks && stacks <= MaxStacks;
+                }
+                else
+                {
+                    Debug.LogError($"Caster is null.");
+                }
+
+                break;
             }
             default:
             {
@@ -86,41 +123,7 @@ public class ActionCondition
                 return false;
             }
         }
-    }
 
-    float ConditionValue(Entity entity, Entity target, string actionID, Dictionary<string, ActionResult> actionResults)
-    {
-        switch (ConditionValueType)
-        {
-            case eConditionValueType.ActionResult:
-            {
-                return actionResults.ContainsKey(ConditionTarget) ? actionResults[ConditionTarget].Value : 0.0f;
-            }
-            case eConditionValueType.ChargeRatio:
-            {
-                return entity.EntityBattle.SkillChargeRatio;
-            }
-            case eConditionValueType.DistanceFromTarget:
-            {
-                return target != null ? VectorUtility.Distance2D(entity, target) : 0.0f; 
-            }
-            case eConditionValueType.ResourceRatio:
-            {
-                return entity.ResourceRatio(ConditionTarget);
-            }
-            case eConditionValueType.ResourceCurrent:
-            {
-                return entity.ResourcesCurrent[ConditionTarget];
-            }
-            case eConditionValueType.RandomValue:
-            {
-                return Random.value;
-            }
-            default:
-            {
-                Debug.LogError($"Unimplemented condition value type: {ConditionValueType}");
-                return 0.0f;
-            }
-        }
+        return result == RequiredResult;
     }
 }

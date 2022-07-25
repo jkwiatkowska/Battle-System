@@ -9,7 +9,7 @@ public static class NamesAndText
 
     public static string EntityName(Entity entity)
     {
-        var name = entity.EntityUID;
+        var name = entity.UID;
 
         return name;
     }
@@ -42,19 +42,66 @@ public static class NamesAndText
         return name;
     }
 
-    public static string DamageText(PayloadData payloadData, string resourceAffected, float value, List<string> flags, out Color color)
+    public static string ResourceChangeText(string resource, float change, PayloadComponentResult payloadResult, out Color color)
     {
         var text = "";
-        color = Color.red;
+        color = Color.white;
 
-        if (value > 0)
+        var resourceChange = payloadResult.PayloadComponent as PayloadResourceChange;
+        if (resourceChange == null)
+        {
+            Debug.LogError("Payload Result does not come from a resource change.");
+            return text;
+        }
+
+        if (payloadResult?.Payload != null)
+        {
+            var skill = payloadResult.Payload.Action?.SkillID;
+            if (!string.IsNullOrEmpty(skill))
+            {
+                text += $"{skill} ";
+            }
+            else
+            {
+                var statusID = payloadResult.Payload.SourceStatusEffect;
+                if (statusID != null)
+                {
+                    text += $"{statusID} ";
+                }
+            }
+
+            if (payloadResult.Payload.PayloadData?.Categories != null)
+            {
+                if (payloadResult.Payload.PayloadData.Categories.Contains("fire"))
+                {
+                    color = Color.red;
+                }
+                else if (payloadResult.Payload.PayloadData.Categories.Contains("water"))
+                {
+                    color = Color.blue;
+                }
+                else if (payloadResult.Payload.PayloadData.Categories.Contains("geo"))
+                {
+                    color = new Color(1, 0.6f, 0.2f);
+                }
+            }
+        }
+
+        var recovery = change > 0;
+        if (recovery)
         {
             text = "+";
             color = Color.green;
         }
 
-        text += $"{Mathf.Round(value)} {ResourceName(resourceAffected)}";
+        if (resource == "mp")
+        {
+            color = recovery ? Color.cyan : new Color(1, 0, 1);
+        }
 
+        text += $"{Mathf.Round(change)} {ResourceName(resource)}";
+
+        var flags = resourceChange?.Flags;
         if (flags.Contains("critical"))
         {
             text += '!';

@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class MovementEntity : MonoBehaviour
 {
+    [SerializeField] bool IgnoreVelocity;
     [SerializeField] float GroundCheckSphereRadius;
     protected Entity Entity;
 
@@ -25,10 +26,10 @@ public class MovementEntity : MonoBehaviour
     }
 
     #region Action Movement
-    public ActionMovement CurrentMovement               { get; protected set; }
+    public PayloadMovement CurrentMovement               { get; protected set; }
     Coroutine MovementCoroutine;
 
-    public virtual bool InitiateMovement(ActionMovement movement, Entity caster = null, Entity target = null, bool isSkill = false)
+    public virtual bool InitiateMovement(PayloadMovement movement, Entity caster = null, Entity target = null, bool isSkill = false)
     {
         if (movement.InterruptionLevel > Constants.Epsilon && movement.InterruptionLevel > Formulae.EntityInterruptResistance(Entity))
         {
@@ -51,27 +52,27 @@ public class MovementEntity : MonoBehaviour
 
         switch (movement.MovementType)
         {
-            case ActionMovement.eMovementType.MoveToPosition:
+            case PayloadMovement.eMovementType.MoveToPosition:
             {
                 MovementCoroutine = StartCoroutine(MoveToPositionEnumerator(caster, target, isSkill));
                 break;
             }
-            case ActionMovement.eMovementType.TeleportToPosition:
+            case PayloadMovement.eMovementType.TeleportToPosition:
             {
                 Teleport(movement, caster, target);
                 break;
             }
-            case ActionMovement.eMovementType.LaunchToPosition:
+            case PayloadMovement.eMovementType.LaunchToPosition:
             {
                 MovementCoroutine = StartCoroutine(LaunchToPositionEnumerator(caster, target, isSkill));
                 break;
             }
-            case ActionMovement.eMovementType.MoveInDirection:
+            case PayloadMovement.eMovementType.MoveInDirection:
             {
                 MovementCoroutine = StartCoroutine(MoveAlongDirectionEnumerator(caster, target, isSkill));
                 break;
             }
-            case ActionMovement.eMovementType.FreezePosition:
+            case PayloadMovement.eMovementType.FreezePosition:
             {
                 MovementCoroutine = StartCoroutine(FreezePositionCoroutine(isSkill));
                 break;
@@ -131,7 +132,7 @@ public class MovementEntity : MonoBehaviour
         transform.position = position;
     }
 
-    public void Teleport(ActionMovement movement, Entity caster, Entity target)
+    public void Teleport(PayloadMovement movement, Entity caster, Entity target)
     {
         // CurrentMovement has to be set first.
         if (movement == null)
@@ -144,7 +145,7 @@ public class MovementEntity : MonoBehaviour
         var found = movement.TargetPosition.TryGetTransformFromData(caster, target, out var goal, out _);
         if (!found)
         {
-            Debug.LogError($"A position for movement action used by {caster.EntityUID} could not be found.");
+            Debug.LogError($"A position for movement action used by {caster.UID} could not be found.");
             return;
         }
 
@@ -193,7 +194,7 @@ public class MovementEntity : MonoBehaviour
         var found = CurrentMovement.TargetPosition.TryGetTransformFromData(caster, target, out var goal, out _);
         if (!found)
         {
-            Debug.LogError($"A position for movement action used by {caster.EntityUID} could not be found.");
+            Debug.LogError($"A position for movement action used by {caster.UID} could not be found.");
             CurrentMovement = null;
             yield break;
         }
@@ -239,11 +240,11 @@ public class MovementEntity : MonoBehaviour
             transform.position += movement;
             if (movement.sqrMagnitude > Constants.Epsilon)
             {
-                if (CurrentMovement.FaceDirection == ActionMovement.eFaceDirection.FaceMovementDirection)
+                if (CurrentMovement.FaceDirection == PayloadMovement.eFaceDirection.FaceMovementDirection)
                 {
                     transform.rotation = Quaternion.LookRotation(movement.normalized, Vector3.up);
                 }
-                else if (CurrentMovement.FaceDirection == ActionMovement.eFaceDirection.FaceOppositeOfMovementDirection)
+                else if (CurrentMovement.FaceDirection == PayloadMovement.eFaceDirection.FaceOppositeOfMovementDirection)
                 {
                     transform.rotation = Quaternion.LookRotation(-movement.normalized, Vector3.up);
                 }
@@ -274,7 +275,7 @@ public class MovementEntity : MonoBehaviour
         var found = CurrentMovement.TargetPosition.TryGetTransformFromData(caster, target, out var goal, out _);
         if (!found)
         {
-            Debug.LogError($"A position for movement action used by {Entity.EntityUID} could not be found.");
+            Debug.LogError($"A position for movement action used by {Entity.UID} could not be found.");
             CurrentMovement = null;
             yield break;
         }
@@ -289,11 +290,11 @@ public class MovementEntity : MonoBehaviour
         dir.y = 0.0f;
         if (dir.sqrMagnitude > Constants.Epsilon)
         {
-            if (CurrentMovement.FaceDirection == ActionMovement.eFaceDirection.FaceMovementDirection)
+            if (CurrentMovement.FaceDirection == PayloadMovement.eFaceDirection.FaceMovementDirection)
             {
                 transform.rotation = Quaternion.LookRotation(dir.normalized, Vector3.up);
             }
-            else if (CurrentMovement.FaceDirection == ActionMovement.eFaceDirection.FaceOppositeOfMovementDirection)
+            else if (CurrentMovement.FaceDirection == PayloadMovement.eFaceDirection.FaceOppositeOfMovementDirection)
             {
                 transform.rotation = Quaternion.LookRotation(-dir.normalized, Vector3.up);
             }
@@ -307,7 +308,7 @@ public class MovementEntity : MonoBehaviour
         var gravity = GravitationalForce * gravityMultiplier;
         Velocity = LaunchVelocity(goal, CurrentMovement.LaunchAngle, gravityMultiplier);
 
-        float dist = (new Vector2(transform.position.x, transform.position.z) - new Vector2(goal.x, goal.z)).sqrMagnitude;
+        float dist = (new Vector2(Entity.Position.x, Entity.Position.z) - new Vector2(goal.x, goal.z)).sqrMagnitude;
         var maxDist = Entity.EntityData.Radius * Entity.EntityData.Radius;
 
         var launched = false;
@@ -321,7 +322,7 @@ public class MovementEntity : MonoBehaviour
 
             gameObject.transform.position += Velocity * elapsedTime;
 
-            dist = (new Vector2(transform.position.x, transform.position.z) - new Vector2(goal.x, goal.z)).sqrMagnitude;
+            dist = (new Vector2(Entity.Position.x, Entity.Position.z) - new Vector2(goal.x, goal.z)).sqrMagnitude;
 
             Velocity.y += gravity * elapsedTime;
 
@@ -356,7 +357,7 @@ public class MovementEntity : MonoBehaviour
         var found = CurrentMovement.TargetPosition.Direction.TryGetDirectionFromData(caster, target, out var direction);
         if (!found)
         {
-            Debug.LogError($"A position for movement action used by {Entity.EntityUID} could not be found.");
+            Debug.LogError($"A position for movement action used by {Entity.UID} could not be found.");
             CurrentMovement = null;
             yield break;
         }
@@ -379,11 +380,11 @@ public class MovementEntity : MonoBehaviour
 
         if (direction.sqrMagnitude > Constants.Epsilon)
         {
-            if (CurrentMovement.FaceDirection == ActionMovement.eFaceDirection.FaceMovementDirection)
+            if (CurrentMovement.FaceDirection == PayloadMovement.eFaceDirection.FaceMovementDirection)
             {
                 transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
             }
-            else if (CurrentMovement.FaceDirection == ActionMovement.eFaceDirection.FaceOppositeOfMovementDirection)
+            else if (CurrentMovement.FaceDirection == PayloadMovement.eFaceDirection.FaceOppositeOfMovementDirection)
             {
                 transform.rotation = Quaternion.LookRotation(-direction.normalized, Vector3.up);
             }
@@ -415,10 +416,10 @@ public class MovementEntity : MonoBehaviour
     #endregion
 
     #region Action Rotation
-    public ActionRotation CurrentRotation { get; protected set; }
+    public PayloadRotation CurrentRotation { get; protected set; }
     Coroutine RotationCoroutine;
 
-    public virtual bool InitiateRotation(ActionRotation rotation, Entity caster = null, Entity target = null, bool isSkill = false)
+    public virtual bool InitiateRotation(PayloadRotation rotation, Entity caster = null, Entity target = null, bool isSkill = false)
     {
         if (rotation.InterruptionLevel > Constants.Epsilon && rotation.InterruptionLevel > Formulae.EntityInterruptResistance(Entity))
         {
@@ -441,17 +442,17 @@ public class MovementEntity : MonoBehaviour
 
         switch (rotation.RotationType)
         {
-            case ActionRotation.eRotationType.SetRotation:
+            case PayloadRotation.eRotationType.SetRotation:
             {
                 SetRotation(caster, target);
                 break;
             }
-            case ActionRotation.eRotationType.Rotate:
+            case PayloadRotation.eRotationType.Rotate:
             {
                 RotationCoroutine = StartCoroutine(RotateCoroutine(isSkill));
                 break;
             }
-            case ActionRotation.eRotationType.RotateToDirection:
+            case PayloadRotation.eRotationType.RotateToDirection:
             {
                 RotationCoroutine = StartCoroutine(RotateTowardDirectionCoroutine(caster, target, isSkill));
                 break;
@@ -513,7 +514,7 @@ public class MovementEntity : MonoBehaviour
         var found = CurrentRotation.Direction.TryGetDirectionFromData(caster, target, out var targetDirection);
         if (!found)
         {
-            Debug.LogError($"A direction for rotation action used by {caster.EntityUID} could not be found.");
+            Debug.LogError($"A direction for rotation action used by {caster.UID} could not be found.");
             CurrentRotation = null;
             return;
         }
@@ -575,7 +576,7 @@ public class MovementEntity : MonoBehaviour
         var found = CurrentRotation.Direction.TryGetDirectionFromData(caster, target, out var targetDirection);
         if (!found)
         {
-            Debug.LogError($"A direction for rotation action used by {caster.EntityUID} could not be found.");
+            Debug.LogError($"A direction for rotation action used by {caster.UID} could not be found.");
             CurrentRotation = null;
             yield break;
         }
@@ -746,7 +747,10 @@ public class MovementEntity : MonoBehaviour
     #region Velocity Movement
     protected virtual void FixedUpdate()
     {
-        UpdateVelocity();
+        if (Entity != null && !IgnoreVelocity)
+        {
+            UpdateVelocity();
+        }
     }
 
     protected void UpdateVelocity()
@@ -761,8 +765,8 @@ public class MovementEntity : MonoBehaviour
         }
 
         // The launch movement mode takes control over velocity
-        if (CurrentMovement != null && (CurrentMovement.MovementType == ActionMovement.eMovementType.LaunchToPosition || 
-            CurrentMovement.MovementType == ActionMovement.eMovementType.FreezePosition))
+        if (CurrentMovement != null && (CurrentMovement.MovementType == PayloadMovement.eMovementType.LaunchToPosition || 
+            CurrentMovement.MovementType == PayloadMovement.eMovementType.FreezePosition))
         {
             if (landed)
             {
@@ -840,11 +844,12 @@ public class MovementEntity : MonoBehaviour
             var movementData = Entity.EntityData.Movement;
             if (movementData.ConsumeResourceWhenRunning)
             {
-                var drain = movementData.RunResourcePerSecond.IncomingValue(Entity, Entity.EntityAttributes()) * Time.fixedDeltaTime;
+                var valueInfo = new ValueInfo(Entity.EntityInfo, targetInfo: null, actionResults: null);
+                var drain = movementData.RunResourcePerSecond.CalculateValue(valueInfo) * Time.fixedDeltaTime;
                 if (Entity.ResourcesCurrent.ContainsKey(movementData.RunResource) &&
                     Entity.ResourcesCurrent[movementData.RunResource] >= drain)
                 {
-                    Entity.ApplyChangeToResource(movementData.RunResource, -drain);
+                    Entity.UpdateResource(movementData.RunResource, -drain);
                     IsRunning = true;
                 }
                 else

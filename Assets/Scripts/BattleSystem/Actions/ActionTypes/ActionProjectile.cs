@@ -105,8 +105,6 @@ public class ActionProjectile : ActionSummon
         projectile.SummonSetup(this, summoner);
         projectile.ProjectileStart(this, target);
 
-        summoner.AddSummonedEntity(projectile, this);
-
         return true;
     }
 

@@ -47,6 +47,14 @@ public class ActionSummon : Action
         // Spawn and setup
         var summon = BattleSystem.SpawnEntity(EntityID);
         actionResults[ActionID].Success = SetupSummon(summon, entity.SummoningEntity, target, position, forward);
+
+        if (actionResults[ActionID].Success)
+        {
+            entity.AddSummonedEntity(summon as EntitySummon, this);
+            entity.TagEntity(ActionID, summon);
+        }
+
+        entity.OnActionUsed(this, actionResults[ActionID], actionResults);
     }
 
     protected virtual bool SetupSummon(Entity summon, Entity summoner, Entity target, Vector3 position, Vector3 forward)
@@ -66,9 +74,6 @@ public class ActionSummon : Action
         //Setup
         summonedEntity.Setup(EntityID, summoner.Level, summoner);
         summonedEntity.SummonSetup(this, summoner);
-
-        summoner.AddSummonedEntity(summonedEntity, this);
-        summoner.TagEntity(ActionID, summonedEntity);
         return true;
     }
 

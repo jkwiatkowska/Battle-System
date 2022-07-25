@@ -13,16 +13,14 @@ public class TriggerData
             CausedBySkill,                      // For a trigger caused by a payload to work, it may be required to have been caused by a specific skill,
             CausedBySkillGroup,                 // or a skill from a specific skill group,
             CausedByAction,                     // or an action.
+            CausedByActionType,                 // Action of a specified type.
             PayloadCategory,                    // Custom string that typically refers to the type of damage.
             PayloadFlag,                        // Payload flags are custom string values that can be set when a resource change is applied. 
             ResultFlag,                         // Payload result flags are custom string values that can be set as a result of applying a payload.
             CausedByStatus,                     // For status triggers, used to specify the status.
             CausedByStatusGroup,                // A status belonging to this group.
             ResourceAffected,                   // Particular resource was affected by a payload.
-            EntityResourceMin,                  // Resource of this entity must be bigger than the float value.
-            TriggerSourceResourceMin,           // Resource of the entity that caused the trigger must be bigger than the float value.
-            EntityResourceRatioMin,             // Ratio of current resource to max resource.
-            TriggerSourceResourceRatioMin,      // Ratio of current resource to max resource of the entity that caused the trigger.
+            CompareValues,                      // Two values are compared, for example entity attributes, resources and level. If the first value is bigger, the condition is met.
             EntityHasTag,                       // Entity has a specific tag applied.
             TriggerSourceHasTag,                // Trigger source entity has a specific tag applied.
             EntityHasTagFromTriggerSource,      // Entity has a specific tag applied by the entity that caused the trigger.
@@ -39,10 +37,13 @@ public class TriggerData
 
         public eConditionType ConditionType;
         public bool DesiredOutcome;             // If false the check must fail for the condition to be met.
-        
+
+        public Action.eActionType ActionType;   // For action type check.
         public string StringValue;              // Name or ID.            
-        public float FloatValue;                // Resource value/change.
+        public Value Value;                     // Value being compared.
+        public Value ComparisonValue;           // Value being compared to.
         public int IntValue;                    // Count or status stacks.
+        public int IntValue2;
 
         public TriggerCondition AndCondition;   // Both this condition and the and condition must pass for the condition to be met. 
         public TriggerCondition OrCondition;    // Alternate conditions can be chained this way. If this condition fails, the next condition will be tried.
@@ -52,11 +53,13 @@ public class TriggerData
             DesiredOutcome = true;
 
             StringValue = "";
-            FloatValue = 1.0f;
+            Value = new Value();
+            ComparisonValue = new Value();
             IntValue = 1;
         }
 
-        public bool ConditionMet(Entity entity, Entity triggerSource, PayloadResult payloadResult, Action action, ActionResult actionResult, string statusID)
+        public bool ConditionMet(Entity entity, Entity triggerSource, Payload payload, PayloadComponentResult payloadResult, Action action, 
+                                 ActionResult actionResult, Dictionary<string, ActionResult> actionResults, string statusID)
         {
             bool conditionMet;
             switch (ConditionType)
@@ -69,8 +72,8 @@ public class TriggerData
                     }
                     else
                     {
-                        var skillName = payloadResult != null ? payloadResult.SkillID : action.SkillID;
-                        conditionMet = StringValue == skillName;
+                        var skillName = payloadResult != null ? payload?.Action?.SkillID : action.SkillID;
+                        conditionMet = !string.IsNullOrEmpty(skillName) && StringValue == skillName;
                     }
                     break;
                 }
@@ -82,8 +85,8 @@ public class TriggerData
                     }
                     else
                     {
-                        var skillName = payloadResult != null ? payloadResult.SkillID : action.SkillID;
-                        conditionMet = BattleData.SkillGroups.ContainsKey(StringValue) &&
+                        var skillName = payloadResult != null ? payload?.Action?.SkillID : action.SkillID;
+                        conditionMet = !string.IsNullOrEmpty(skillName) && BattleData.SkillGroups.ContainsKey(StringValue) &&
                                        BattleData.SkillGroups[StringValue].Contains(skillName);
                     }
                     break;
@@ -96,24 +99,40 @@ public class TriggerData
                     }
                     else
                     {
-                        var actionName = payloadResult != null ? payloadResult.ActionID : action.ActionID;
-                        conditionMet = actionName == StringValue;
+                        var actionName = payloadResult != null ? payload?.Action?.ActionID : action.ActionID;
+                        conditionMet = !string.IsNullOrEmpty(actionName) && actionName == StringValue;
+                    }
+                    break;
+                }
+                case eConditionType.CausedByActionType:
+                {
+                    if (payloadResult == null && action == null)
+                    {
+                        conditionMet = false;
+                    }
+                    else
+                    {
+                        var actionType = payloadResult != null ? payload?.Action?.ActionType : action.ActionType;
+                        conditionMet =  actionType == ActionType;
                     }
                     break;
                 }
                 case eConditionType.PayloadCategory:
                 {
-                    conditionMet = payloadResult != null && payloadResult.PayloadData.Categories.Contains(StringValue);
+                    var categories = payload?.PayloadData?.Categories;
+                    conditionMet = categories != null && categories.Contains(StringValue);
                     break;
                 }
                 case eConditionType.PayloadFlag:
                 {
-                    conditionMet = payloadResult != null && payloadResult.PayloadData.Flags.Contains(StringValue);
+                    var flags = payloadResult?.PayloadComponent?.Flags;
+                    conditionMet = flags != null && flags.Contains(StringValue);
                     break;
                 }
                 case eConditionType.ResultFlag:
                 {
-                    conditionMet = payloadResult != null && payloadResult.Flags.Contains(StringValue);
+                    var flags = payloadResult?.ResultFlags;
+                    conditionMet = flags != null && flags.Contains(StringValue);
                     break;
                 }
                 case eConditionType.CausedByStatus:
@@ -129,31 +148,20 @@ public class TriggerData
                 }
                 case eConditionType.ResourceAffected:
                 {
-                    conditionMet = payloadResult != null && payloadResult.PayloadData.ResourceAffected == StringValue;
+                    var payloadComponent = payloadResult?.PayloadComponent as PayloadResourceChange;
+                    var resource = payloadComponent?.ResourceAffected;
+                    conditionMet = !string.IsNullOrEmpty(resource) && resource == StringValue;
                     break;
                 }
-                case eConditionType.EntityResourceMin:
+                case eConditionType.CompareValues:
                 {
-                    conditionMet = entity != null && entity.ResourcesCurrent.ContainsKey(StringValue) &&
-                                   entity.ResourcesCurrent[StringValue] >= FloatValue;
-                    break;
-                }
-                case eConditionType.TriggerSourceResourceMin:
-                {
-                    conditionMet = triggerSource != null && triggerSource.ResourcesCurrent.ContainsKey(StringValue) &&
-                                   triggerSource.ResourcesCurrent[StringValue] >= FloatValue;
-                    break;
-                }
-                case eConditionType.EntityResourceRatioMin:
-                {
-                    conditionMet = entity != null && entity.ResourcesCurrent.ContainsKey(StringValue) &&
-                                   entity.ResourceRatio(StringValue) >= FloatValue;
-                    break;
-                }
-                case eConditionType.TriggerSourceResourceRatioMin:
-                {
-                    conditionMet = triggerSource != null && triggerSource.ResourcesCurrent.ContainsKey(StringValue) &&
-                                   triggerSource.ResourceRatio(StringValue) >= FloatValue;
+                    var results = actionResults != null ? actionResults : payload?.ActionResults;
+                    var actionID = action != null ? action.ActionID : payload?.Action?.ActionID;
+                    var valueInfo = new ValueInfo(entity?.EntityInfo, triggerSource?.EntityInfo, results, actionID);
+
+                    var v1 = Value.CalculateValue(valueInfo);
+                    var v2 = ComparisonValue.CalculateValue(valueInfo);
+                    conditionMet = v1 > v2;
                     break;
                 }
                 case eConditionType.EntityHasTag:
@@ -168,22 +176,31 @@ public class TriggerData
                 }
                 case eConditionType.EntityHasTagFromTriggerSource:
                 {
-                    conditionMet = entity != null && entity.HasTagFromEntity(StringValue, triggerSource.EntityUID);
+                    conditionMet = entity != null && entity.HasTagFromEntity(StringValue, triggerSource.UID);
                     break;
                 }
                 case eConditionType.TriggerSourceHasTagFromEntity:
                 {
-                    conditionMet = triggerSource != null && triggerSource.HasTagFromEntity(StringValue, entity.EntityUID);
+                    conditionMet = triggerSource != null && triggerSource.HasTagFromEntity(StringValue, entity.UID);
                     break;
                 }
                 case eConditionType.PayloadResultMin:
                 {
-                    conditionMet = payloadResult != null && payloadResult.Change >= FloatValue;
+                    var valueInfo = new ValueInfo(entity?.EntityInfo, triggerSource?.EntityInfo, payload?.ActionResults, payload?.Action?.ActionID);
+                    var v = ComparisonValue.CalculateValue(valueInfo);
+
+                    conditionMet = payloadResult != null && payloadResult.ResultValue >= v;
                     break;
                 }
                 case eConditionType.ActionResultMin:
                 {
-                    conditionMet = actionResult != null && actionResult.Value >= FloatValue;
+                    var results = actionResults != null ? actionResults : payload?.ActionResults;
+                    var actionID = action != null ? action.ActionID : payload?.Action?.ActionID;
+
+                    var valueInfo = new ValueInfo(entity?.EntityInfo, triggerSource?.EntityInfo, results, actionID);
+                    var v = ComparisonValue.CalculateValue(valueInfo);
+
+                    conditionMet = actionResult != null && actionResult.Values[StringValue] >= v;
                     break;
                 }
                 case eConditionType.NumTargetsAffectedMin:
@@ -193,13 +210,13 @@ public class TriggerData
                 }
                 case eConditionType.EntityHasStatus:
                 {
-                    var stacks = entity != null ? entity.GetStatusEffectStacks(StringValue) : 0;
-                    conditionMet = stacks >= IntValue;
+                    var stacks = entity != null ? entity.GetTotalStatusEffectStacks(StringValue) : 0;
+                    conditionMet = stacks >= IntValue && stacks <= IntValue2;
                     break;
                 }
                 case eConditionType.TriggerSourceHasStatus:
                 {
-                    var stacks = triggerSource != null ? triggerSource.GetStatusEffectStacks(StringValue) : 0;
+                    var stacks = triggerSource != null ? triggerSource.GetTotalStatusEffectStacks(StringValue) : 0;
                     conditionMet = stacks >= IntValue;
                     break;
                 }
@@ -229,12 +246,12 @@ public class TriggerData
             var success = conditionMet == DesiredOutcome;
             if (success && AndCondition != null)
             {
-                success = AndCondition.ConditionMet(entity, triggerSource, payloadResult, action, actionResult, statusID);
+                success = AndCondition.ConditionMet(entity, triggerSource, payload, payloadResult, action, actionResult, actionResults, statusID);
             }
 
             if (!success && OrCondition != null)
             {
-                return OrCondition.ConditionMet(entity, triggerSource, payloadResult, action, actionResult, statusID);
+                return OrCondition.ConditionMet(entity, triggerSource, payload, payloadResult, action, actionResult, actionResults, statusID);
             }
 
             return success;
@@ -244,15 +261,12 @@ public class TriggerData
         {
             var list = new List<eConditionType>();
 
-            list.Add(eConditionType.EntityResourceMin);
-            list.Add(eConditionType.EntityResourceRatioMin);
+            list.Add(eConditionType.CompareValues);
             list.Add(eConditionType.EntityHasStatus);
             list.Add(eConditionType.EntitiesEngagedMin);
             list.Add(eConditionType.EntityHasTag);
 
             // These apply to triggers caused by another entity, If another entity didn't cause the trigger, the entity itself is treated as a source entity. 
-            list.Add(eConditionType.TriggerSourceResourceMin);
-            list.Add(eConditionType.TriggerSourceResourceRatioMin);
             list.Add(eConditionType.TriggerSourceHasStatus);
             list.Add(eConditionType.TriggerSourceIsEnemy);
             list.Add(eConditionType.TriggerSourceIsFriend);
@@ -276,6 +290,7 @@ public class TriggerData
                 list.Add(eConditionType.CausedBySkill);
                 list.Add(eConditionType.CausedBySkillGroup);
                 list.Add(eConditionType.CausedByAction);
+                list.Add(eConditionType.CausedByActionType);
             }
 
             if (isPayloadTrigger)
@@ -327,8 +342,10 @@ public class TriggerData
         OnDisengage,                    // Battle with an entity ends.
         OnBattleStart,                  // Entity enters battle.
         OnBattleEnd,                    // Entity leaves battle.
-        OnCollisionEntity,              // Fires on trigger collision with any entity.
-        OnCollisionTargetableEntity,    // Fires on trigger collision with an entity that's targetable.
+        OnCollisionEntity,              // Fires on trigger collision with any entity. Both entities need colliders for this to work.
+        OnCollisionTargetableEntity,    // Fires on trigger collision with an entity that's targetable. Both entities need colliders for this to work.
+        OnEntityInTriggerCollider,      // Fires if any entity is inside the trigger collider. Both entities need trigger colliders for this to work.
+        OnTargetableInTriggerCollider,  // Fires if a targetable entity is inside the trigger collider. Both entities need trigger colliders for this to work.
         OnCollisionTerrain,             // Fires on trigger collision with an object on terrain layer.
         OnEntityMoved,                  // Triggered by an entity moving (non-action movement).
         OnEntityJumped,                 // Triggered when an entity jumps.
@@ -343,24 +360,144 @@ public class TriggerData
         EngagedEntity,              // Something happened to an entity that's being battled.
     }
 
-    public eTrigger Trigger;                    // Type of trigger.
-    public eEntityAffected EntityAffected;      // Entity affected that the trigger - another entity can cause a trigger to go off for another entity.
-    public List<TriggerCondition> Conditions;   // All these conditions have to be met for the trigger to go off.
-    public float Cooldown;                      // A trigger can have a cooldown applied whenever it activates to limit its effects
-    public int Limit;                           // A trigger can have a limit set. It will be removed from an entity when that limit is reached. Unlimited if 0. 
-    public float TriggerChance = 1.0f;          // The odds of an effect triggering. 
-    public string CustomIdentifier;             // For custom triggers.
+    public eTrigger Trigger;                        // Type of trigger.
+    public eEntityAffected EntityAffected;          // Entity affected that the trigger - another entity can cause a trigger to go off for another entity.
+    public List<TriggerCondition> Conditions;       // All these conditions have to be met for the trigger to go off.
+    public float Cooldown;                          // A trigger can have a cooldown applied whenever it activates to limit its effects
+    public int Limit;                               // A trigger can have a limit set. It will be removed from an entity when that limit is reached. Unlimited if 0. 
+    public Value TriggerChance;                     // The odds of an effect triggering. 
+    public string CustomIdentifier;                 // For custom triggers.
 
-    public ActionTimeline Actions;
+    public List<TriggerReaction> TriggerReactions;  // Skills used by the entity when hit by the trigger.
+    public List<SaveValue> ValuesToSave;            // Values such as action and payload result can be saved before the trigger reaction is executed, allowing the latter to make use of these values.
 
     public TriggerData()
     {
         Conditions = new List<TriggerCondition>();
-        Actions = new ActionTimeline();
+        TriggerReactions = new List<TriggerReaction>();
+        ValuesToSave = new List<SaveValue>();
     }
 
     public TriggerData(eTrigger trigger) : this()
     {
         Trigger = trigger;
+    }
+
+    public override string ToString()
+    {
+        var l = "[" + Trigger.ToString() + "]";
+        if (Conditions != null && Conditions.Count > 0)
+        {
+            foreach (var c in Conditions)
+            {
+                if (c.ConditionType == TriggerCondition.eConditionType.CausedBySkill)
+                {
+                    l += " Skill: ";
+                    l += c.StringValue;
+                }
+                else if (c.ConditionType == TriggerCondition.eConditionType.CausedBySkillGroup)
+                {
+                    l += " Skill Group: ";
+                    l += c.StringValue;
+                }
+                else if (c.ConditionType == TriggerCondition.eConditionType.CausedByAction ||
+                         c.ConditionType == TriggerCondition.eConditionType.ActionResultMin)
+                {
+                    l += " Action: ";
+                    l += c.StringValue;
+                }
+                else if (c.ConditionType == TriggerCondition.eConditionType.CausedByStatus ||
+                         c.ConditionType == TriggerCondition.eConditionType.TriggerSourceHasStatus)
+                {
+                    l += " Status: ";
+                    l += c.StringValue;
+                }
+                else if (c.ConditionType == TriggerCondition.eConditionType.CausedByStatusGroup)
+                {
+                    l += " Status Group: ";
+                    l += c.StringValue;
+                }
+                else if (c.ConditionType == TriggerCondition.eConditionType.EntityHasTag ||
+                         c.ConditionType == TriggerCondition.eConditionType.EntityHasTagFromTriggerSource)
+                {
+                    l += " Tag: ";
+                    l += c.StringValue;
+                }
+                else if (c.ConditionType == TriggerCondition.eConditionType.ResultFlag)
+                {
+                    l += " Result Flag: ";
+                    l += c.StringValue;
+                }
+                else if (c.ConditionType == TriggerCondition.eConditionType.ResourceAffected)
+                {
+                    l += " Resource: ";
+                    l += c.StringValue;
+                }
+                else if (c.ConditionType == TriggerCondition.eConditionType.PayloadFlag)
+                {
+                    l += " Payload Flag: ";
+                    l += c.StringValue;
+                }
+                else if (c.ConditionType == TriggerData.TriggerCondition.eConditionType.PayloadCategory)
+                {
+                    l += " Payload Category: ";
+                    l += c.StringValue;
+                }
+            }
+        }
+
+        if (TriggerReactions != null && TriggerReactions.Count > 0)
+        {
+            for (int i = 0; i < TriggerReactions.Count; i++)
+            {
+                l += $" -> {TriggerReactions[i].SkillID}";
+                if (i > 0)
+                {
+                    l += " + ";
+                }
+            }
+        }
+
+        return l;
+    }
+}
+
+public class TriggerReaction
+{
+    public enum eTriggerReactionTarget
+    {
+        TriggerSource,
+        SelectedEntity,
+        Self,
+    }
+
+    public string SkillID;
+    public eTriggerReactionTarget ReactionTarget;
+
+    public TriggerReaction()
+    {
+
+    }
+
+    public TriggerReaction(string skillID)
+    {
+        SkillID = skillID;
+        ReactionTarget = eTriggerReactionTarget.TriggerSource;
+    }
+
+    public void React(Entity affectedEntity, Entity triggerSource)
+    {
+        var target = triggerSource;
+
+        if (ReactionTarget == eTriggerReactionTarget.SelectedEntity)
+        {
+            target = affectedEntity.TargetingSystem?.SelectedTarget;
+        }
+        else if (ReactionTarget == eTriggerReactionTarget.Self)
+        {
+            target = affectedEntity;
+        }
+
+        affectedEntity.EntityBattle.TryUseSkill(SkillID, target);
     }
 }

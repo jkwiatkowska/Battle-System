@@ -1,4 +1,4 @@
-public class ActionMovement
+public class PayloadMovement
 {
     public enum eMovementType
     {
@@ -35,7 +35,7 @@ public class ActionMovement
     public int Priority;                    // If the entity is already affected by movement of this type, the movement with the lower priority will be cancelled.
     public bool LockEntityMovement;         // If true, the entity won't be able to move while the movement is active.
 
-    public ActionMovement()
+    public PayloadMovement()
     {
         TargetPosition = new TransformData();
         MaxDuration = 1.0f;
@@ -44,7 +44,7 @@ public class ActionMovement
     }
 }
 
-public class ActionRotation
+public class PayloadRotation
 {
     public enum eRotationType
     {
@@ -66,7 +66,7 @@ public class ActionRotation
     public float InterruptionLevel;         // If bigger than zero and smaller than the interrupt resistance level of an entity, the effect won't be applied.
     public int Priority;                    // If the entity is already affected by a rotation, the rotation with the lower priority will be cancelled. 
 
-    public ActionRotation()
+    public PayloadRotation()
     {
         Direction = new DirectionData();
         MaxDuration = 1.0f;

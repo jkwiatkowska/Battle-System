@@ -1,12 +1,68 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using PayloadMultiplierSet = System.Collections.Generic.List<PayloadMultiplier>; // Multiplier attributes in a set are added together
+
 public class MultiplierAttributeData
 {
-    public List<DamageMultiplierAttribute> DamageDealtMultipliers;
-    public List<DamageMultiplierAttribute> DamageReceivedMultipliers;
-    public Dictionary<string, List<DamageMultiplierAttribute>> CategoryDamageDealtMultipliers;
-    public Dictionary<string, List<DamageMultiplierAttribute>> CategoryDamageReceivedMultipliers;
+    public class PayloadMultiplierData
+    {
+        // Set = 1 + mult + mult + mult +....
+        // The sets are multiplied together.
+        public List<PayloadMultiplierSet> OutgoingMultipliers;
+        public List<PayloadMultiplierSet> IncomingMultipliers;
+
+        public PayloadMultiplierData()
+        {
+            OutgoingMultipliers = new List<PayloadMultiplierSet>();
+            IncomingMultipliers = new List<PayloadMultiplierSet>();
+        }
+
+        public float GetMultiplier(Payload payloadInfo, List<string> payloadFlags, List<string> resultFlags)
+        {
+            var multiplier = 1.0f;
+            var resultFlag = "";
+
+            foreach (var set in OutgoingMultipliers)
+            {
+                var setMult = 1.0f;
+
+                foreach (var m in set)
+                {
+                    setMult += m.GetMultiplier(payloadInfo.Caster, payloadFlags, payloadInfo.PayloadData.Categories, ref resultFlag);
+
+                    if (!string.IsNullOrEmpty(resultFlag))
+                    {
+                        resultFlags.Add(resultFlag);
+                    }
+                }
+
+                multiplier *= setMult;
+            }
+
+            foreach (var set in IncomingMultipliers)
+            {
+                var setMult = 1.0f;
+
+                foreach (var m in set)
+                {
+                    setMult += m.GetMultiplier(payloadInfo.Target, payloadFlags, payloadInfo.PayloadData.Categories, ref resultFlag);
+
+                    if (!string.IsNullOrEmpty(resultFlag))
+                    {
+                        resultFlags.Add(resultFlag);
+                    }
+                }
+
+                multiplier *= setMult;
+            }
+
+            return multiplier;
+        }
+    }
+
+    public PayloadMultiplierData DamageMultipliers;
+    public PayloadMultiplierData RecoveryMultipliers;
 
     public List<MultiplierAttribute> InterruptResistanceMultipliers;
 
@@ -16,62 +72,14 @@ public class MultiplierAttributeData
 
     public MultiplierAttributeData()
     {
-        DamageDealtMultipliers = new List<DamageMultiplierAttribute>();
-        DamageReceivedMultipliers = new List<DamageMultiplierAttribute>();
-        CategoryDamageDealtMultipliers = new Dictionary<string, List<DamageMultiplierAttribute>>();
-        CategoryDamageReceivedMultipliers = new Dictionary<string, List<DamageMultiplierAttribute>>();
+        DamageMultipliers = new PayloadMultiplierData();
+        RecoveryMultipliers = new PayloadMultiplierData();
 
         InterruptResistanceMultipliers = new List<MultiplierAttribute>();
 
         MovementSpeedMultipliers = new List<MultiplierAttribute>();
         RotationSpeedMultipliers = new List<MultiplierAttribute>();
         JumpHeightMultipliers = new List<MultiplierAttribute>();
-    }
-
-    public void ApplyDamageMultipliers(Dictionary<string, float> casterAttributes, Dictionary<string, float> targetAttributes, 
-                                       ref float damage, PayloadData payloadData, ref List<string> resultFlags)
-    {
-        foreach (var multiplier in DamageDealtMultipliers)
-        {
-            var flag = multiplier.ApplyDamageMultiplier(casterAttributes, ref damage, payloadData.Flags);
-            if (!string.IsNullOrEmpty(flag))
-            {
-                resultFlags.Add(flag);
-            }
-        }
-
-        foreach (var multiplier in DamageReceivedMultipliers)
-        {
-            var flag = multiplier.ApplyDamageMultiplier(targetAttributes, ref damage, payloadData.Flags);
-            if (!string.IsNullOrEmpty(flag))
-            {
-                resultFlags.Add(flag);
-            }
-        }
-
-        foreach (var category in payloadData.Categories)
-        {
-            if (CategoryDamageDealtMultipliers.ContainsKey(category))
-            {
-                foreach (var multiplier in CategoryDamageDealtMultipliers[category])
-                {
-                    var flag = multiplier.ApplyDamageMultiplier(casterAttributes, ref damage, payloadData.Flags);
-                    if (!string.IsNullOrEmpty(flag))
-                    {
-                        resultFlags.Add(flag);
-                    }
-                }
-
-                foreach (var multiplier in CategoryDamageReceivedMultipliers[category])
-                {
-                    var flag = multiplier.ApplyDamageMultiplier(targetAttributes, ref damage, payloadData.Flags);
-                    if (!string.IsNullOrEmpty(flag))
-                    {
-                        resultFlags.Add(flag);
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -107,64 +115,74 @@ public class MultiplierAttribute
     }
 }
 
-public class DamageMultiplierAttribute : MultiplierAttribute
+public class PayloadMultiplier : MultiplierAttribute
 {
     public string SuccessFlag;
+    public string PayloadCategoryRequired;
     public List<string> PayloadFlagsRequired;
 
-    public string ApplyDamageMultiplier(Dictionary<string, float> entityAttributes, ref float currentValue, List<string> payloadFlags)
+    public float GetMultiplier(EntityInfo entity, List<string> payloadFlags, List<string> payloadCategories, ref string resultFlag)
     {
-        if (entityAttributes != null)
-        {
-            // Chance.
-            if (!string.IsNullOrEmpty(ChanceAttribute))
-            {
-                if (!entityAttributes.ContainsKey(ChanceAttribute))
-                {
-                    return "";
-                }
+        resultFlag = "";
 
-                var chance = entityAttributes[ChanceAttribute];
-                if (chance < Random.value)
+        if (entity.Attributes != null && entity.Attributes.ContainsKey(Attribute))
+        {
+            // Category
+            if (!string.IsNullOrEmpty(PayloadCategoryRequired))
+            {
+                if (payloadCategories == null || !payloadCategories.Contains(PayloadCategoryRequired))
                 {
-                    return "";
+                    return 0.0f;
                 }
             }
 
-            // Payload flags
-            if (PayloadFlagsRequired != null)
+            // Chance.
+            if (!string.IsNullOrEmpty(ChanceAttribute))
+            {
+                if (!entity.Attributes.ContainsKey(ChanceAttribute))
+                {
+                    return 0.0f;
+                }
+
+                var chance = entity.Attribute(ChanceAttribute);
+                if (chance < Random.value)
+                {
+                    return 0.0f;
+                }
+            }
+
+            // Payload flags.
+            if (PayloadFlagsRequired != null && PayloadFlagsRequired.Count > 0)
             {
                 if (payloadFlags == null)
                 {
-                    return "";
+                    return 0.0f;
                 }
 
                 foreach (var flag in PayloadFlagsRequired)
                 {
                     if (!payloadFlags.Contains(flag))
                     {
-                        return "";
+                        return 0.0f;
                     }
                 }
             }
 
-            // Apply attribute.
-            if (entityAttributes.ContainsKey(Attribute))
-            {
-                currentValue *= entityAttributes[Attribute];
-                return SuccessFlag;
-            }
+            // Set success flag and return the multiplier attribute.
+            resultFlag = SuccessFlag;
+            return entity.Attribute(Attribute);
         }
-        return "";
+
+        return 0.0f;
     }
 
-    public DamageMultiplierAttribute()
+    public PayloadMultiplier()
     {
         SuccessFlag = "";
         PayloadFlagsRequired = new List<string>();
     }
 
-    public DamageMultiplierAttribute(string attribute) : base()
+    public PayloadMultiplier(string attribute) : base()
     {
         Attribute = attribute;
     }

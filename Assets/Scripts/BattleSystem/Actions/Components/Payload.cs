@@ -1,164 +1,107 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// This class compiles information about a payload being applied, its source and the involved entities and uses it to apply the payload to target entity. 
 public class Payload
 {
-    public Entity Source;
-    public Action Action;
-    public PayloadData PayloadData;
-    public Value PayloadValue;
-    public Value PayloadValueMax;
-    public Dictionary<string, float> CasterAttributes;
-    public string StatusID;
-    
-    public Payload(Entity caster, PayloadData payloadData, Action action, string statusID = null, Dictionary<string, ActionResult> actionResults = null)
-    {
-        Source = caster;
-        Action = action;
-        PayloadData = payloadData;
-        StatusID = statusID;
+    public EntityInfo Caster;                               // Entity that applied the payload. 
+    public EntityInfo Target;                               // Entity affected by the payload.
 
-        CasterAttributes = Action != null ? caster.EntityAttributes(Action.SkillID, Action.ActionID, statusID, PayloadData.Categories) :
-                           caster.EntityAttributes();
-        PayloadValue = payloadData.PayloadValue.OutgoingValues(caster, CasterAttributes, actionResults);
-        if (payloadData.PayloadValueMax != null && payloadData.PayloadValueMax.Count > 0)
+    public PayloadData PayloadData;                         // Payload being applied
+    public Payload AlternatePayload;                        // Alternate payload, if one exists.
+
+    public ActionPayload Action;                            // (Optional) Action that triggered the payload.
+    public Dictionary<string, ActionResult> ActionResults;  // (Optional) Results of previously executed actions.
+
+    public string SourceStatusEffect;                       // (Optional) Status effect that applied the payload.
+
+    public Payload()
+    {
+
+    }
+
+    public Payload(Entity caster, PayloadData payloadData, Payload payload, string statusID)
+                : this(caster, payloadData, payload?.Action, payload?.ActionResults, statusID)
+    {
+    }
+
+    public Payload(Entity caster, PayloadData payloadData, ActionPayload action, Dictionary<string, ActionResult> actionResults, string statusID) 
+        : this(new EntityInfo(caster, caster.EntityAttributes(payloadData, action, statusID)), payloadData, action, actionResults, statusID)
+    {
+    }
+
+    public Payload(EntityInfo caster, PayloadData payloadData, ActionPayload action, Dictionary<string, ActionResult> actionResults, string statusID)
+    {
+        Caster = caster;
+
+        Action = action;
+        ActionResults = actionResults;
+
+        PayloadData = payloadData;
+
+        SourceStatusEffect = statusID;
+
+        if (PayloadData.AlternatePayload != null)
         {
-            PayloadValueMax = payloadData.PayloadValueMax.OutgoingValues(caster, CasterAttributes, actionResults);
+            AlternatePayload = new Payload(caster, PayloadData.AlternatePayload, action, actionResults, statusID);
         }
     }
 
-    public bool ApplyPayload(Entity caster, Entity target, PayloadResult result)
+    public bool ApplyPayload(Entity target, out List<PayloadComponentResult> payloadResults)
     {
-        if (PayloadData.Revive && !target.Alive)
-        {
-            target.OnReviveIncoming(result);
-        }
+        payloadResults = new List<PayloadComponentResult>();
 
-        // Chance
-        var chance = Formulae.PayloadSuccessChance(PayloadData, caster, target);
-        if (Random.value > chance)
+        var caster = Caster.Entity;
+        if (target == null || caster == null)
         {
-            caster.OnHitMissed(target, result);
             return false;
         }
 
-        // Immunity
-        foreach (var category in PayloadData.Categories)
+        var payloadToApply = this;
+        payloadToApply.Target = new EntityInfo(target, payloadToApply.PayloadData);
+
+        // A payload can be applied if it has no conditions or conditions are met.
+        var canApplyPayload = payloadToApply.PayloadData.PayloadCondition == null || payloadToApply.PayloadData.PayloadCondition.CheckCondition(Caster, Target);
+
+        // If conditions aren't met, but an alternate payload exist, check the alternate payload's conditions.
+        // Keep going until a payload that can be applied is found or all options are exhausted.
+        while (!canApplyPayload)
         {
-            var immunity = target.HasImmunityAgainstCategory(category);
+            payloadToApply = payloadToApply.AlternatePayload;
+            if (payloadToApply == null)
+            {
+                return false;
+            }
+
+            payloadToApply.Target = new EntityInfo(target, payloadToApply.PayloadData);
+            canApplyPayload = payloadToApply.PayloadData.PayloadCondition == null || payloadToApply.PayloadData.PayloadCondition.CheckCondition(Caster, Target);
+        }
+
+        // Immunities
+        if (Action != null)
+        {
+            var immunity = target.HasImmunityAgainstAction(Action);
             if (immunity != null)
             {
-                target.OnImmune(caster, result);
+                target.OnImmune(caster, this);
                 return false;
             }
         }
 
-        var isSkill = caster == target && !string.IsNullOrEmpty(Action.SkillID);
-
-        // Movement
-        if (PayloadData.Rotation != null)
+        foreach (var category in payloadToApply.PayloadData.Categories)
         {
-            target.Movement.InitiateRotation(PayloadData.Rotation, caster, target, isSkill);
-        }
-
-        if (PayloadData.Movement != null)
-        {
-            target.Movement.InitiateMovement(PayloadData.Movement, caster, target, isSkill);
-        }
-
-        // Instant death
-        if (PayloadData.Instakill)
-        {
-            target.OnDeath(caster, result);
-        }
-
-        // Category multiplier
-        var targetData = target.EntityData;
-        var categoryMultiplier = 1.0f;
-        if (PayloadData.EntityCategoryMult != null && targetData.Categories != null)
-        {
-            foreach (var cat in PayloadData.EntityCategoryMult)
+            var catImmunity = target.HasImmunityAgainstCategory(category);
+            if (catImmunity != null)
             {
-                if (targetData.Categories.Contains(cat.Key))
-                {
-                    categoryMultiplier *= cat.Value;
-                }
+                target.OnImmune(caster, this);
+                return false;
             }
         }
 
-        // Reverse the change
-        result.Change = -PayloadValue.IncomingValue(target, target.EntityAttributes(), PayloadValueMax);
-
-        // Incoming damage can be calculated using target attributes and other variables here.
-        if (result.Change > Constants.Epsilon || result.Change < -Constants.Epsilon)
+        // Apply payload components.
+        foreach (var component in payloadToApply.PayloadData.Components)
         {
-            result.Change = Formulae.IncomingDamage(caster, target, result.Change, this, ref result.Flags) * categoryMultiplier;
-            target.ApplyChangeToResource(PayloadData.ResourceAffected, result);
-        }
-
-        caster.OnPayloadApplied(result);
-        target.OnPayloadReceived(result);
-
-        // Only continue if the target is still alive
-        if (!target.Alive)
-        {
-            return true;
-        }
-
-        // Aggro
-        if (PayloadData.Aggro != null)
-        {
-            var mult = PayloadData.MultiplyAggroByPayloadValue ? result.Change : 1.0f;
-            target.EntityBattle.ChangeAggro(caster, PayloadData.Aggro.GetAggroChange(caster, caster.EntityUID, target, mult));
-        }
-
-        // Tag
-        if (PayloadData.Tag != null)
-        {
-            caster.TagEntity(PayloadData.Tag.TagID, target, PayloadData.Tag);
-        }
-
-        // Status effects
-        if (PayloadData.ClearStatus != null)
-        {
-            foreach (var status in PayloadData.ClearStatus)
-            {
-                if (status.StatusGroup)
-                {
-                    if (BattleData.StatusEffectGroups.ContainsKey(status.StatusID))
-                    {
-                        foreach (var s in BattleData.StatusEffectGroups[status.StatusID])
-                        {
-                            target.ClearStatusEffect(caster, s);
-                        }
-                    }
-                }
-                else
-                {
-                    target.ClearStatusEffect(caster, status.StatusID);
-                }
-            }
-        }
-
-        if (PayloadData.RemoveStatusStacks != null)
-        {
-            foreach (var status in PayloadData.RemoveStatusStacks)
-            {
-                target.RemoveStatusEffectStacks(caster, status.StatusID, status.Stacks);
-            }
-        }
-
-        if (PayloadData.ApplyStatus != null)
-        {
-            foreach (var status in PayloadData.ApplyStatus)
-            {
-                var immunity = target.HasImmunityAgainstStatus(status.StatusID);
-                if (immunity != null)
-                {
-                    continue;
-                }
-                target.ApplyStatusEffect(caster, status.StatusID, status.Stacks, Action, this);
-            }
+            payloadResults.Add(component.ApplyComponent(payloadToApply));
         }
 
         return true;

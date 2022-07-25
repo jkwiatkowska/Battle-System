@@ -151,7 +151,7 @@ public static class BattleGUI
         }
     }
 
-    public static void EditFloatSlider(ref float value, string label, float min = 0.0f, float max = 1.0f, int labelWidth = 200, int inputWidth = 250, bool makeHorizontal = true)
+    public static void EditFloatSlider(ref float value, string label, float min = 0.0f, float max = 1.0f, int labelWidth = 150, int inputWidth = 250, bool makeHorizontal = true)
     {
         if (makeHorizontal)
         {
@@ -288,7 +288,7 @@ public static class BattleGUI
         }
         else if (!string.IsNullOrEmpty(noLabel))
         {
-            Label(noLabel);
+            Label(noLabel, 200);
         }
 
         if (options != null && options.Count > 0)
@@ -306,6 +306,95 @@ public static class BattleGUI
                 index = 0;
             }
             newElement = options[EditorGUILayout.Popup(index, options.ToArray(),
+                         GUILayout.Width(250))];
+
+            if (Button("+", 20) && newElement != null)
+            {
+                list.Add(newElementFunction(newElement));
+            }
+
+            GUILayout.EndHorizontal();
+        }
+        else if (options == null)
+        {
+            if (Button(addLabel, Space) && newElement != null)
+            {
+                list.Add(newElementFunction(newElement));
+            }
+        }
+        EndIndent();
+    }
+
+    // Show index - if -1, all elements are shown. Otherwise each element is collapsed except for one with a matching index. 
+    public static void EditList<T, E, F>(ref E newElement, List<T> list, F context, Func<T, F, eReturnResult> editElementFunction,
+                                         Func<E, T> newElementFunction, Func<T, int, string> elementLabelFunction, ref int showIndex, 
+                                         string label = "", string noLabel = "", string addLabel = "") where T : new()
+    {
+        if (!string.IsNullOrEmpty(label))
+        {
+            Label(label);
+        }
+
+        StartIndent();
+        if (list.Count > 0)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                var show = showIndex == -1 || showIndex == i;
+                var elementLabel = elementLabelFunction != null ? elementLabelFunction(list[i], i) : $"{i}";
+                if (!show)
+                {
+                    show = EditFoldout(ref show, elementLabel);
+                    if (show)
+                    {
+                        showIndex = i;
+                    }
+                }
+                else
+                {
+                    Label(elementLabel);
+                }
+
+                if (show)
+                {
+                    var result = editElementFunction(list[i], context);
+
+                    if (result == eReturnResult.Remove)
+                    {
+                        list.RemoveAt(i);
+                        i--;
+                        continue;
+                    }
+                    else if (result == eReturnResult.Copy)
+                    {
+                        list.Add(Copy(list[i]));
+                    }
+                }
+            }
+        }
+        else if (!string.IsNullOrEmpty(noLabel))
+        {
+            Label(noLabel);
+        }
+
+        var options = EnumValues<E>();
+        if (options != null && options.Count > 0)
+        {
+            var optionStrings = EnumStrings<E>();
+
+            GUILayout.BeginHorizontal();
+            if (!string.IsNullOrEmpty(addLabel))
+            {
+                Label(addLabel, addLabel.Count() * 8);
+            }
+
+            var copy = newElement; // This is needed for the lambda expression to work.
+            var index = options.FindIndex(0, a => a.Equals(copy));
+            if (index < 0)
+            {
+                index = 0;
+            }
+            newElement = options[EditorGUILayout.Popup(index, optionStrings.ToArray(),
                          GUILayout.Width(250))];
 
             if (Button("+", 20) && newElement != null)
@@ -576,7 +665,7 @@ public static class BattleGUI
         }
     }
 
-    public static void SelectCategory(ref string category, bool showLabel = true)
+    public static void SelectPayloadCategory(ref string category, bool showLabel = true)
     {
         var categories = BattleData.PayloadCategories;
         if (categories.Count == 0)
@@ -587,7 +676,7 @@ public static class BattleGUI
 
         if (showLabel)
         {
-            Label("Category:", 52);
+            Label("Category:", 60);
         }
         var categoryCopy = category; // Copy the string to use it in a lambda expression
         var index = categories.FindIndex(0, a => a.Equals(categoryCopy));
@@ -595,7 +684,7 @@ public static class BattleGUI
         {
             index = 0;
         }
-        category = categories[EditorGUILayout.Popup(index, categories.ToArray(), GUILayout.Width(60))];
+        category = categories[EditorGUILayout.Popup(index, categories.ToArray(), GUILayout.Width(Space))];
     }
 
     public static void SelectEntity(ref string id, EntityData.eEntityType entityType, string label, int labelWidth)

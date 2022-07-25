@@ -168,8 +168,11 @@ public class Projectile : EntitySummon
                         transform.RotateAround(TargetPosition, Vector3.up, rotationPerSecond * Time.deltaTime);
 
                         RelativePosition = transform.position - TargetPosition;
-                        transform.rotation = Quaternion.LookRotation(RelativePosition - previousPos);
-
+                        var lookRotation = RelativePosition - previousPos;
+                        if (lookRotation != Vector3.zero)
+                        {
+                            transform.rotation = Quaternion.LookRotation(lookRotation);
+                        }
                         break;
                     }
                     default:
@@ -217,7 +220,7 @@ public class Projectile : EntitySummon
         }
     }
 
-    public override void OnDeath(Entity source = null, PayloadResult payloadResult = null)
+    public override void OnDeath(Entity source = null, PayloadComponentResult payloadResult = null)
     {
         if (TriggerCollider != null)
         {

@@ -43,8 +43,8 @@ public class EntityCanvas : MonoBehaviour
     {
         foreach (var display in SkillChargeDisplay)
         {
+            display.StartCharge(skillChargeData.RequiredChargeTime, skillChargeData.FullChargeTime, skillID, Entity.EntityBattle.SkillStartTime);
             display.gameObject.SetActive(true);
-            display.StartCharge(skillChargeData.RequiredChargeTime, skillChargeData.FullChargeTime, skillID);
         }
     }
 

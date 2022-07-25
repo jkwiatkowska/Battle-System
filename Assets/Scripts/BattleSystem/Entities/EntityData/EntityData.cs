@@ -282,12 +282,17 @@ public class EntitySkillsData
     public float AutoAttackRange;                   // Max distance from target for an auto attack to be used.
     public bool AutoAttackRequiresLineOfSight;      // Entity will only attack if the target is in line of sight.
 
+    public bool UseSkillsOutOfCombat;               // If true, the entity will try executing skills even when not engaged.
+
     public bool EngageOnSight;                      // For auto skill modes.
                                                     // The entity will use its skills as soon as it spots a target they can be used on.
     public bool CheckLineOfSight;                   // Entity won't engage in battle if there's terrain in the way.
 
     public bool MoveToTargetIfNotInRange;           // Allows the entity to move toward targets that are too far away.
     public bool RotateToTargetIfNotWithinAngle;     // Allows the entity to rotate toward target if it's required to face it. 
+
+    public bool MoveToTargetWhenNotUsingSkills;     // If true, the entity will turn toward target and try to stay within preferred range between skill use.
+    public float PreferredTargetRange;              // If the entity can move and has an enemy target selected, it will try to get within this range when not using skills.
 
     public bool AutoSelectTargetOnSkillUse;         // If true, the entity will try to target an entity that meets the skill requirement if one isn't selected.
 

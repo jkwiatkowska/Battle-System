@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor;
+using System.Linq;
 
 [CustomEditor(typeof(Entity))]
 [CanEditMultipleObjects]
@@ -16,6 +17,10 @@ public class EntityEditor : Editor
     bool ShowStatusEffects = false;
     bool ShowTriggers = false;
     bool ShowEngagedEntities = false;
+    bool ShowSkills = false;
+
+    string StatusEffect;
+    string Skill;
 
     public override bool RequiresConstantRepaint()
     {
@@ -37,6 +42,7 @@ public class EntityEditor : Editor
             DisplayAttributes(entity);
             DisplayResources(entity);
             DisplayStatusEffects(entity);
+            DisplaySkills(entity);
             DisplayTriggers(entity);
             DisplayEngagedEntities(entity);
         }
@@ -133,7 +139,7 @@ public class EntityEditor : Editor
                     BattleGUI.StartIndent();
                     foreach (var a in attributes)
                     {
-                        BattleGUI.Label($"{a.Key}: {a.Value:0.##)}");
+                        BattleGUI.Label($"{a.Key}: {a.Value:0.##}");
                     }
                     BattleGUI.EndIndent();
                 }    
@@ -183,9 +189,82 @@ public class EntityEditor : Editor
             {
                 foreach (var e in statusEffects)
                 {
-                    BattleGUI.Label($"[{e.Key}]    Stacks: {e.Value.CurrentStacks} " +
-                                    $"{(e.Value.Data.Duration > Constants.Epsilon ? $"    Time Left: {(e.Value.EndTime - BattleSystem.Time):0.##}" : "")}");
+                    foreach (var c in e.Value)
+                    {
+                        GUILayout.BeginHorizontal();
+                        BattleGUI.Label($"[{e.Key}]    Stacks: {c.Value.CurrentStacks} " +
+                                        $"{(c.Value.Data.Duration > Constants.Epsilon ? $"    Time Left: {(c.Value.ExpireTime - BattleSystem.Time):0.##}" : "")}");
+                        if (BattleGUI.Button("X"))
+                        {
+                            int limit = 0;
+                            entity.ClearStatusEffect(entity, e.Key, ref limit);
+                            return;
+                        }
+                        GUILayout.EndHorizontal();
+                    }
                 }
+            }
+
+            GUILayout.BeginHorizontal();
+            BattleGUI.SelectStringFromList(ref StatusEffect, BattleData.StatusEffects.Keys.ToList(), "", makeHorizontal: false);
+            if (BattleGUI.Button("Apply"))
+            {
+                entity.ApplyStatusEffect(entity, StatusEffect, 1, true, true, false);
+            }
+            GUILayout.EndHorizontal();
+            BattleGUI.EndIndent();
+        }
+    }
+
+    void DisplaySkills(Entity entity)
+    {
+        if (BattleGUI.EditFoldout(ref ShowSkills, "Skills"))
+        {
+            BattleGUI.StartIndent();
+
+            if (entity.EntityBattle != null)
+            {
+                var current = "Current Skill: ";
+                if (entity.EntityBattle.CurrentSkill != null)
+                {
+                    current += entity.EntityBattle.CurrentSkill.SkillID;
+                }
+                else
+                {
+                    current += "None";
+                }
+                BattleGUI.Label(current);
+
+                if (entity.EntityBattle.SkillAvailableTime != null && entity.EntityBattle.SkillAvailableTime.Count > 0)
+                {
+                    BattleGUI.Label("Skill Cooldowns:");
+                    BattleGUI.StartIndent();
+
+
+                    foreach (var skill in entity.EntityBattle.SkillAvailableTime)
+                    {
+                        var cooldown = skill.Value - BattleSystem.Time;
+                        if (cooldown < 0)
+                        {
+                            cooldown = 0;
+                        }
+
+                        BattleGUI.Label($"{skill.Key} {cooldown:0.##}");
+                    }
+                    BattleGUI.EndIndent();
+                }
+
+                GUILayout.BeginHorizontal();
+                BattleGUI.SelectSkill(ref Skill, "Use Skill:");
+                if (BattleGUI.Button("Use"))
+                {
+                    entity.EntityBattle.TryUseSkill(Skill);
+                }
+                if (BattleGUI.Button("Force Use"))
+                {
+                    entity.EntityBattle.ForceUseSkill(Skill);
+                }
+                GUILayout.EndHorizontal();
             }
             BattleGUI.EndIndent();
         }
@@ -207,9 +286,12 @@ public class EntityEditor : Editor
                     foreach (var trigger in triggerType.Value)
                     {
                         var cd = trigger.TriggerData.Cooldown - BattleSystem.Time - trigger.LastUsedTime;
-                        BattleGUI.Label($"[{triggerType.Key}]    Entity Affected: {trigger.TriggerData.EntityAffected}" +
+                        BattleGUI.Label($"{trigger.TriggerData}");
+                        BattleGUI.StartIndent();
+                        BattleGUI.Label($"Entity Affected: {trigger.TriggerData.EntityAffected}" +
                                        (trigger.UsesLeft > 0 ? $"   Uses Left: {trigger.UsesLeft}" : "") +
                                        (cd > Constants.Epsilon ? $"    Cooldown: {cd:0.##}" : ""));
+                        BattleGUI.EndIndent();
                     }
                 }
             }
@@ -233,7 +315,7 @@ public class EntityEditor : Editor
 
                 foreach (var e in entities)
                 {
-                    var selected = entity.Target.EntityUID == e.Key;
+                    var selected = entity.Target.UID == e.Key;
                     BattleGUI.Label($"[{(selected ? "*" : "")}{e.Key}]    Aggro: {e.Value.Aggro:0.##}");
                 }
             }

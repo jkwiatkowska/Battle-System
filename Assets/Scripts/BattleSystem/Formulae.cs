@@ -6,33 +6,19 @@ public static class Formulae
 {
     // This class can be used to customise skill-related values such as damage and casting time based on entity attributes, payload flags and other variables. 
     #region Damage
-    public static float OutgoingDamage(Entity caster, float rawDamage, PayloadData payloadData)
+    public static float IncomingDamage(Payload payloadInfo, float rawDamage)
     {
-        var outgoingDamage = rawDamage;
-
-        return outgoingDamage;
-    }
-
-    public static float IncomingDamage(Entity caster, Entity target, float rawDamage, Payload payload, ref List<string> resultFlags)
-    {
-        var payloadData = payload.PayloadData;
-        var flags = payloadData.Flags;
-
-        var casterAttributes = payload.Action != null ? caster.EntityAttributes(payload.Action.SkillID, payload.Action.ActionID,
-                                payload.StatusID, payload.PayloadData.Categories, payload.PayloadData.CasterAttributesIgnored) :
-                                caster.EntityAttributes();
-
-        var targetAttributes = payload.Action != null ? target.EntityAttributes(payload.Action.SkillID, payload.Action.ActionID, 
-                               payload.StatusID, payload.PayloadData.Categories, payload.PayloadData.TargetAttributesIgnored) :
-                               target.EntityAttributes();
-
-        var isDamage = rawDamage > 0.0f;
-        var defMultiplier = isDamage ? 1.0f - targetAttributes["def"] / (targetAttributes["def"] + 5 * caster.Level + 500.0f) : 1.0f;
+        var defMultiplier = 1.0f - payloadInfo.Target.Attribute("def") / payloadInfo.Target.Attribute("def") + 5 * payloadInfo.Caster.Level + 500.0f;
         var incomingDamage = rawDamage * defMultiplier;
 
-        BattleData.Multipliers.ApplyDamageMultipliers(casterAttributes, targetAttributes, ref incomingDamage, payloadData, ref resultFlags);
-
         return incomingDamage;
+    }
+
+    public static float IncomingRecovery(Payload payloadInfo, float recoveryAmount)
+    {
+        var incomingRecovery = recoveryAmount;
+
+        return recoveryAmount;
     }
     #endregion
 
@@ -46,11 +32,12 @@ public static class Formulae
     }
 
     #region Resources
-    public static float ResourceMaxValue(Entity entity, Dictionary<string, float> entityAttributes, string resource)
+    public static float ResourceMaxValue(EntityInfo entity, string resource)
     {
         if (BattleData.EntityResources.ContainsKey(resource))
         {
-            return BattleData.EntityResources[resource].GetValueFromAttributes(entity, entityAttributes);
+            var valueInfo = new ValueInfo(entity, null, null);
+            return BattleData.EntityResources[resource].CalculateValue(valueInfo);
         }
 
         Debug.LogError($"Resource {resource} not found in game data.");
@@ -65,13 +52,14 @@ public static class Formulae
         return startValue;
     }
 
-    public static float ResourceRecoveryRate(Entity entity, Dictionary<string, float> entityAttributes, EntityData.EntityResource resource)
+    public static float ResourceRecoveryRate(EntityInfo entity, EntityData.EntityResource resource)
     {
-        if (entity.EntityBattle.InCombat)
+        if (entity.Entity.EntityBattle.InCombat)
         {
-            if (resource != null && resource.ChangePerSecondInCombat != null && resource.ChangePerSecondInCombat.Count > 0)
+            if (resource != null && resource.ChangePerSecondInCombat != null && resource.ChangePerSecondInCombat.Components.Count > 0)
             {
-                return resource.ChangePerSecondInCombat.IncomingValue(entity, entityAttributes);
+                var valueInfo = new ValueInfo(entity, null, null);
+                return resource.ChangePerSecondInCombat.CalculateValue(valueInfo);
             }
             else
             {
@@ -80,9 +68,10 @@ public static class Formulae
         }
         else
         {
-            if (resource != null && resource.ChangePerSecondOutOfCombat != null && resource.ChangePerSecondOutOfCombat.Count > 0)
+            if (resource != null && resource.ChangePerSecondOutOfCombat != null && resource.ChangePerSecondOutOfCombat.Components.Count > 0)
             {
-                return resource.ChangePerSecondOutOfCombat.IncomingValue(entity, entityAttributes);
+                var valueInfo = new ValueInfo(entity, null, null);
+                return resource.ChangePerSecondOutOfCombat.CalculateValue(valueInfo);
             }
             else
             {
@@ -122,7 +111,7 @@ public static class Formulae
         return cooldown;
     }
 
-    public static float StatusDurationTime(Entity caster, Entity targer, StatusEffectData statusEffect)
+    public static float StatusDurationTime(EntityInfo caster, EntityInfo targer, StatusEffectData statusEffect)
     {
         var duration = statusEffect.Duration;
 
@@ -145,9 +134,10 @@ public static class Formulae
     }
     #endregion
 
-    public static float PayloadSuccessChance(PayloadData payloadData, Entity caster, Entity target)
+    public static float PayloadSuccessChance(ActionPayload action, Payload payload)
     {
-        var successChance = payloadData.SuccessChance;
+        var valueInfo = new ValueInfo(payload);
+        var successChance = action.SuccessChance.CalculateValue(valueInfo);
 
         return successChance;
     }

@@ -63,9 +63,9 @@ public class BattleSystem : MonoBehaviour
 
     public static void AddEntity(Entity entity)
     {
-        if (!Entities.ContainsKey(entity.EntityUID))
+        if (!Entities.ContainsKey(entity.UID))
         {
-            Entities.Add(entity.EntityUID, entity);
+            Entities.Add(entity.UID, entity);
 
             if (entity.EntityData.IsTargetable)
             {
@@ -76,7 +76,7 @@ public class BattleSystem : MonoBehaviour
 
     public static void RemoveEntity(Entity entity)
     {
-        Entities.Remove(entity.EntityUID);
+        Entities.Remove(entity.UID);
 
         TargetableEntities.Remove(entity);
     }

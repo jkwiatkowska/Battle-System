@@ -5,89 +5,79 @@ using UnityEngine;
 public class StatusEffect
 {
     public StatusEffectData Data    { get; private set; }
-    Action Action;
     public int CurrentStacks        { get; private set; }
-    Entity Target;
-    public Entity Caster            { get; private set; }
+    EntityInfo Target;
+    public EntityInfo Caster;
     float StartTime;
-    public float EndTime            { get; private set; }
+    public float EndTime;
+    float DurationChange;
+    public float ExpireTime => EndTime + DurationChange;
+
     Payload SourcePayload;
 
     public List<(Payload Payload, float NextTimestamp)> OnInterval;
-    public List<Payload> OnCleared;
-    public List<Payload> OnExpired;
+    public Payload OnCleared;
+    public Payload OnExpired;
 
-    public bool RemoveEffect;
+    public bool RemoveEffect;   // This is set true when the effect is due to be removed.
 
-    public StatusEffect (Entity target, Entity caster, StatusEffectData statusEffectData, Action action, Payload payload)
+    public StatusEffect(StatusEffectData statusEffectData, EntityInfo caster, EntityInfo target)
     {
-        Setup(target, caster, statusEffectData, action, payload);
+        Setup(statusEffectData, caster, target, payload: null);
     }
 
-    public void Setup(Entity target, Entity caster, StatusEffectData statusEffectData, Action action, Payload payload)
+    public StatusEffect(StatusEffectData statusEffectData, Payload payload)
+    {
+        Setup(statusEffectData, payload.Caster, payload.Target, payload);
+    }
+
+    public void Setup(StatusEffectData statusEffectData, EntityInfo caster, EntityInfo target, Payload payload)
     {
         Data = statusEffectData;
-        Action = action;
-        CurrentStacks = 0;
-        Target = target;
         Caster = caster;
+        Target = target;
+        SourcePayload = payload;
+        CurrentStacks = 0;
         StartTime = BattleSystem.Time;
         EndTime = StartTime + Formulae.StatusDurationTime(Caster, Target, Data);
-        SourcePayload = payload;
         RemoveEffect = false;
-        OnInterval = new List<(Payload Payload, float NextTimestamp)>();
-        OnCleared = new List<Payload>();
-        OnExpired = new List<Payload>();
+
+        RefreshPayloads();
     }
 
-    void UpdatePayloads()
+    void RefreshPayloads()
     {
         OnInterval = new List<(Payload Payload, float NextTimestamp)>();
-        if (Data.OnInterval != null)
+        foreach (var p in Data.OnInterval)
         {
-            foreach (var payload in Data.OnInterval)
-            {
-                OnInterval.Add((Payload: new Payload(Caster, payloadData: payload.PayloadData, Action, Data.StatusID), NextTimestamp: BattleSystem.Time + payload.Interval));
-            }
+            OnInterval.Add((Payload: new Payload(Caster.Entity, p.Payload, SourcePayload, Data.StatusID), NextTimestamp: BattleSystem.Time + p.Delay));
         }
 
-        if (Data.OnCleared != null && Data.OnCleared.Count > 0)
+        if (Data.OnCleared != null)
         {
-            OnCleared = new List<Payload>();
-            foreach (var payload in Data.OnCleared)
-            {
-                OnCleared.Add(new Payload(Caster, payload, Action, Data.StatusID));
-            }
+            OnCleared = new Payload(Caster.Entity, Data.OnCleared, SourcePayload, Data.StatusID);
         }
 
-        if (Data.OnExpired != null && Data.OnExpired.Count > 0)
+        if (Data.OnExpired != null)
         {
-            OnExpired = new List<Payload>();
-            foreach (var payload in Data.OnExpired)
-            {
-                OnExpired.Add(new Payload(Caster, payload, Action, Data.StatusID));
-            }
+            OnExpired = new Payload(Caster.Entity, Data.OnExpired, SourcePayload, Data.StatusID);
         }
     }
 
     public bool Update()
     {
-        if (RemoveEffect)
+        if (RemoveEffect || (Caster.Entity == null && Data.RemoveOnCasterDeath))
         {
             return false;
         }
 
         var now = BattleSystem.Time;
 
-        if (Data.Duration > Constants.Epsilon && EndTime < now)
+        if (Data.Duration > Constants.Epsilon && ExpireTime < now)
         {
             if (OnExpired != null)
             {
-                for (int i = 0; i < OnExpired.Count; i++)
-                {
-                    var payloadResult = new PayloadResult(Data.OnExpired[i], Caster, Target);
-                    OnExpired[i].ApplyPayload(Caster, Target, payloadResult);
-                }
+                OnExpired.ApplyPayload(Target.Entity, out _);
             }
             return false;
         }
@@ -98,8 +88,7 @@ public class StatusEffect
 
             if (payload.NextTimestamp < now)
             {
-                var payloadResult = new PayloadResult(Data.OnInterval[i].PayloadData, Caster, Target);
-                payload.Payload.ApplyPayload(Caster, Target, payloadResult);
+                payload.Payload.ApplyPayload(Target.Entity, out _);
                 payload.NextTimestamp += Data.OnInterval[i].Interval;
 
                 OnInterval[i] = payload;
@@ -108,17 +97,17 @@ public class StatusEffect
         return true;
     }
 
-    public void ApplyStacks(int stacks = 1)
+    public void ApplyStacks(int stacks = 1, bool refreshDuration = true, bool refreshPayloads = true)
     {
         StartTime = BattleSystem.Time;
-        if (Data.StackGainResetsDuration)
+        if (refreshDuration)
         {
             EndTime = StartTime + Formulae.StatusDurationTime(Caster, Target, Data);
         }
 
-        if (Caster != null)
+        if (refreshPayloads)
         {
-            UpdatePayloads();
+            RefreshPayloads();
         }
 
         if (CurrentStacks == Data.MaxStacks)
@@ -146,26 +135,26 @@ public class StatusEffect
             {
                 if (effect.StacksRequiredMax < CurrentStacks)
                 {
-                    effect.Remove(Data.StatusID, i, Target);
+                    effect.Remove(Data.StatusID, Caster.UID, i, Target.Entity);
                 }
 
                 if (effect.StacksRequiredMin > stacksBefore && effect.StacksRequiredMin <= CurrentStacks && 
                     effect.StacksRequiredMax >= CurrentStacks)
                 {
-                    effect.Apply(Data.StatusID, i, Target, Caster, SourcePayload);
+                    effect.Apply(Data.StatusID, i, Caster, Target);
                 }
             }
             else if (change < 0)
             {
                 if (effect.StacksRequiredMin > CurrentStacks)
                 {
-                    effect.Remove(Data.StatusID, i, Target);
+                    effect.Remove(Data.StatusID, Caster.UID, i, Target.Entity);
                 }
 
                 if (effect.StacksRequiredMax < stacksBefore && effect.StacksRequiredMin <= CurrentStacks &&
                     effect.StacksRequiredMax >= CurrentStacks)
                 {
-                    effect.Apply(Data.StatusID, i, Target, Caster, SourcePayload);
+                    effect.Apply(Data.StatusID, i, Caster, Target);
                 }
             }
         }
@@ -175,11 +164,7 @@ public class StatusEffect
     {
         if (OnCleared != null)
         {
-            for (int i = 0; i < OnCleared.Count; i++)
-            {
-                var payloadResult = new PayloadResult(Data.OnCleared[i], Caster, Target);
-                OnCleared[i].ApplyPayload(Caster, Target, payloadResult);
-            }
+            OnCleared.ApplyPayload(Target.Entity, out _);
         }
         RemoveStatus();
     }
@@ -189,7 +174,17 @@ public class StatusEffect
         for (int i = 0; i < Data.Effects.Count; i++)
         {
             var effect = Data.Effects[i];
-            effect.Remove(Data.StatusID, i, Target);
+            effect.Remove(Data.StatusID, Caster.UID, i, Target.Entity);
+        }
+    }
+
+    public void ChangeDuration(float change)
+    {
+        DurationChange += change;
+        var max = Data.DurationIncreaseLimit;
+        if (max > Constants.Epsilon && max < DurationChange)
+        {
+            DurationChange = max;
         }
     }
 }

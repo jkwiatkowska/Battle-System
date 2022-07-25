@@ -31,13 +31,13 @@ public class Targetable : MonoBehaviour
 
     public void Target(bool targetted, Entity entity)
     {
-        if (TargetedBy.ContainsKey(entity.EntityUID) && !targetted)
+        if (TargetedBy.ContainsKey(entity.UID) && !targetted)
         {
-            TargetedBy.Remove(entity.EntityUID);
+            TargetedBy.Remove(entity.UID);
         }
-        else if (!TargetedBy.ContainsKey(entity.EntityUID) && targetted)
+        else if (!TargetedBy.ContainsKey(entity.UID) && targetted)
         {
-            TargetedBy.Add(entity.EntityUID, entity);
+            TargetedBy.Add(entity.UID, entity);
         }
     }
 
