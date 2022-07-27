@@ -9,6 +9,7 @@ public class Projectile : EntitySummon
         public float SpeedMultiplier;           // Used to change speed, relative to entity movement speed. 
         public float RotationPerSecond;         // Rotation speed.
         public float RotationY;                 // Rotation in angles, affected by rotation speed.
+        public string SkillID;                  // Skill to use.
         public float Timestamp;                 // Time at which the changes are applied, relative to the projectile spawning.
 
         public ProjectileState(ActionProjectile.ProjectileState sourceAction, float startTime)
@@ -16,6 +17,7 @@ public class Projectile : EntitySummon
             SpeedMultiplier = Random.Range(sourceAction.SpeedMultiplier.x, sourceAction.SpeedMultiplier.y);
             RotationPerSecond = Random.Range(sourceAction.RotationPerSecond.x, sourceAction.RotationPerSecond.y);
             RotationY = Random.Range(sourceAction.RotationY.x, sourceAction.RotationY.y);
+            SkillID = sourceAction.SkillID;
             Timestamp = sourceAction.Timestamp + startTime;
         }
     }
@@ -121,6 +123,11 @@ public class Projectile : EntitySummon
                             nextAction = ProjectileTimeline.Count > ActionIndex + 1 ? ProjectileTimeline[ActionIndex + 1] : null;
 
                             RotationY += currentAction.RotationY;
+
+                            if (currentAction.SkillID != null)
+                            {
+                                EntityBattle?.TryUseSkill(currentAction.SkillID, TargetEntity);
+                            }
                         }
                     }
 
@@ -204,11 +211,11 @@ public class Projectile : EntitySummon
                 // To do
                 break;
             }
-            case ActionProjectile.OnCollisionReaction.eReactionType.ExecuteActions:
+            case ActionProjectile.OnCollisionReaction.eReactionType.UseSkill:
             {
                 var target = entityHit;
 
-                StartCoroutine(reaction.Actions.ExecuteActions(this, target));
+                EntityBattle?.TryUseSkill(reaction.SkillID, target);
 
                 break;
             }

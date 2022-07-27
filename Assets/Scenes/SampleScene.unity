@@ -11498,7 +11498,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8711827123449261809, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
       propertyPath: EntityID
-      value: Player
+      value: Player Basic
       objectReference: {fileID: 0}
     - target: {fileID: 8711827123449261809, guid: f4f1d23163603d64d9c69caa50649c57, type: 3}
       propertyPath: EntitiesToTag.Array.size

@@ -836,6 +836,14 @@ public static class BattleGUI
                 }
                 break;
             }
+            case Action.eActionType.Cancel:
+            {
+                if (action is ActionCancel a)
+                {
+                    return Copy(a);
+                }
+                break;
+            }
             case Action.eActionType.CollectCost:
             {
                 if (action is ActionCostCollection a)
@@ -847,6 +855,14 @@ public static class BattleGUI
             case Action.eActionType.Destroy:
             {
                 if (action is ActionDestroy a)
+                {
+                    return Copy(a);
+                }
+                break;
+            }
+            case Action.eActionType.DoNothing:
+            {
+                if (action is ActionDoNothing a)
                 {
                     return Copy(a);
                 }
@@ -892,6 +908,22 @@ public static class BattleGUI
                 }
                 break;
             }
+            case Action.eActionType.SaveTransformInfo:
+            {
+                if (action is ActionSaveTransform a)
+                {
+                    return Copy(a);
+                }
+                break;
+            }
+            case Action.eActionType.SaveValue:
+            {
+                if (action is ActionSaveValue a)
+                {
+                    return Copy(a);
+                }
+                break;
+            }
             case Action.eActionType.SpawnEntity:
             {
                 if (action is ActionSummon a)
@@ -903,14 +935,6 @@ public static class BattleGUI
             case Action.eActionType.SetAnimation:
             {
                 if (action is ActionAnimationSet a)
-                {
-                    return Copy(a);
-                }
-                break;
-            }
-            case Action.eActionType.Cancel:
-            {
-                if (action is ActionCancel a)
                 {
                     return Copy(a);
                 }

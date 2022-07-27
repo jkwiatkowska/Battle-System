@@ -3030,9 +3030,9 @@ public class BattleSystemDataEditor : EditorWindow
                 continue;
             }
 
-            if (reactions[i].Reaction == ActionProjectile.OnCollisionReaction.eReactionType.ExecuteActions)
+            if (reactions[i].Reaction == ActionProjectile.OnCollisionReaction.eReactionType.UseSkill)
             {
-                EditActionTimeline(reactions[i].Actions, ref NewAction, ref ShowValues[i], "Projectile Action Timeline:", skillID, showIndex: 1500);
+                BattleGUI.SelectSkill(ref reactions[i].SkillID, "Skill:", Space);
             }
         }
 
@@ -3292,7 +3292,7 @@ public class BattleSystemDataEditor : EditorWindow
             area.InnerDimensions.x = inner.x;
             area.InnerDimensions.y = inner.z;
         }
-        if (area.Shape == ActionPayloadArea.Area.eShape.Cube || area.Shape == ActionPayloadArea.Area.eShape.Cylinder)
+        if (area.Shape == ActionPayloadArea.Area.eShape.Cylinder)
         {
             BattleGUI.EditFloat(ref area.Dimensions.z, "Height:", 100);
         }

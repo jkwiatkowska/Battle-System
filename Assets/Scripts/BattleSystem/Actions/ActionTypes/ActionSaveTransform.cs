@@ -27,6 +27,6 @@ public class ActionSaveTransform : Action
 
     public override void SetTypeDefaults()
     {
-        throw new System.NotImplementedException();
+        Transform = new TransformData();
     }
 }

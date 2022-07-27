@@ -20,16 +20,15 @@ public class ActionProjectile : ActionSummon
         {
             SelfDestruct,
             Bounce,
-            ExecuteActions
+            UseSkill,
         }
 
         public eReactionType Reaction;
-        public ActionTimeline Actions;
+        public string SkillID;
 
-        public OnCollisionReaction(eReactionType reaction = eReactionType.ExecuteActions)
+        public OnCollisionReaction(eReactionType reaction = eReactionType.UseSkill)
         {
             Reaction = reaction;
-            Actions = new ActionTimeline();
         }
     }
 
@@ -45,9 +44,9 @@ public class ActionProjectile : ActionSummon
         public Vector2 SpeedMultiplier;         // Used to change speed, relative to entity movement speed. If values are different, a value in between is chosen at random. 
         public Vector2 RotationPerSecond;       // Used to change rotation speed, can be a random value.
         public Vector2 RotationY;               // Rotation around the projectile's Y axis in angles, at the given rotation speed. Used by the free movement mode.
+        public string SkillID;                  // If not null, the projectile will attempt to use the skill with this ID.
         public float Timestamp;                 // Time at which the changes are applied, relative to the projectile spawning.
                                                 // If there are multiple entries, speed multiplier and direction from previous and next timestamp are interpolated.
-
 
         public ProjectileState()
         {

@@ -96,12 +96,12 @@ public class ActionPayloadArea : ActionPayload
                         }
 
                         // Check if the target is at the correct height
-                        var tBottom = tPos.y + Constants.Epsilon;
+                        var tBottom = tPos.y;
                         var tTop = tPos.y + t.EntityData.Height;
                         var areaBottom = areaPos.y;
                         var areaTop = areaPos.y + area.Dimensions.z;
 
-                        if (tBottom < areaBottom || tTop > areaTop)
+                        if (tTop < areaBottom || tBottom > areaTop)
                         {
                             continue;
                         }
@@ -172,7 +172,7 @@ public class ActionPayloadArea : ActionPayload
                     {
                         var t = potentialTargets[i];
                         var tPos2D = VectorUtility.RotateAroundPosition(VectorUtility.Get2DVector(t.Position), 
-                                     VectorUtility.Angle3D(areaForward), areaPos);
+                                     VectorUtility.Angle3D(areaForward), areaPos2D);
 
                         // Check if the target is at the correct height
                         var tBottom = t.Position.y;
@@ -180,7 +180,7 @@ public class ActionPayloadArea : ActionPayload
                         var areaBottom = areaPos.y;
                         var areaTop = areaPos.y + area.Dimensions.y;
 
-                        if (tBottom < areaBottom || tTop > areaTop)
+                        if (tTop < areaBottom || tBottom > areaTop)
                         {
                             continue;
                         }
