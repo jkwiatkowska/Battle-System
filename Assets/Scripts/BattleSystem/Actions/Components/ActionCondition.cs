@@ -85,7 +85,7 @@ public class ActionCondition
                     return false;
                 }
                 var v1 = Value.CalculateValue(valueInfo);
-                var v2 = Value.CalculateValue(valueInfo);
+                var v2 = ComparisonValue.CalculateValue(valueInfo);
                 result = v1 + Constants.Epsilon > v2;
                 break;
             }

@@ -18,7 +18,7 @@ public class MultiplierAttributeData
             IncomingMultipliers = new List<PayloadMultiplierSet>();
         }
 
-        public float GetMultiplier(Payload payloadInfo, List<string> payloadFlags, List<string> resultFlags)
+        public float GetMultiplier(Payload payloadInfo, List<string> payloadFlags, ref List<string> resultFlags)
         {
             var multiplier = 1.0f;
             var resultFlag = "";

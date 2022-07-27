@@ -120,6 +120,7 @@ public class ValueComponent
         RandomValue,
         SavedValue,
         ActionResultValue,
+        CasterSkillChargeRatio,
     }
 
     public enum eEntity
@@ -269,6 +270,17 @@ public class ValueComponent
             }
         }
 
+        // Charge ratio
+        if (ComponentType == eValueComponentType.CasterSkillChargeRatio)
+        {
+            var entityBattle = valueInfo?.Caster?.Entity?.EntityBattle;
+            if (entityBattle == null)
+            {
+                return 0.0f;
+            }
+            return Potency * entityBattle.SkillChargeRatio;
+        }
+
         //Distance
         if (ComponentType == eValueComponentType.DistanceFromTarget)
         {
@@ -330,7 +342,8 @@ public class ValueComponent
             eValueComponentType.DistanceFromTarget,
             eValueComponentType.SavedValue,
             eValueComponentType.RandomValue,
-            eValueComponentType.ActionResultValue
+            eValueComponentType.ActionResultValue,
+            eValueComponentType.CasterSkillChargeRatio
         },
         [eValueContext.ResourceSetup] = new List<eValueComponentType>()
         {

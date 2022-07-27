@@ -58,7 +58,7 @@ public class EntityCanvas : MonoBehaviour
 
     public void AddSkillChargeDisplay(SkillChargeProgress display)
     {
-        if (Entity.EntityBattle.SkillState == EntityBattle.eSkillState.SkillCharge)
+        if (Entity.EntityBattle.SkillState == EntityBattle.eSkillState.SkillCharge && display != null)
         {
             var data = Entity.EntityBattle.SkillCharge;
             display.StartCharge(data.RequiredChargeTime, data.FullChargeTime, Entity.EntityBattle.CurrentSkill.SkillID, Entity.EntityBattle.SkillStartTime);
@@ -69,7 +69,7 @@ public class EntityCanvas : MonoBehaviour
 
     public void RemoveSkillChargeDisplay(SkillChargeProgress display)
     {
-        display.gameObject.SetActive(false);
+        display?.gameObject.SetActive(false);
         SkillChargeDisplay.Remove(display);
     }
 

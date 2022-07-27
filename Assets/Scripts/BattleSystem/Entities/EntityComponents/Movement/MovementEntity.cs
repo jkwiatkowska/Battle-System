@@ -813,10 +813,10 @@ public class MovementEntity : MonoBehaviour
         float yDistance = Mathf.Abs(targetPosition.y - transform.position.y);
         float tanAlpha = Mathf.Tan(angle * Mathf.Deg2Rad);
 
-        float zSpeed = Mathf.Sqrt(GravitationalForce * gravityMultiplier * xzDistance * xzDistance / (2.0f * (yDistance - xzDistance * tanAlpha)));
+        float zSpeed = Mathf.Sqrt(GravitationalForce * gravityMultiplier * xzDistance * xzDistance / (2.0f * (yDistance - xzDistance * tanAlpha))); 
         if (float.IsNaN(zSpeed))
         {
-            Debug.Log("zSpeed is not a number.");
+            Debug.Log("zSpeed is not a number. Gravitational force should be less than 0.");
             return Vector3.zero;
         }
         float ySpeed = tanAlpha * zSpeed;

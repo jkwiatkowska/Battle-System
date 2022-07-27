@@ -46,7 +46,7 @@ public class EntitySummon : Entity
         {
             base.Update();
 
-            if (SummonAction != null && SummonAction.SummonDuration > 0 && SummonTime + SummonAction.SummonDuration < BattleSystem.Time)
+            if (SummonAction != null && SummonAction.SummonDuration > Constants.Epsilon && SummonTime + SummonAction.SummonDuration < BattleSystem.Time)
             {
                 OnDeath();
                 return;

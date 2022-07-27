@@ -207,10 +207,10 @@ public class EntitySkillsData
         public string SkillID;
         public KeyCode KeyCode;
         public bool HoldToCharge;
-
+        public bool AllowContinuousCast;
         public InputSkill()
         {
-            HoldToCharge = true;
+
         }
 
         public InputSkill(string skill) : this()

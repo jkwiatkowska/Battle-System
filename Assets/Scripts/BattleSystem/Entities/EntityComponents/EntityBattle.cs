@@ -265,7 +265,7 @@ public class EntityBattle
                     }
                 }
 
-                if (Input.GetKeyDown(skill.KeyCode))
+                if (Input.GetKeyDown(skill.KeyCode) || (skill.AllowContinuousCast && Input.GetKey(skill.KeyCode)))
                 {
                     TryUseSkill(skill.SkillID);
                     return;

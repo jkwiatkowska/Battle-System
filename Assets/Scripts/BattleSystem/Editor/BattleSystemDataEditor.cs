@@ -2423,6 +2423,9 @@ public class BattleSystemDataEditor : EditorWindow
         {
             BattleGUI.EditBool(ref skill.HoldToCharge, "Hold to Charge", makeHorizontal: false);
         }
+
+        BattleGUI.EditBool(ref skill.AllowContinuousCast, "Continuous Cast", makeHorizontal: false);
+
         EditorGUILayout.EndHorizontal();
         BattleGUI.EndIndent();
 
@@ -2939,11 +2942,11 @@ public class BattleSystemDataEditor : EditorWindow
         BattleGUI.EditEnum(ref newMode, "Projectile Movement Mode:", Space + 70);
         if (a.ProjectileMovementMode != newMode)
         {
-            if (newMode == ActionProjectile.eProjectileMovementMode.Homing)
+            if (newMode == ActionProjectile.eProjectileMovementMode.Arched)
             {
                 a.Gravity = Constants.Gravity;
             }
-            else if (a.ProjectileMovementMode == ActionProjectile.eProjectileMovementMode.Homing)
+            else
             {
                 a.Gravity = 0.0f;
             }
@@ -3100,6 +3103,21 @@ public class BattleSystemDataEditor : EditorWindow
         {
             BattleGUI.EditVector2(ref state.RotationY, "Rotate By Degrees (Random between X and Y):");
         }
+        var skill = state.SkillID != null;
+        BattleGUI.EditBool(ref skill, "Cast Skill");
+        if (skill)
+        {
+            if (state.SkillID == null)
+            {
+                state.SkillID = "";
+            }
+
+            BattleGUI.SelectSkill(ref state.SkillID, "Skill: ", Space, makeHorizontal: true);
+        }
+        else
+        {
+            state.SkillID = null;
+        }    
         BattleGUI.EndIndent();
     }   
     #endregion
@@ -4662,6 +4680,7 @@ public class BattleSystemDataEditor : EditorWindow
         }
 
         BattleGUI.Label(" Value:", 43);
+
         if (editPotency)
         {
             BattleGUI.EditFloat(ref component.Potency, "", 70, makeHorizontal: false);
@@ -4697,6 +4716,10 @@ public class BattleSystemDataEditor : EditorWindow
         else if (component.ComponentType == ValueComponent.eValueComponentType.SavedValue)
         {
             BattleGUI.EditString(ref component.StringValue, "x Saved Value: ", 100, makeHorizontal: false);
+        }
+        else if (component.ComponentType == ValueComponent.eValueComponentType.CasterSkillChargeRatio)
+        {
+            BattleGUI.Label("x Charge Ratio", 1000);
         }
 
         var result = BattleGUI.eReturnResult.None;

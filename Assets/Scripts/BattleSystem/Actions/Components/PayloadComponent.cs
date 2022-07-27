@@ -108,7 +108,7 @@ public class PayloadResourceChange : PayloadComponent
             case eChangeType.Damage:
             {
                 // Attribute multipliers
-                var attributeMultiplier = BattleData.Multipliers.DamageMultipliers.GetMultiplier(payload, Flags, result.ResultFlags);
+                var attributeMultiplier = BattleData.Multipliers.DamageMultipliers.GetMultiplier(payload, Flags, ref result.ResultFlags);
                 value *= attributeMultiplier;
 
                 // Keep track of value
@@ -122,7 +122,7 @@ public class PayloadResourceChange : PayloadComponent
             case eChangeType.Recovery:
             {
                 // Attribute multipliers
-                var attributeMultiplier = BattleData.Multipliers.RecoveryMultipliers.GetMultiplier(payload, Flags, result.ResultFlags);
+                var attributeMultiplier = BattleData.Multipliers.RecoveryMultipliers.GetMultiplier(payload, Flags, ref result.ResultFlags);
                 value *= attributeMultiplier;
 
                 // Keep track of value

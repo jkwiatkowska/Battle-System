@@ -101,7 +101,7 @@ public static class NamesAndText
 
         text += $"{Mathf.Round(change)} {ResourceName(resource)}";
 
-        var flags = resourceChange?.Flags;
+        var flags = payloadResult?.ResultFlags;
         if (flags.Contains("critical"))
         {
             text += '!';

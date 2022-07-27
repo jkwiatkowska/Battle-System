@@ -1455,10 +1455,13 @@ public void UpdateID(string entityID)
     {
         foreach (var source in TagsAppliedBy)
         {
-            var entity = BattleSystem.Entities[source.Key];
-            foreach (var tag in source.Value)
+            if (BattleSystem.Entities.ContainsKey(source.Key))
             {
-                entity.RemoveTagOnEntity(tag, this, true);
+                var entity = BattleSystem.Entities[source.Key];
+                foreach (var tag in source.Value)
+                {
+                    entity.RemoveTagOnEntity(tag, this, true);
+                }
             }
             source.Value.Clear();
         }
@@ -1505,10 +1508,13 @@ public void UpdateID(string entityID)
             SummonedEntities.Add(summonAction.EntityID, new List<EntitySummon>());
         }
 
-        while (SummonedEntities[summonAction.EntityID].Count >= summonAction.SummonLimit)
+        if (summonAction.SummonLimit > 0)
         {
-            var entityToRemove = SummonedEntities[summonAction.EntityID][0];
-            entityToRemove.OnDeath();
+            while (SummonedEntities[summonAction.EntityID].Count >= summonAction.SummonLimit)
+            {
+                var entityToRemove = SummonedEntities[summonAction.EntityID][0];
+                entityToRemove.OnDeath();
+            }
         }
 
         SummonedEntities[summonAction.EntityID].Add(entity);

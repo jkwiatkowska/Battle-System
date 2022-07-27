@@ -70,7 +70,10 @@ public class Projectile : EntitySummon
             case ActionProjectile.eTarget.Target:
             {
                 TargetEntity = target;
-                TargetPosition = TargetEntity.Origin;
+                if (TargetEntity != null)
+                {
+                    TargetPosition = TargetEntity.Origin;
+                }
                 break;
             }
             default:
@@ -170,6 +173,7 @@ public class Projectile : EntitySummon
 
                         var movement = MovementEntity.GetMovementAmount(this, Time.fixedDeltaTime, speedMultiplier) * RelativePosition.normalized;
                         RelativePosition += movement;
+                        RelativePosition.y = previousPos.y;
 
                         transform.position = TargetPosition + RelativePosition;
                         transform.RotateAround(TargetPosition, Vector3.up, rotationPerSecond * Time.deltaTime);
@@ -265,5 +269,9 @@ public class Projectile : EntitySummon
     {
         base.OnCollisionTerrain(collider);
 
+        foreach (var reaction in ProjectileData.OnTerrainHit)
+        {
+            ProjectileReaction(reaction);
+        }
     }
 }
