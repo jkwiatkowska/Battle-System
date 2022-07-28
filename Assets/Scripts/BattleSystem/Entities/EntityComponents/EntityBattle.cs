@@ -193,9 +193,12 @@ public class EntityBattle
             }
             case eSkillState.SkillCharge:
             {
-                if (SkillCharge != null && SkillCharge.MovementCancelsCharge)
+                if (SkillCharge != null)
                 {
-                    ChargeCancelled = true;
+                    if (SkillCharge.MovementCancelsCharge)
+                    {
+                        ChargeCancelled = true;
+                    }
                 }
                 return;
             }
@@ -637,9 +640,15 @@ public class EntityBattle
 
         bool chargeComplete;
         var fullChargeTime = SkillCharge.FullChargeTimeForEntity(Entity);
+        var checkLineOfSight = skillData.NeedsTarget && skillData.RequireLineOfSight;
         do
         {
             chargeComplete = BattleSystem.Time > (SkillStartTime + fullChargeTime);
+
+            if (checkLineOfSight && !LineOfSightCheck(CurrentSkill, Target))
+            {
+                ChargeCancelled = true;
+            }
             yield return null;
         }
         while (!chargeComplete && !ChargeCancelled);
@@ -663,6 +672,7 @@ public class EntityBattle
             SkillCharge = null;
             CurrentSkill = null;
             Entity.StopCoroutine(SkillCoroutine);
+            SetIdle();
         }
         yield return null;
     }
@@ -829,7 +839,14 @@ public class EntityBattle
         }
 
         // Check if target is in angle range
-        var angle = Vector3.Angle(Entity.transform.forward, (target.Position - Entity.Position).normalized);
+        var forward = Entity.transform.forward;
+        forward.y = 0.0f;
+
+        var dir = (target.Position - Entity.Position);
+        dir.y = 0.0f;
+        dir.Normalize();
+
+        var angle = Vector3.Angle(forward, dir);
         return angle <= maxAngle + Constants.Epsilon;
     }
 
