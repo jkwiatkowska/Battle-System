@@ -145,12 +145,24 @@ public class EntityBattle
 
     public void DisengageAll()
     {
+        if (EngagedEntities == null || EngagedEntities.Count == 0)
+        {
+            return;
+        }
+
+        var entities = new List<Entity>();
+
         foreach (var entity in EngagedEntities)
         {
-            if (entity.Value != null)
+            if (entity.Value?.Entity != null)
             {
-                entity.Value.Entity.EntityBattle.Disengage(Entity.UID);
+                entities.Add(entity.Value.Entity);
             }
+        }
+        for (int i = entities.Count - 1; i >= 0; i--)
+        {
+            var entity = entities[i];
+            entity.EntityBattle?.Disengage(Entity.UID);
         }
     }
 
@@ -281,8 +293,7 @@ public class EntityBattle
                 RefreshTimer -= Time.deltaTime;
                 if (RefreshTimer < 0.0f)
                 {
-                    Targeting.SelectTarget(Targeting.GetBestEnemy(Action.eTargetState.Alive, engagedOnly: true));
-                    RefreshTimer = Constants.EntityRefreshRate;
+                    UpdateTarget(true);
                 }
             }
 
@@ -352,6 +363,12 @@ public class EntityBattle
                 }
             }
         }
+    }
+
+    public virtual void UpdateTarget(bool engagedOnly = true)
+    {
+        Targeting.SelectTarget(Targeting.GetBestEnemy(Action.eTargetState.Alive, engagedOnly: engagedOnly));
+        RefreshTimer = Constants.EntityRefreshRate;
     }
 
     public virtual bool TryUseSkill(string skillID, Entity target = null)
@@ -485,10 +502,18 @@ public class EntityBattle
 
     protected virtual bool GetInPosition()
     {
-        // Returns false if the skill can no longer be used
+        if (!Entity.Alive)
+        {
+            return false;
+        }
+
         var target = Targeting.SelectedTarget;
         if (target == null)
         {
+            if (SkillState == eSkillState.SkillPrepare)
+            {
+                SetIdle();
+            }
             return false;
         }
 

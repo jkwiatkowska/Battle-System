@@ -10,6 +10,8 @@ public class ActionCondition
         ValueCompare,                               // Compares two values.
         CasterHasStatusEffect,
         TargetHasStatusEffect,
+        CasterFaction,
+        TargetFaction,
     }
 
     public eActionCondition Condition;
@@ -112,7 +114,35 @@ public class ActionCondition
                 }
                 else
                 {
+                    Debug.LogError($"Target is null.");
+                }
+
+                break;
+            }
+            case eActionCondition.CasterFaction:
+            {
+                if (valueInfo?.Caster?.Entity != null)
+                {
+                    var faction = valueInfo?.Caster?.Entity?.Faction;
+                    result = faction == StringValue;
+                }
+                else
+                {
                     Debug.LogError($"Caster is null.");
+                }
+
+                break;
+            }
+            case eActionCondition.TargetFaction:
+            {
+                if (valueInfo?.Target?.Entity != null)
+                {
+                    var faction = valueInfo?.Target?.Entity?.Faction;
+                    result = faction == StringValue;
+                }
+                else
+                {
+                    Debug.LogError($"Target is null.");
                 }
 
                 break;

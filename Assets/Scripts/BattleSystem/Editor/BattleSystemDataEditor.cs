@@ -2459,8 +2459,9 @@ public class BattleSystemDataEditor : EditorWindow
                 var value = dict[attribute];
 
                 GUILayout.BeginHorizontal();
-                BattleGUI.EditFloat(ref value.x, $"Min {attribute}:", 130, makeHorizontal: false);
-                BattleGUI.EditFloat(ref value.y, $"Max {attribute}:", 130, makeHorizontal: false);
+                BattleGUI.Label(attribute, Space);
+                BattleGUI.EditFloat(ref value.x, $"Min:", 40, makeHorizontal: false);
+                BattleGUI.EditFloat(ref value.y, $"Max:", 40, makeHorizontal: false);
 
                 if (keys[i] != attribute && !dict.ContainsKey(attribute))
                 {
@@ -3237,6 +3238,11 @@ public class BattleSystemDataEditor : EditorWindow
         {
             EditStatusRequirement(ref condition.StringValue, ref condition.MinStacks, ref condition.MaxStacks);
         }
+        else if (condition.Condition == ActionCondition.eActionCondition.CasterFaction ||
+                 condition.Condition == ActionCondition.eActionCondition.TargetFaction)
+        {
+            BattleGUI.SelectFaction(ref condition.StringValue, "Faction:", makeHorizontal: true);
+        }
 
         var hasAndCondition = condition.AndCondition != null;
         BattleGUI.EditBool(ref hasAndCondition, "AND Condition");
@@ -4006,7 +4012,9 @@ public class BattleSystemDataEditor : EditorWindow
             GUILayout.BeginHorizontal();
             if (BattleGUI.Button("Add New Payload", Space))
             {
-                list.Add(new IntervalPayload());
+                var newPayload = new IntervalPayload();
+                list.Add(newPayload);
+                editorPayloads.Add(new EditorPayload(newPayload.Payload));
             }
             GUILayout.EndHorizontal();
 

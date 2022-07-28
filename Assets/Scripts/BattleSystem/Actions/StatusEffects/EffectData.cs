@@ -197,7 +197,7 @@ public class EffectConvert : EffectData
 
     public override void Remove(string statusID, string casterUID, int effectIndex, Entity target, bool endStatus = false)
     {
-        target.RemoveConversion();
+        target.RemoveConversion(casterUID);
 
         if (endStatus & EndStatusOnEffectEnd)
         {

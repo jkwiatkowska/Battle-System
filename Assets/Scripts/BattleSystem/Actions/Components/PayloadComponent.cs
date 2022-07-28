@@ -83,11 +83,6 @@ public class PayloadResourceChange : PayloadComponent
         var target = payload.Target.Entity;
         var targetData = target.EntityData;
 
-        if ((ChangeType == eChangeType.Damage || ChangeType == eChangeType.Recovery) && (value < Constants.Epsilon && value > -Constants.Epsilon))
-        {
-            return result; // No change. 
-        }
-
         // Category multiplier
         var categoryMultiplier = 1.0f;
         if (EntityCategoryMult != null && targetData.Categories != null && targetData.Categories.Count > 0)
@@ -151,8 +146,9 @@ public class PayloadResourceChange : PayloadComponent
         // Aggro
         if (Aggro != null && payload.Caster.Entity != null && payload.Caster.Entity.Alive)
         {
-            var mult = MultiplyAggroByPayloadValue ? -value : 1.0f;
-            target.EntityBattle.ChangeAggro(payload.Caster.Entity, Aggro.GetAggroChange(valueInfo, mult));
+            var mult = MultiplyAggroByPayloadValue ? value : 1.0f;
+            var aggro = Aggro.GetAggroChange(valueInfo, mult);
+            target.EntityBattle.ChangeAggro(payload.Caster.Entity, aggro);
         }
 
         // Reset ignored attributes

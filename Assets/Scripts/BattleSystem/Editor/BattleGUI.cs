@@ -175,12 +175,6 @@ public static class BattleGUI
         }
 
         StartIndent();
-        if (options == null || options.Count < 1)
-        {
-            Label("(No options)");
-            EndIndent();
-            return;
-        }
 
         var keys = dictionary.Keys.ToList();
         for (int i = 0; i < keys.Count; i++)
@@ -206,7 +200,7 @@ public static class BattleGUI
             GUILayout.EndHorizontal();
         }
 
-        if (options.Count > 0)
+        if (options != null && options.Count > 0)
         {
             GUILayout.BeginHorizontal();
             SelectStringFromList(ref newElement, options, addLabel, addWidth, 150, false);

@@ -27,13 +27,9 @@ public class EntitySummon : Entity
         SummonerFaction = summoner.Faction;
         SummonTime = BattleSystem.Time;
 
-        foreach (var attribute in BattleData.EntityAttributes)
+        foreach (var attribute in SummonAction.SharedAttributes)
         {
-            if (SummonAction.SharedAttributes.ContainsKey(attribute))
-            {
-                BaseAttributes[attribute] = SummonAction.SharedAttributes[attribute] *
-                                            Summoner.Attribute(attribute, payload: null, action, statusID: null);
-            }
+            BaseAttributes[attribute.Key] = attribute.Value * Summoner.Attribute(attribute.Key, payload: null, action, statusID: null);
         }
 
         SetupResourcesMax();
@@ -136,39 +132,36 @@ public class EntitySummon : Entity
     public override void OnPayloadComponentApplied(PayloadComponentResult payloadResult)
     {
         base.OnPayloadComponentApplied(payloadResult);
-        Summoner.OnPayloadComponentApplied(payloadResult);
+        Summoner?.OnPayloadComponentApplied(payloadResult);
     }
 
     public override void OnStatusApplied(Entity target, string statusName)
     {
         base.OnStatusApplied(target, statusName);
-        Summoner.OnStatusApplied(target, statusName);
+        Summoner?.OnStatusApplied(target, statusName);
     }
 
     public override void OnStatusClearedOutgoing(Entity target, string statusName)
     {
         base.OnStatusClearedOutgoing(target, statusName);
-        Summoner.OnStatusClearedOutgoing(target, statusName);
+        Summoner?.OnStatusClearedOutgoing(target, statusName);
     }
 
     public override void OnKill(PayloadComponentResult payloadResult = null, string statusID = "")
     {
         base.OnKill(payloadResult, statusID);
-        Summoner.OnKill(payloadResult, statusID);
+        Summoner?.OnKill(payloadResult, statusID);
     }
 
     public override void OnDeath(Entity source = null, PayloadComponentResult payloadResult = null)
     {
         base.OnDeath(source, payloadResult);
-        if (Summoner != null)
-        {
-            Summoner.RemoveSummonedEntity(this);
-        }
+        Summoner?.RemoveSummonedEntity(this);
     }
 
     protected override void OnSpawn()
     {
-        OnTrigger(TriggerData.eTrigger.OnSpawn, triggerSource: Summoner);
+        base.OnSpawn();
     }
     #endregion
 

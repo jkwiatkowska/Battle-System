@@ -243,7 +243,6 @@ public void UpdateID(string entityID)
         }
 
         SetupComplete = true;
-        OnTrigger(TriggerData.eTrigger.OnSpawn, source == null ? this : source);
 
         // Saved values
         SavedValues = new Dictionary<string, SavedValue>();
@@ -271,6 +270,7 @@ public void UpdateID(string entityID)
         yield return null;
 
         TargetingSystem.UpdateEntityLists();
+        OnSpawn();
     }
 
     protected virtual void Start()
@@ -600,7 +600,7 @@ public void UpdateID(string entityID)
     #region Life Triggers
     protected virtual void OnSpawn()
     {
-        OnTrigger(TriggerData.eTrigger.OnSpawn);
+        OnTrigger(TriggerData.eTrigger.OnSpawn, SummoningEntity);
     }
 
     public virtual void OnDeath(Entity source = null, PayloadComponentResult payloadResult = null)
@@ -992,11 +992,17 @@ public void UpdateID(string entityID)
     public void Convert(string faction)
     {
         FactionOverride = faction;
+        EntityBattle.DisengageAll();
+        EntityBattle.UpdateTarget(false);
     }
 
-    public void RemoveConversion()
+    public void RemoveConversion(string casterUID)
     {
         FactionOverride = "";
+        if (BattleSystem.Entities.TryGetValue(casterUID, out var caster))
+        {
+            EntityBattle.Engage(caster);
+        }
     }
     #endregion
 
@@ -1571,6 +1577,7 @@ public void UpdateID(string entityID)
         foreach (var resource in EntityData.Resources)
         {
             ResourcesCurrent.Add(resource.Key, Formulae.ResourceMaxValue(EntityInfo, resource.Key));
+            EntityCanvas?.UpdateResourceDisplay(resource.Key);
         }
     }
 

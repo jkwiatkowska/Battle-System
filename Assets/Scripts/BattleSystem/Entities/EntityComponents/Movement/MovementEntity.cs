@@ -31,7 +31,7 @@ public class MovementEntity : MonoBehaviour
 
     public virtual bool InitiateMovement(PayloadMovement movement, Entity caster = null, Entity target = null, bool isSkill = false)
     {
-        if (movement.InterruptionLevel > Constants.Epsilon && movement.InterruptionLevel > Formulae.EntityInterruptResistance(Entity))
+        if (movement.InterruptionLevel > Constants.Epsilon && movement.InterruptionLevel <= Formulae.EntityInterruptResistance(Entity))
         {
             return false;
         }
