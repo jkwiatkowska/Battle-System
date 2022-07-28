@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3108654683262756363}
   - component: {fileID: 3108654683262756360}
   - component: {fileID: 2083106597391733920}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -108,7 +108,7 @@ GameObject:
   - component: {fileID: 3183686117483709361}
   - component: {fileID: 2890293276754852566}
   - component: {fileID: 4804025535909027352}
-  m_Layer: 6
+  m_Layer: 2
   m_Name: Sea-Dyed Foam
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 824082488262283745}
   - component: {fileID: 824082488262283746}
   - component: {fileID: 4369402271365849930}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -108,7 +108,7 @@ GameObject:
   - component: {fileID: 893168449745908827}
   - component: {fileID: 601213186219789628}
   - component: {fileID: 7124907483046750706}
-  m_Layer: 6
+  m_Layer: 2
   m_Name: Bullet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -142,7 +142,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa7c293db079b134db9beeea1d5a2874, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  EntityID: 
+  EntityLevel: 1
   EntitiesToTag: []
+  SavedTransformsList: []
   TriggerCollider: {fileID: 4369402271365849930}
 --- !u!114 &893168449745908827
 MonoBehaviour:
@@ -168,8 +171,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25ea60739dda0a34a9b47451c3749605, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IgnoreVelocity: 0
   GroundCheckSphereRadius: 0
-  IsRunning: 0
 --- !u!54 &7124907483046750706
 Rigidbody:
   m_ObjectHideFlags: 0

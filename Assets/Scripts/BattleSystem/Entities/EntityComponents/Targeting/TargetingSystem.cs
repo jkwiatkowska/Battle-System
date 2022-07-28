@@ -264,8 +264,10 @@ public class TargetingSystem : MonoBehaviour
 
     public bool IsInLineOfSight(Entity target)
     {
+        
         var dir = target.Origin - Entity.Origin;
-        if (Physics.Raycast(Entity.Origin, dir.normalized, out var hit))
+        var ray = new Ray(Entity.Origin, dir);
+        if (Physics.Raycast(ray: ray, out var hit, float.PositiveInfinity, BattleSystem.Instance.RaycastLayers))
         {
             var entityHit = hit.collider.gameObject.GetComponentInParent<Entity>();
             return entityHit == target;

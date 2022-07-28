@@ -6112,6 +6112,9 @@ MonoBehaviour:
   TerrainLayers:
     serializedVersion: 2
     m_Bits: 8
+  RaycastLayers:
+    serializedVersion: 2
+    m_Bits: 200
 --- !u!1 &1000980724
 GameObject:
   m_ObjectHideFlags: 0

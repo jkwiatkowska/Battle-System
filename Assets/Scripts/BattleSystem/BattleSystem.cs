@@ -7,6 +7,7 @@ public class BattleSystem : MonoBehaviour
     [SerializeField] TextAsset BattleDataTextAsset;
     public static BattleSystem Instance                         { get; private set; }
     public LayerMask TerrainLayers;
+    public LayerMask RaycastLayers;
 
     public static Dictionary<string, Entity> Entities           { get; private set; }
     public static List<Entity> TargetableEntities               { get; private set; }
