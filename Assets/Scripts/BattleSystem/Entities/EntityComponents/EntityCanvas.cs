@@ -61,8 +61,11 @@ public class EntityCanvas : MonoBehaviour
         if (Entity.EntityBattle.SkillState == EntityBattle.eSkillState.SkillCharge && display != null)
         {
             var data = Entity.EntityBattle.SkillCharge;
-            display.StartCharge(data.RequiredChargeTime, data.FullChargeTime, Entity.EntityBattle.CurrentSkill.SkillID, Entity.EntityBattle.SkillStartTime);
-            display.gameObject.SetActive(true);
+            if (data != null)
+            {
+                display.StartCharge(data.RequiredChargeTime, data.FullChargeTime, Entity.EntityBattle.CurrentSkill.SkillID, Entity.EntityBattle.SkillStartTime);
+                display.gameObject.SetActive(true);
+            }
         }
         SkillChargeDisplay.Add(display);
     }

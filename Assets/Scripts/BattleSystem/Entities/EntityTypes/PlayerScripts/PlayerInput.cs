@@ -5,12 +5,18 @@ using UnityEngine;
 public class PlayerInput : MonoBehaviour
 {
     [SerializeField] EntityPlayer Player;
-    [SerializeField] float InputCooldown = 0.25f;
     PlayerCamera PlayerCamera;
     MovementPlayer PlayerMovement;
     TargetingSystemPlayer PlayerTargetingSystem;
 
-    float LastInput;
+    Dictionary<KeyCode, string> SkillSets = new Dictionary<KeyCode, string>()
+    {
+        [KeyCode.F1] = "Player Skills",
+        [KeyCode.F2] = "Player Status Effects",
+        [KeyCode.F3] = "Player Skills 2",
+        [KeyCode.F4] = "Player Advanced Skills",
+        [KeyCode.F5] = "Player Noelle",
+    };
 
     void Awake()
     {
@@ -57,6 +63,8 @@ public class PlayerInput : MonoBehaviour
             Debug.Break();
         }
 
+        SkillSetChange();
+
 #if UNITY_EDITOR
         if (Input.GetKey(KeyCode.Escape))
         {
@@ -68,6 +76,20 @@ public class PlayerInput : MonoBehaviour
     void FixedUpdate()
     {
         PlayerMovementControls();
+    }
+
+    void SkillSetChange()
+    {
+        foreach (var set in SkillSets)
+        {
+            if (Input.GetKey(set.Key))
+            {
+                Player.OnDeath();
+
+                MessageHUD.Instance.DisplayMessage($"Skill Set: [{set.Value}]", Color.cyan);
+                Player.Setup(set.Value, Player.Level);
+            }
+        }
     }
 
     void PlayerMovementControls()
@@ -103,7 +125,7 @@ public class PlayerInput : MonoBehaviour
 
     void OnInput()
     {
-        LastInput = BattleSystem.Time + InputCooldown;
+        
     }
 
 }
