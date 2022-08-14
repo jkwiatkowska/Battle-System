@@ -17,7 +17,7 @@ public class EntityEditor : Editor
     bool ShowStatusEffects = false;
     bool ShowTriggers = false;
     bool ShowEngagedEntities = false;
-    bool ShowSkills = false;
+    protected bool ShowSkills = false;
 
     string StatusEffect;
     string Skill;
@@ -216,7 +216,7 @@ public class EntityEditor : Editor
         }
     }
 
-    void DisplaySkills(Entity entity)
+    protected virtual void DisplaySkills(Entity entity)
     {
         if (BattleGUI.EditFoldout(ref ShowSkills, "Skills"))
         {
@@ -348,5 +348,26 @@ public class EntityPlayerEditor : EntityEditor
     protected override void SelectEntity(Entity entity)
     {
         SelectEntity(entity, EntityData.eEntityType.Entity);
+    }
+
+    protected override void DisplaySkills(Entity entity)
+    {
+        base.DisplaySkills(entity);
+
+        if (ShowSkills)
+        {
+            var skills = entity?.EntityData?.Skills?.InputSkills;
+
+            if (skills != null && skills.Count > 0)
+            {
+                BattleGUI.StartIndent();
+                foreach (var skill in skills)
+                {
+                    var text = $"[{skill.KeyCode}] {skill.SkillID}";
+                    BattleGUI.Label(text);
+                }
+                BattleGUI.EndIndent();
+            }
+        }
     }
 }

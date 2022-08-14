@@ -1251,6 +1251,7 @@ public class BattleSystemDataEditor : EditorWindow
         }
     }
 
+    string SkillSearch = "";
     void EditSkills()
     {
         ShowSkillData = EditorGUILayout.Foldout(ShowSkillData, "Skills");
@@ -1262,8 +1263,14 @@ public class BattleSystemDataEditor : EditorWindow
             }
 
             BattleGUI.StartIndent();
+            BattleGUI.EditString(ref SkillSearch, "Search: ", 50, 250);
             for (int i = 0; i < Skills.Count; i++)
             {
+                if (!string.IsNullOrEmpty(SkillSearch) && !Skills[i].SkillID.Contains(SkillSearch))
+                {
+                    continue;
+                }
+
                 GUILayout.BeginHorizontal();
                 BattleGUI.Label("", 10);
                 var skill = Skills[i];
@@ -1509,6 +1516,7 @@ public class BattleSystemDataEditor : EditorWindow
         }
     }
 
+    string StatusSearch = "";
     void EditStatusEffects()
     {
         ShowStatusEffects = EditorGUILayout.Foldout(ShowStatusEffects, "Status Effects");
@@ -1520,9 +1528,16 @@ public class BattleSystemDataEditor : EditorWindow
             }
 
             BattleGUI.StartIndent();
+
+            BattleGUI.EditString(ref StatusSearch, "Search: ", 50, 250);
             for (int i = 0; i < StatusEffects.Count; i++)
             {
                 var status = StatusEffects[i];
+                if (!string.IsNullOrEmpty(StatusSearch) && !status.ID.Contains(StatusSearch))
+                {
+                    continue;
+                }
+
                 if (BattleGUI.EditFoldout(ref status.Show, status.Data.StatusID))
                 {
                     BattleGUI.EditorDrawLine();
@@ -1989,6 +2004,7 @@ public class BattleSystemDataEditor : EditorWindow
         BattleGUI.EditorDrawLine();
     }
 
+    string EntitySearch = "";
     void EditEntities()
     {
         ShowEntities = EditorGUILayout.Foldout(ShowEntities, "Entities");
@@ -2000,9 +2016,17 @@ public class BattleSystemDataEditor : EditorWindow
             }
 
             BattleGUI.StartIndent();
+
+            BattleGUI.EditString(ref EntitySearch, "Search: ", 50, 250);
+
             for (int i = 0; i < BattleData.Entities.Count; i++)
             {
                 var entity = Entities[i];
+
+                if (!string.IsNullOrEmpty(EntitySearch) && !entity.EntityID.Contains(EntitySearch))
+                {
+                    continue;
+                }
 
                 entity.ShowEntity = EditorGUILayout.Foldout(entity.ShowEntity, entity.EntityID);
                 if (entity.ShowEntity)
@@ -4470,6 +4494,26 @@ public class BattleSystemDataEditor : EditorWindow
             }
             case TriggerData.TriggerCondition.eConditionType.TriggerSourceIsFriend:
             {
+                break;
+            }
+            case TriggerData.TriggerCondition.eConditionType.TriggerSourceHasTag:
+            {
+                BattleGUI.EditString(ref condition.StringValue, "Tag:", Space, Space);
+                break;
+            }
+            case TriggerData.TriggerCondition.eConditionType.TriggerSourceHasTagFromEntity:
+            {
+                BattleGUI.EditString(ref condition.StringValue, "Tag:", Space, Space);
+                break;
+            }
+            case TriggerData.TriggerCondition.eConditionType.EntityHasTag:
+            {
+                BattleGUI.EditString(ref condition.StringValue, "Tag:", Space, Space);
+                break;
+            }
+            case TriggerData.TriggerCondition.eConditionType.EntityHasTagFromTriggerSource:
+            {
+                BattleGUI.EditString(ref condition.StringValue, "Tag:", Space, Space);
                 break;
             }
             case TriggerData.TriggerCondition.eConditionType.EntitiesEngagedMin:

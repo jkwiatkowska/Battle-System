@@ -187,7 +187,7 @@ public static class Formulae
     {
         var height = entity.EntityData.Movement.JumpHeight;
 
-        foreach (var multiplier in BattleData.Multipliers.InterruptResistanceMultipliers)
+        foreach (var multiplier in BattleData.Multipliers.JumpHeightMultipliers)
         {
             multiplier.ApplyMultiplier(entity, ref height);
         }
