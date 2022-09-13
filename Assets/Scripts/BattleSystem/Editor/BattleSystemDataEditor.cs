@@ -4592,7 +4592,7 @@ public class BattleSystemDataEditor : EditorWindow
     void SelectActionValueKey(ref string key, string label, int labelWidth)
     {
         var options = new List<string>();
-        options.Add("");
+        options.Add("all");
         options.Add("cost");
         foreach (var payloadCat in BattleData.PayloadCategories)
         {

@@ -653,6 +653,11 @@ public class EntityBattle
         }
         while (!chargeComplete && !ChargeCancelled);
 
+        if (SkillChargeCoroutine != null)
+        {
+            Entity.StopCoroutine(SkillChargeCoroutine);
+        }
+
         if (Entity.EntityCanvas != null && SkillCharge.ShowUI)
         {
             Entity.EntityCanvas.StopSkillCharge();

@@ -160,6 +160,12 @@ public abstract class ActionPayload : Action
                         }
                         actionResults[ActionID].Values[cat] += result.ResultValue;
                     }
+
+                    if (!actionResults[ActionID].Values.ContainsKey("all"))
+                    {
+                        actionResults[ActionID].Values["all"] = 0.0f;
+                    }
+                    actionResults[ActionID].Values["all"] += result.ResultValue;
                 }
             }
         }
